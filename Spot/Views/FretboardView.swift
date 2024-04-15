@@ -17,18 +17,14 @@ struct FretboardView: View {
     
     let markerSize: CGFloat = 30.0
     
+    let fretboard = getNotesForTuning(tuning: [.E, .A, .D, .G, .B, .E], frets: 24)
+    
     var body: some View {
         GeometryReader { geometry in
             let width = geometry.size.width
             let height = geometry.size.height
             let stringSpacing = height / CGFloat(numberOfStrings + 1)
             let fretSpacing = width / CGFloat(numberOfFrets + 1)
-            
-//            Path { path in
-//                // Draw fretboard
-//                path.addRect(CGRect(x: 0, y: 0, width: width, height: height))
-//            }
-//            .fill(fretboardColor)
             
             Path { path in
                 // Draw the nut of the guitar

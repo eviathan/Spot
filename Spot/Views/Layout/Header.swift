@@ -11,7 +11,7 @@ struct Header: View {
     let backgroundColor = Color(hue: 0.61, saturation: 0.42, brightness: 0.31, opacity: 1.00)
     
     var body: some View {
-        Text("Header")
+        Text("Spot")
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding()
             .background(backgroundColor)

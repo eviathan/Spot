@@ -18,6 +18,11 @@
 		D3AA9B792BCDA06B00C78DF3 /* TabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B782BCDA06B00C78DF3 /* TabView.swift */; };
 		D3AA9B7B2BCDA08300C78DF3 /* Header.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B7A2BCDA08300C78DF3 /* Header.swift */; };
 		D3AA9B7D2BCDA08C00C78DF3 /* Footer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B7C2BCDA08C00C78DF3 /* Footer.swift */; };
+		D3E1F5462BCDDACC00167D43 /* FretNote.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E1F5452BCDDACC00167D43 /* FretNote.swift */; };
+		D3E1F5492BCDDB2600167D43 /* FretboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E1F5482BCDDB2600167D43 /* FretboardViewModel.swift */; };
+		D3E1F54C2BCDDC9600167D43 /* NoteService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E1F54B2BCDDC9600167D43 /* NoteService.swift */; };
+		D3E1F54E2BCDDD1700167D43 /* Note.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E1F54D2BCDDD1700167D43 /* Note.swift */; };
+		D3E1F5502BCDDFA100167D43 /* NoteType.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E1F54F2BCDDFA100167D43 /* NoteType.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,6 +40,11 @@
 		D3AA9B782BCDA06B00C78DF3 /* TabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabView.swift; sourceTree = "<group>"; };
 		D3AA9B7A2BCDA08300C78DF3 /* Header.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Header.swift; sourceTree = "<group>"; };
 		D3AA9B7C2BCDA08C00C78DF3 /* Footer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Footer.swift; sourceTree = "<group>"; };
+		D3E1F5452BCDDACC00167D43 /* FretNote.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FretNote.swift; sourceTree = "<group>"; };
+		D3E1F5482BCDDB2600167D43 /* FretboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FretboardViewModel.swift; sourceTree = "<group>"; };
+		D3E1F54B2BCDDC9600167D43 /* NoteService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteService.swift; sourceTree = "<group>"; };
+		D3E1F54D2BCDDD1700167D43 /* Note.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Note.swift; sourceTree = "<group>"; };
+		D3E1F54F2BCDDFA100167D43 /* NoteType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteType.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,7 +78,9 @@
 			isa = PBXGroup;
 			children = (
 				D3AA9B742BCD9FDF00C78DF3 /* Enums */,
+				D3E1F5442BCDDA7F00167D43 /* Models */,
 				D3AA9B6D2BCD9A9300C78DF3 /* Views */,
+				D3E1F54A2BCDDC8000167D43 /* Services */,
 				D3AA9B5A2BCD982E00C78DF3 /* SpotApp.swift */,
 				D3AA9B5C2BCD982E00C78DF3 /* SpotDocument.swift */,
 				D3AA9B602BCD983000C78DF3 /* Assets.xcassets */,
@@ -101,6 +113,7 @@
 			isa = PBXGroup;
 			children = (
 				D3AA9B722BCD9FBD00C78DF3 /* InstrumentType.swift */,
+				D3E1F54F2BCDDFA100167D43 /* NoteType.swift */,
 			);
 			path = Enums;
 			sourceTree = "<group>";
@@ -114,6 +127,32 @@
 				D3AA9B7C2BCDA08C00C78DF3 /* Footer.swift */,
 			);
 			path = Layout;
+			sourceTree = "<group>";
+		};
+		D3E1F5442BCDDA7F00167D43 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				D3E1F5472BCDDB1400167D43 /* ViewModels */,
+				D3E1F54D2BCDDD1700167D43 /* Note.swift */,
+				D3E1F5452BCDDACC00167D43 /* FretNote.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		D3E1F5472BCDDB1400167D43 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				D3E1F5482BCDDB2600167D43 /* FretboardViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		D3E1F54A2BCDDC8000167D43 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				D3E1F54B2BCDDC9600167D43 /* NoteService.swift */,
+			);
+			path = Services;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -191,10 +230,15 @@
 				D3AA9B732BCD9FBD00C78DF3 /* InstrumentType.swift in Sources */,
 				D3AA9B792BCDA06B00C78DF3 /* TabView.swift in Sources */,
 				D3AA9B7D2BCDA08C00C78DF3 /* Footer.swift in Sources */,
+				D3E1F54E2BCDDD1700167D43 /* Note.swift in Sources */,
 				D3AA9B6F2BCD9AAA00C78DF3 /* LayoutView.swift in Sources */,
 				D3AA9B5D2BCD982E00C78DF3 /* SpotDocument.swift in Sources */,
 				D3AA9B5B2BCD982E00C78DF3 /* SpotApp.swift in Sources */,
+				D3E1F5502BCDDFA100167D43 /* NoteType.swift in Sources */,
+				D3E1F5492BCDDB2600167D43 /* FretboardViewModel.swift in Sources */,
+				D3E1F5462BCDDACC00167D43 /* FretNote.swift in Sources */,
 				D3AA9B712BCD9D6F00C78DF3 /* FretboardView.swift in Sources */,
+				D3E1F54C2BCDDC9600167D43 /* NoteService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
