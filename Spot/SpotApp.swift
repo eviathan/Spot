@@ -10,8 +10,11 @@ import SwiftUI
 @main
 struct SpotApp: App {
     var body: some Scene {
-        DocumentGroup(newDocument: SpotDocument()) { file in
-            ContentView(document: file.$document)
+        WindowGroup() {
+            LayoutView()
+                .frame(minWidth: 1280, minHeight: 800)
         }
+        .windowStyle(.hiddenTitleBar)
+        .windowToolbarStyle(UnifiedWindowToolbarStyle(showsTitle: false))
     }
 }

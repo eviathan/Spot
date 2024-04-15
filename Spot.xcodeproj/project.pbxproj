@@ -9,20 +9,32 @@
 /* Begin PBXBuildFile section */
 		D3AA9B5B2BCD982E00C78DF3 /* SpotApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B5A2BCD982E00C78DF3 /* SpotApp.swift */; };
 		D3AA9B5D2BCD982E00C78DF3 /* SpotDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B5C2BCD982E00C78DF3 /* SpotDocument.swift */; };
-		D3AA9B5F2BCD982E00C78DF3 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B5E2BCD982E00C78DF3 /* ContentView.swift */; };
 		D3AA9B612BCD983000C78DF3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D3AA9B602BCD983000C78DF3 /* Assets.xcassets */; };
 		D3AA9B642BCD983000C78DF3 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D3AA9B632BCD983000C78DF3 /* Preview Assets.xcassets */; };
+		D3AA9B6F2BCD9AAA00C78DF3 /* LayoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B6E2BCD9AAA00C78DF3 /* LayoutView.swift */; };
+		D3AA9B712BCD9D6F00C78DF3 /* FretboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B702BCD9D6F00C78DF3 /* FretboardView.swift */; };
+		D3AA9B732BCD9FBD00C78DF3 /* InstrumentType.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B722BCD9FBD00C78DF3 /* InstrumentType.swift */; };
+		D3AA9B772BCDA01B00C78DF3 /* InstrumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B762BCDA01B00C78DF3 /* InstrumentView.swift */; };
+		D3AA9B792BCDA06B00C78DF3 /* TabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B782BCDA06B00C78DF3 /* TabView.swift */; };
+		D3AA9B7B2BCDA08300C78DF3 /* Header.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B7A2BCDA08300C78DF3 /* Header.swift */; };
+		D3AA9B7D2BCDA08C00C78DF3 /* Footer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B7C2BCDA08C00C78DF3 /* Footer.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		D3AA9B572BCD982E00C78DF3 /* Spot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Spot.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D3AA9B5A2BCD982E00C78DF3 /* SpotApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotApp.swift; sourceTree = "<group>"; };
 		D3AA9B5C2BCD982E00C78DF3 /* SpotDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotDocument.swift; sourceTree = "<group>"; };
-		D3AA9B5E2BCD982E00C78DF3 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		D3AA9B602BCD983000C78DF3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D3AA9B632BCD983000C78DF3 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		D3AA9B652BCD983000C78DF3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D3AA9B662BCD983000C78DF3 /* Spot.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Spot.entitlements; sourceTree = "<group>"; };
+		D3AA9B6E2BCD9AAA00C78DF3 /* LayoutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutView.swift; sourceTree = "<group>"; };
+		D3AA9B702BCD9D6F00C78DF3 /* FretboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FretboardView.swift; sourceTree = "<group>"; };
+		D3AA9B722BCD9FBD00C78DF3 /* InstrumentType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstrumentType.swift; sourceTree = "<group>"; };
+		D3AA9B762BCDA01B00C78DF3 /* InstrumentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstrumentView.swift; sourceTree = "<group>"; };
+		D3AA9B782BCDA06B00C78DF3 /* TabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabView.swift; sourceTree = "<group>"; };
+		D3AA9B7A2BCDA08300C78DF3 /* Header.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Header.swift; sourceTree = "<group>"; };
+		D3AA9B7C2BCDA08C00C78DF3 /* Footer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Footer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -55,9 +67,10 @@
 		D3AA9B592BCD982E00C78DF3 /* Spot */ = {
 			isa = PBXGroup;
 			children = (
+				D3AA9B742BCD9FDF00C78DF3 /* Enums */,
+				D3AA9B6D2BCD9A9300C78DF3 /* Views */,
 				D3AA9B5A2BCD982E00C78DF3 /* SpotApp.swift */,
 				D3AA9B5C2BCD982E00C78DF3 /* SpotDocument.swift */,
-				D3AA9B5E2BCD982E00C78DF3 /* ContentView.swift */,
 				D3AA9B602BCD983000C78DF3 /* Assets.xcassets */,
 				D3AA9B652BCD983000C78DF3 /* Info.plist */,
 				D3AA9B662BCD983000C78DF3 /* Spot.entitlements */,
@@ -72,6 +85,35 @@
 				D3AA9B632BCD983000C78DF3 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		D3AA9B6D2BCD9A9300C78DF3 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				D3AA9B752BCD9FFC00C78DF3 /* Layout */,
+				D3AA9B702BCD9D6F00C78DF3 /* FretboardView.swift */,
+				D3AA9B762BCDA01B00C78DF3 /* InstrumentView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		D3AA9B742BCD9FDF00C78DF3 /* Enums */ = {
+			isa = PBXGroup;
+			children = (
+				D3AA9B722BCD9FBD00C78DF3 /* InstrumentType.swift */,
+			);
+			path = Enums;
+			sourceTree = "<group>";
+		};
+		D3AA9B752BCD9FFC00C78DF3 /* Layout */ = {
+			isa = PBXGroup;
+			children = (
+				D3AA9B6E2BCD9AAA00C78DF3 /* LayoutView.swift */,
+				D3AA9B782BCDA06B00C78DF3 /* TabView.swift */,
+				D3AA9B7A2BCDA08300C78DF3 /* Header.swift */,
+				D3AA9B7C2BCDA08C00C78DF3 /* Footer.swift */,
+			);
+			path = Layout;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -144,9 +186,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D3AA9B772BCDA01B00C78DF3 /* InstrumentView.swift in Sources */,
+				D3AA9B7B2BCDA08300C78DF3 /* Header.swift in Sources */,
+				D3AA9B732BCD9FBD00C78DF3 /* InstrumentType.swift in Sources */,
+				D3AA9B792BCDA06B00C78DF3 /* TabView.swift in Sources */,
+				D3AA9B7D2BCDA08C00C78DF3 /* Footer.swift in Sources */,
+				D3AA9B6F2BCD9AAA00C78DF3 /* LayoutView.swift in Sources */,
 				D3AA9B5D2BCD982E00C78DF3 /* SpotDocument.swift in Sources */,
 				D3AA9B5B2BCD982E00C78DF3 /* SpotApp.swift in Sources */,
-				D3AA9B5F2BCD982E00C78DF3 /* ContentView.swift in Sources */,
+				D3AA9B712BCD9D6F00C78DF3 /* FretboardView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
