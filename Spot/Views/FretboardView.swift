@@ -8,8 +8,15 @@
 import SwiftUI
 
 struct FretboardView: View {
-    let numberOfFrets: Int = 20
-    let numberOfStrings: Int = 7
+    let numberOfFrets: Int = 24
+    let numberOfStrings: Int = 6
+    let fretboardColor = Color(hue: 0.61, saturation: 0.42, brightness: 0.31, opacity: 1.00)
+    let stringColor = Color(hue: 0.63, saturation: 0.13, brightness: 0.28, opacity: 1.00)
+    
+    let markerColorA = Color(hue: 0.04, saturation: 0.48, brightness: 0.95, opacity: 1.00)
+    let markerColorB = Color(hue: 0.98, saturation: 0.62, brightness: 0.89, opacity: 1.00)
+    
+    let markerSize: CGFloat = 30.0;
     
     var body: some View {
         GeometryReader { geometry in
@@ -36,7 +43,7 @@ struct FretboardView: View {
                     path.addLine(to: CGPoint(x: width, y: y))
                 }
             }
-            .stroke(Color.black, lineWidth: 2)
+            .stroke(stringColor, lineWidth: 2)
             
             // Draw markers
             ForEach(1...numberOfStrings, id: \.self) { string in
@@ -45,19 +52,21 @@ struct FretboardView: View {
                     let y = CGFloat(string) * stringSpacing
                     
                     Circle()
-                        .fill(Color.white)
-                        .frame(width: stringSpacing / 2, height: stringSpacing / 2)
+                        .fill(markerColorA)
+                        .frame(width: markerSize, height: markerSize)
+//                        .frame(width: stringSpacing / 2, height: stringSpacing / 2)
                         .overlay(
-                            Text("Note")
-                                .font(.caption)
+                            Text("0")
+                                .font(.subheadline.weight(.bold))
+                                .foregroundStyle(fretboardColor)
                         )
                         .position(x: x, y: y)
                 }
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: 350)
+        .frame(maxWidth: .infinity, maxHeight: 300)
         .padding()
-        .background(Color.yellow)
+        .background(fretboardColor)
     }
 }
 

@@ -9,13 +9,14 @@ import SwiftUI
 
 struct LayoutView: View {
     
-    let headerHeight: CGFloat = 50
+    let headerHeight: CGFloat = 80
     let footerHeight: CGFloat = 50
     
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(alignment:.leading, spacing: 0) {
             Header()
-                .frame(maxWidth: .infinity)
+                .frame(maxWidth: .infinity, maxHeight: headerHeight)
+                
 
             InstrumentView()
                 .frame(maxWidth: .infinity)
@@ -26,6 +27,7 @@ struct LayoutView: View {
             Footer()
                 .frame(maxWidth: .infinity, minHeight: footerHeight, maxHeight: footerHeight)
         }
+        .edgesIgnoringSafeArea(.all)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
