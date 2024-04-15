@@ -56,16 +56,21 @@ struct FretboardView: View {
             .stroke(stringColor, lineWidth: 1)
             
             // Draw markers
-            ForEach(0..<numberOfStrings, id: \.self) { string in
-                ForEach(0..<numberOfFrets, id: \.self) { fret in
-                    let x = CGFloat(fret) * fretSpacing - (fret == 0 ? 0 : fretSpacing / 2)
-                    let y = CGFloat(string + 1) * stringSpacing
+            ForEach(0..<fretboard.count, id: \.self) { noteIndex in
+                let note = fretboard[noteIndex]
+                
+                ForEach(0..<note.count, id: \.self) { fretIndex in
+                    let fret = note[fretIndex]
+//                    fretIndex == 0 ? "O" : "X"
+                    
+                    let x = CGFloat(fretIndex) * fretSpacing - (fretIndex == 0 ? 0 : fretSpacing / 2)
+                    let y = CGFloat(noteIndex + 1) * stringSpacing
 
                     Circle()
-                        .fill(fret == 0 ? markerColorB : markerColorA)
+                        .fill(fretIndex == 0 ? markerColorB : markerColorA)
                         .frame(width: markerSize, height: markerSize)
                         .overlay(
-                            Text(fret == 0 ? "O" : "X") // "O" for open string, "•" for fretted
+                            Text(fret.note.description) // "O" for open string, "•" for fretted
                                 .font(.caption)
                                 .foregroundColor(fretboardColor)
                         )
