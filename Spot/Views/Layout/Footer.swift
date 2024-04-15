@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct Footer: View {
-    let backgroundColor = Color(hue: 0.62, saturation: 0.38, brightness: 0.20, opacity: 1.00)
+    let backgroundColor = Color(hue: 0.62, saturation: 0.34, brightness: 0.20, opacity: 1.00)
     
     var body: some View {
         Text("Footer")

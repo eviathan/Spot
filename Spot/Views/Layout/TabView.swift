@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct TabView: View {
-    let backgroundColor = Color(hue: 0.62, saturation: 0.38, brightness: 0.27, opacity: 1.00)
+    let backgroundColor = Color(hue: 0.62, saturation: 0.38, brightness: 0.24, opacity: 1.00)
     
     var body: some View {
         Text("Tab View")
