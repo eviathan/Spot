@@ -1,4 +1,3 @@
-//
 //  TabView.swift
 //  Spot
 //
@@ -8,10 +7,12 @@
 import SwiftUI
 
 struct TabView: View {
+    @EnvironmentObject var appState: AppState
+
     let backgroundColor = Color(hue: 0.62, saturation: 0.38, brightness: 0.24, opacity: 1.00)
     
     var body: some View {
-        Text("Tab View")
+        Text(appState.test)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding()
             .background(backgroundColor)

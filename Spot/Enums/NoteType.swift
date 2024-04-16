@@ -25,9 +25,8 @@ public enum NoteType: Int, CaseIterable, CustomStringConvertible {
     public var description: String {
         switch self {
             case .A: return "A"
-            case .Ab: return "A♭"
-            case .B: return "B"
             case .Bb: return "B♭"
+            case .B: return "B"
             case .C: return "C"
             case .Db: return "D♭"
             case .D: return "D"
@@ -36,6 +35,7 @@ public enum NoteType: Int, CaseIterable, CustomStringConvertible {
             case .F: return "F"
             case .Gb: return "G♭"
             case .G: return "G"
+            case .Ab: return "A♭"
         }
     }
 }

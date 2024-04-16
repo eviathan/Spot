@@ -20,7 +20,7 @@ struct FretboardView: View {
     
     let markerSize: CGFloat = 30.0
     
-    let fretboard = getNotesForTuning(tuning: [.E, .A, .D, .G, .B, .E].reversed(), frets: 22)
+    let fretboard = NoteService.getNotesForTuning(tuning: [.E, .A, .D, .G, .B, .E].reversed(), frets: 22)
     
     var body: some View {
         GeometryReader { geometry in
