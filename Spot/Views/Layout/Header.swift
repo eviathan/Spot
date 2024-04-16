@@ -10,12 +10,28 @@ import SwiftUI
 struct Header: View {
     let backgroundColor = Color(hue: 0.61, saturation: 0.42, brightness: 0.31, opacity: 1.00)
     
+    func dragWindow(value: DragGesture.Value) {
+        let window = NSApplication.shared.windows.first
+        let currentLocation = window?.frame.origin ?? CGPoint.zero
+        window?.setFrameOrigin(
+            CGPoint(x: currentLocation.x + value.translation.width,
+                    y: currentLocation.y - value.translation.height)
+        )
+    }
+    
     var body: some View {
         Text("Spot")
+            .font(.system(size: 18))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding()
             .background(backgroundColor)
             .foregroundColor(.white)
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        self.dragWindow(value: value)
+                    }
+            )
     }
 }
 

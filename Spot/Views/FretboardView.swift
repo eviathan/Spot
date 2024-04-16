@@ -9,17 +9,18 @@ import SwiftUI
 // TODO: This is innefficient we can reduce the iterations down to a single pass based on the fretboard
 // calculated with getNotesForTuning(tuning: [.E, .A, .D, .G, .B, .E], frets: 24) and do it in O(n) instead
 struct FretboardView: View {
-    let numberOfFrets: Int = 24
+    let numberOfFrets: Int = 22
     let numberOfStrings: Int = 6
     let fretboardColor = Color(hue: 0.61, saturation: 0.42, brightness: 0.31, opacity: 1.00)
     let stringColor = Color(hue: 0.63, saturation: 0.13, brightness: 0.28, opacity: 1.00)
     
     let markerColorA = Color(hue: 0.04, saturation: 0.48, brightness: 0.95, opacity: 1.00)
     let markerColorB = Color(hue: 0.98, saturation: 0.62, brightness: 0.89, opacity: 1.00)
+    let markerColorC = Color(hue: 0.62, saturation: 0.58, brightness: 0.86, opacity: 1.00)
     
     let markerSize: CGFloat = 30.0
     
-    let fretboard = getNotesForTuning(tuning: [.E, .A, .D, .G, .B, .E], frets: 24)
+    let fretboard = getNotesForTuning(tuning: [.E, .A, .D, .G, .B, .E].reversed(), frets: 22)
     
     var body: some View {
         GeometryReader { geometry in
@@ -91,9 +92,14 @@ struct FretboardView: View {
                     
                     let x = CGFloat(fretIndex) * fretSpacing - (fretIndex == 0 ? 0 : fretSpacing / 2)
                     let y = CGFloat(noteIndex + 1) * stringSpacing
+                    let markerColor = fretIndex == 0
+                        ? markerColorB
+                        : fret.type == .A
+                            ? markerColorC
+                            : markerColorA
 
                     Circle()
-                        .fill(fretIndex == 0 ? markerColorB : markerColorA)
+                        .fill(markerColor)
                         .frame(width: markerSize, height: markerSize)
                         .overlay(
                             Text(fret.note.description) // "O" for open string, "•" for fretted
