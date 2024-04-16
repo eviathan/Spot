@@ -6,6 +6,8 @@
 //
 import SwiftUI
 
+// TODO: This is innefficient we can reduce the iterations down to a single pass based on the fretboard
+// calculated with getNotesForTuning(tuning: [.E, .A, .D, .G, .B, .E], frets: 24) and do it in O(n) instead
 struct FretboardView: View {
     let numberOfFrets: Int = 24
     let numberOfStrings: Int = 6
@@ -37,10 +39,21 @@ struct FretboardView: View {
             
             Path { path in
                 // Draw frets
-                for fret in 1..<numberOfFrets {
+                for fret in 1...numberOfFrets {
+                    let lineWidth: CGFloat = (fret == 12) ? 3 : 1 // Make the 12th fret line thicker
                     let x = CGFloat(fret) * fretSpacing
                     path.move(to: CGPoint(x: x, y: 0))
                     path.addLine(to: CGPoint(x: x, y: height))
+                    path.closeSubpath()
+                                        
+                    // Draw the path for each fret to allow different line widths
+                    if fret == 12 {
+                        // Optional: Add some more styling to the 12th fret, like a different color
+                        let highlightColor = Color.red // Example highlight color
+                        let _ = path.stroke(highlightColor, lineWidth: lineWidth)
+                    } else {
+                        let _ = path.stroke(stringColor, lineWidth: lineWidth)
+                    }
                 }
             }
             .stroke(stringColor, lineWidth: 1)
@@ -54,6 +67,19 @@ struct FretboardView: View {
                 }
             }
             .stroke(stringColor, lineWidth: 1)
+            
+            // Draw fret numbers
+            ForEach(1...numberOfFrets, id: \.self) { fret in
+                let x = CGFloat(fret) * fretSpacing - fretSpacing / 2
+                // Align the numbers with the bottom of the fret lines
+                let y = height - (stringSpacing / 4) // Adjust this value as needed to move the number up or down
+
+                Text("\(fret)")
+                    .font(.caption)
+                    .foregroundColor(fretboardColor)
+                    .frame(width: fretSpacing, height: stringSpacing / 2, alignment: .top)
+                    .position(x: x, y: y)
+            }
             
             // Draw markers
             ForEach(0..<fretboard.count, id: \.self) { noteIndex in
