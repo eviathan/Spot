@@ -11,6 +11,7 @@ class AppState: ObservableObject {
     @Published var test: String  = "Wooter"
 
     @Published var instrument: InstrumentType = .guitar
+    
 
 
     init() {
