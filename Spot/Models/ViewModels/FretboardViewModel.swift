@@ -9,6 +9,7 @@ import Foundation
 
 class FretboardViewModel {
     var notes: [[FretNote]] = []
+    let chord: ChordType = .Dom7
     
     init() {
         notes = NoteService.getNotesForTuning(tuning: [.E, .A, .D, .G, .B, .E].reversed(),

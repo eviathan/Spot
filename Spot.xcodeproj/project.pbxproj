@@ -42,7 +42,6 @@
 		D3E1F5462BCDDACC00167D43 /* FretNote.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E1F5452BCDDACC00167D43 /* FretNote.swift */; };
 		D3E1F5492BCDDB2600167D43 /* FretboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E1F5482BCDDB2600167D43 /* FretboardViewModel.swift */; };
 		D3E1F54C2BCDDC9600167D43 /* NoteService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E1F54B2BCDDC9600167D43 /* NoteService.swift */; };
-		D3E1F5502BCDDFA100167D43 /* NoteType.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E1F54F2BCDDFA100167D43 /* NoteType.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -84,7 +83,6 @@
 		D3E1F5452BCDDACC00167D43 /* FretNote.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FretNote.swift; sourceTree = "<group>"; };
 		D3E1F5482BCDDB2600167D43 /* FretboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FretboardViewModel.swift; sourceTree = "<group>"; };
 		D3E1F54B2BCDDC9600167D43 /* NoteService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteService.swift; sourceTree = "<group>"; };
-		D3E1F54F2BCDDFA100167D43 /* NoteType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteType.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -201,7 +199,6 @@
 				D301A3132BCEFE8B008BE4E8 /* Interval.swift */,
 				D301A3122BCEFE8B008BE4E8 /* Note.swift */,
 				D3AA9B722BCD9FBD00C78DF3 /* InstrumentType.swift */,
-				D3E1F54F2BCDDFA100167D43 /* NoteType.swift */,
 				D32AC5872BD24EA400F40B5B /* FretLabelType.swift */,
 			);
 			path = Enums;
@@ -341,7 +338,6 @@
 				D3AA9B6F2BCD9AAA00C78DF3 /* LayoutView.swift in Sources */,
 				D3AA9B5D2BCD982E00C78DF3 /* SpotDocument.swift in Sources */,
 				D3AA9B5B2BCD982E00C78DF3 /* SpotApp.swift in Sources */,
-				D3E1F5502BCDDFA100167D43 /* NoteType.swift in Sources */,
 				D32AC5882BD24EA400F40B5B /* FretLabelType.swift in Sources */,
 				D3E1F5492BCDDB2600167D43 /* FretboardViewModel.swift in Sources */,
 				D3E1F5462BCDDACC00167D43 /* FretNote.swift in Sources */,

@@ -90,6 +90,7 @@ struct FretboardView: View {
                 
                 ForEach(0..<note.count, id: \.self) { fretIndex in
                     let fret = note[fretIndex]
+                    let noteInChord = appState.fretboardViewModel.chord.intervals.contains(fret.getInterval(rootNote: .A))
 //                    fretIndex == 0 ? "O" : "X"
                     
                     let x = CGFloat(fretIndex) * fretSpacing - (fretIndex == 0 ? 0 : fretSpacing / 2)
@@ -109,6 +110,7 @@ struct FretboardView: View {
                                 .foregroundColor(fretboardColor)
                         )
                         .position(x: x, y: y)
+                        .opacity(noteInChord ? 1 : 0.5)
                 }
             }
         }
