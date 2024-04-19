@@ -9,12 +9,8 @@ import Foundation
 
 class AppState: ObservableObject {
     @Published var test: String  = "Wooter"
-
     @Published var instrument: InstrumentType = .guitar
+    @Published var selectedNote: Note = .A
     
-
-
-    init() {
-        
-    }
+    @Published var fretboardViewModel: FretboardViewModel = FretboardViewModel()
 }

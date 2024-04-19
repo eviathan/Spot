@@ -26,6 +26,7 @@
 		D301A3352BCEFF89008BE4E8 /* Appendix.swift in Sources */ = {isa = PBXBuildFile; fileRef = D301A3332BCEFF89008BE4E8 /* Appendix.swift */; };
 		D301A3362BCEFF89008BE4E8 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = D301A3342BCEFF89008BE4E8 /* Constants.swift */; };
 		D301A3392BCEFFBC008BE4E8 /* CollectionExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D301A3382BCEFFBC008BE4E8 /* CollectionExtensions.swift */; };
+		D32AC5882BD24EA400F40B5B /* FretLabelType.swift in Sources */ = {isa = PBXBuildFile; fileRef = D32AC5872BD24EA400F40B5B /* FretLabelType.swift */; };
 		D3AA9B5B2BCD982E00C78DF3 /* SpotApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B5A2BCD982E00C78DF3 /* SpotApp.swift */; };
 		D3AA9B5D2BCD982E00C78DF3 /* SpotDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B5C2BCD982E00C78DF3 /* SpotDocument.swift */; };
 		D3AA9B612BCD983000C78DF3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D3AA9B602BCD983000C78DF3 /* Assets.xcassets */; };
@@ -64,6 +65,7 @@
 		D301A3332BCEFF89008BE4E8 /* Appendix.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Appendix.swift; sourceTree = "<group>"; };
 		D301A3342BCEFF89008BE4E8 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		D301A3382BCEFFBC008BE4E8 /* CollectionExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CollectionExtensions.swift; sourceTree = "<group>"; };
+		D32AC5872BD24EA400F40B5B /* FretLabelType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FretLabelType.swift; sourceTree = "<group>"; };
 		D3AA9B572BCD982E00C78DF3 /* Spot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Spot.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D3AA9B5A2BCD982E00C78DF3 /* SpotApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotApp.swift; sourceTree = "<group>"; };
 		D3AA9B5C2BCD982E00C78DF3 /* SpotDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotDocument.swift; sourceTree = "<group>"; };
@@ -200,6 +202,7 @@
 				D301A3122BCEFE8B008BE4E8 /* Note.swift */,
 				D3AA9B722BCD9FBD00C78DF3 /* InstrumentType.swift */,
 				D3E1F54F2BCDDFA100167D43 /* NoteType.swift */,
+				D32AC5872BD24EA400F40B5B /* FretLabelType.swift */,
 			);
 			path = Enums;
 			sourceTree = "<group>";
@@ -339,6 +342,7 @@
 				D3AA9B5D2BCD982E00C78DF3 /* SpotDocument.swift in Sources */,
 				D3AA9B5B2BCD982E00C78DF3 /* SpotApp.swift in Sources */,
 				D3E1F5502BCDDFA100167D43 /* NoteType.swift in Sources */,
+				D32AC5882BD24EA400F40B5B /* FretLabelType.swift in Sources */,
 				D3E1F5492BCDDB2600167D43 /* FretboardViewModel.swift in Sources */,
 				D3E1F5462BCDDACC00167D43 /* FretNote.swift in Sources */,
 				D3AA9B712BCD9D6F00C78DF3 /* FretboardView.swift in Sources */,

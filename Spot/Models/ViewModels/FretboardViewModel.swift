@@ -10,5 +10,8 @@ import Foundation
 class FretboardViewModel {
     var notes: [[FretNote]] = []
     
-    
+    init() {
+        notes = NoteService.getNotesForTuning(tuning: [.E, .A, .D, .G, .B, .E].reversed(),
+                                              frets: 22)
+    }
 }
