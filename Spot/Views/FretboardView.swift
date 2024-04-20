@@ -21,6 +21,7 @@ struct FretboardView: View {
             
             ZStack {
                 drawNut(viewModel: viewModel, width: width, height: height)
+                drawFretMarkers(viewModel: viewModel, width: width, height: height, fretSpacing: fretSpacing, stringSpacing: stringSpacing)
                 drawFrets(viewModel: viewModel, width: width, height: height, fretSpacing: fretSpacing)
                 drawStrings(viewModel: viewModel, width: width, height: height, stringSpacing: stringSpacing)
                 drawFretNumbers(viewModel: viewModel, width: width, height: height, fretSpacing: fretSpacing, stringSpacing: stringSpacing)
@@ -45,9 +46,9 @@ struct FretboardView: View {
     func drawFrets(viewModel: FretboardViewModel, width: CGFloat, height: CGFloat, fretSpacing: CGFloat) -> some View {
         ZStack {
             ForEach(1...viewModel.numberOfFrets, id: \.self) { fret in
-                let isTwelthFret = fret % 12 == 11
+                let isTwelthFret = fret % 12 == 11 || fret % 12 == 0
                 let fretColour = isTwelthFret ? viewModel.fretColor : viewModel.fretColor
-                let fretWidth: CGFloat = isTwelthFret ? 6 : 1
+                let fretWidth: CGFloat = isTwelthFret ? 4 : 1
                 
                 Path { path in
                     let x = CGFloat(fret) * fretSpacing
@@ -85,6 +86,40 @@ struct FretboardView: View {
         }
     }
     
+    func drawFretMarkers(viewModel: FretboardViewModel, width: CGFloat, height: CGFloat, fretSpacing: CGFloat, stringSpacing: CGFloat) -> some View {
+        let singleFretMarkers: [Int] = [3, 5, 7, 9, 15, 17, 19, 21, 23] // TODO: Programatically derive this from the fret length
+        let doubleFretMarkers: [Int] = [12, 24] // TODO: Programatically derive this from the fret length
+        
+        return ZStack {
+            // Single markers
+            ForEach(singleFretMarkers, id: \.self) { fret in
+                let x = CGFloat(fret) * fretSpacing - fretSpacing / 2
+                
+                Circle()
+                    .fill(viewModel.fretMarkerColor)
+                    .frame(width: markerSize * min(fretSpacing, stringSpacing), height: markerSize * min(fretSpacing, stringSpacing))
+                    .position(x: x, y: height / 2)
+            }
+
+            // Double markers
+            ForEach(doubleFretMarkers.indices, id: \.self) { index in
+                let fret = doubleFretMarkers[index]
+                let x = CGFloat(fret) * fretSpacing - fretSpacing / 2
+                
+                VStack(spacing: stringSpacing) {
+                    Circle()
+                        .fill(viewModel.fretMarkerColor)
+                        .frame(width: markerSize * min(fretSpacing, stringSpacing), height: markerSize * min(fretSpacing, stringSpacing))
+                    Circle()
+                        .fill(viewModel.fretMarkerColor)
+                        .frame(width: markerSize * min(fretSpacing, stringSpacing), height: markerSize * min(fretSpacing, stringSpacing))
+                }
+                .position(x: x, y: height / 2)
+            }
+        }
+    }
+
+    
     func drawMarkers(viewModel: FretboardViewModel, width: CGFloat, height: CGFloat, fretSpacing: CGFloat, stringSpacing: CGFloat) -> some View {
         let minSpacing = min(fretSpacing, stringSpacing)
         
@@ -116,6 +151,8 @@ struct FretboardView: View {
                 
                 let colorNoteIndex = viewModel.markerColours[intervalIndex]
                 
+                let hideUnrelatedNotes = true // TODO: Move this somewhere where it can be user configurable
+                
                 let markerColor =
                     !isHighlighted 
                     ? viewModel.defaultMarkerColor
@@ -138,6 +175,7 @@ struct FretboardView: View {
                     )
                     .onTapGesture(perform: { clickedMarker(note: fret.type)})
                     .position(x: x, y: y)
+                    .opacity(hideUnrelatedNotes && noteInChord ? 1 : 0)
             }
         }
     }

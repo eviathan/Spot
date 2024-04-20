@@ -21,6 +21,7 @@ class FretboardViewModel: ObservableObject {
     let fretboardColor = Color(hue: 0.61, saturation: 0.42, brightness: 0.31, opacity: 1.00)
     let stringColor = Color(hue: 0.63, saturation: 0.13, brightness: 0.78, opacity: 1.00)
     let fretColor = Color(hue: 0.63, saturation: 0.13, brightness: 0.28, opacity: 1.00)
+    let fretMarkerColor = Color(hue: 0.63, saturation: 0.13, brightness: 0.28, opacity: 0.20)
     
     // TODO: Deprecate this in favour of the below in order to facilitate themeing
     let markerColorA = Color(hue: 0.04, saturation: 0.48, brightness: 0.95, opacity: 1.00)
