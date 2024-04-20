@@ -108,7 +108,12 @@ struct FretboardView: View {
                 let x = CGFloat(fretIndex) * fretSpacing - (isOpenString ? 0 : fretSpacing / 2)
                 let y = CGFloat(noteIndex + 1) * stringSpacing
                 
-                let isHighlighted = viewModel.highlightedNotes.isEmpty || viewModel.highlightedNotes[noteIndex].contains(fretIndex)
+                let isHighlighted = viewModel.highlightedNotes.isEmpty || 
+                                    viewModel.highlightedNotes[noteIndex]
+                                             .contains(where: { highlightedNote in
+                                                highlightedNote == fretIndex % 12
+                                             })
+                
                 let colorNoteIndex = viewModel.markerColours[intervalIndex]
                 
                 let markerColor =
