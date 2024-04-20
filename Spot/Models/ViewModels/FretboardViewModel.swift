@@ -14,6 +14,7 @@ class FretboardViewModel: ObservableObject {
     var notes: [[FretNote]] = []
     let chord: ChordType = .Dom7
     let scale: ScaleType = .Major(.Ionian)
+    let tuning: [Note] = [.E, .A, .D, .G, .B, .E]
     
     let appState: AppState
     
@@ -42,22 +43,75 @@ class FretboardViewModel: ObservableObject {
         Color(hue: 0.62, saturation: 0.58, brightness: 0.86, opacity: 1.00), // Blue
     ]
     
-    let highlightedNotes: [[Int]] = [
-        [2,4,5],
-        [2,4,5],
-        [1,2,4],
-        [1,2,4],
-        [0,2,4],
-        [0,2,4],
-    ]
-    
     init(appState: AppState) {
         self.appState = appState
-        notes = NoteService.getNotesForTuning(tuning: [.E, .A, .D, .G, .B, .E].reversed(),
+        notes = NoteService.getNotesForTuning(tuning: tuning.reversed(),
                                               frets: 24, root: appState.selectedNote)
+    }
+    
+    func getHighlightedNotesforScale(pattern: Int = 0, variation: Int = 0) -> [[Int]] {
+        let majorScalePatterns = MajorScaleThreeNotePerStringFrettingPatterns()
+        
+        var notes:[[Int]]  = []
+    
+        switch scale {
+            case .Major(let mode):
+                notes = majorScalePatterns.getPattern(type: .Major(mode), pattern: pattern, variation: variation)
+            case .Minor:
+                fallthrough
+            case .HarmonicMinor:
+                fallthrough
+            case .Locrian13:
+                fallthrough
+            case .IonianSharp5:
+                fallthrough
+            case .DorianSharp11:
+                fallthrough
+            case .PhrygianDominant:
+                fallthrough
+            case .LydianSharp2:
+                fallthrough
+            case .SuperLocrianbb7:
+                fallthrough
+            case .MelodicMinor:
+                fallthrough
+            case .Dorianb2:
+                fallthrough
+            case .LydianAugmented:
+                fallthrough
+            case .LydianDominant:
+                fallthrough
+            case .Mixolydianb6:
+                fallthrough
+            case .Aeolianb5:
+                fallthrough
+            case .AlteredScale:
+                fallthrough
+            case .MajorPentatonic:
+                fallthrough
+            case .MinorPentatonic:
+                fallthrough
+            case .Blues(_):
+                fallthrough
+            default:
+                return []
+        }
+        
+        return transpose(notes: notes)
     }
     
     func onNoteClicked(note: Note) {
         appState.selectedNote = note
+    }
+    
+    private func transpose(notes: [[Int]]) -> [[Int]] {
+        let bassStringOpenNote = tuning.first ?? .A
+        let fretOffset = appState.selectedNote.interval(key: bassStringOpenNote).rawValue
+        
+        return notes.map({ string in
+                string.map({fret in
+                    fretOffset + fret % 12
+            })
+        })
     }
 }

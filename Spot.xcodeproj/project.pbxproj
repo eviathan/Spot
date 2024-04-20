@@ -42,6 +42,9 @@
 		D3E1F5462BCDDACC00167D43 /* FretNote.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E1F5452BCDDACC00167D43 /* FretNote.swift */; };
 		D3E1F5492BCDDB2600167D43 /* FretboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E1F5482BCDDB2600167D43 /* FretboardViewModel.swift */; };
 		D3E1F54C2BCDDC9600167D43 /* NoteService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E1F54B2BCDDC9600167D43 /* NoteService.swift */; };
+		D3FBC9742BD441F000A69646 /* NoteCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FBC9732BD441F000A69646 /* NoteCollection.swift */; };
+		D3FBC9772BD4493700A69646 /* MajorScaleThreeNotePerStringFrettingPatterns.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FBC9762BD4493700A69646 /* MajorScaleThreeNotePerStringFrettingPatterns.swift */; };
+		D3FBC9792BD45C5C00A69646 /* FrettingPattern.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FBC9782BD45C5C00A69646 /* FrettingPattern.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -83,6 +86,9 @@
 		D3E1F5452BCDDACC00167D43 /* FretNote.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FretNote.swift; sourceTree = "<group>"; };
 		D3E1F5482BCDDB2600167D43 /* FretboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FretboardViewModel.swift; sourceTree = "<group>"; };
 		D3E1F54B2BCDDC9600167D43 /* NoteService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteService.swift; sourceTree = "<group>"; };
+		D3FBC9732BD441F000A69646 /* NoteCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteCollection.swift; sourceTree = "<group>"; };
+		D3FBC9762BD4493700A69646 /* MajorScaleThreeNotePerStringFrettingPatterns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MajorScaleThreeNotePerStringFrettingPatterns.swift; sourceTree = "<group>"; };
+		D3FBC9782BD45C5C00A69646 /* FrettingPattern.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrettingPattern.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -156,6 +162,7 @@
 		D3AA9B592BCD982E00C78DF3 /* Spot */ = {
 			isa = PBXGroup;
 			children = (
+				D3FBC9722BD441D700A69646 /* Protocols */,
 				D301A3372BCEFF9A008BE4E8 /* Extensions */,
 				D3AA9B742BCD9FDF00C78DF3 /* Enums */,
 				D3E1F5442BCDDA7F00167D43 /* Models */,
@@ -218,6 +225,7 @@
 		D3E1F5442BCDDA7F00167D43 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				D3FBC9752BD448FB00A69646 /* FrettingPattern */,
 				D3E1F5472BCDDB1400167D43 /* ViewModels */,
 				D301A30C2BCEFE43008BE4E8 /* Chord.swift */,
 				D301A30D2BCEFE43008BE4E8 /* Scale.swift */,
@@ -242,6 +250,23 @@
 				D3E1F54B2BCDDC9600167D43 /* NoteService.swift */,
 			);
 			path = Services;
+			sourceTree = "<group>";
+		};
+		D3FBC9722BD441D700A69646 /* Protocols */ = {
+			isa = PBXGroup;
+			children = (
+				D3FBC9732BD441F000A69646 /* NoteCollection.swift */,
+				D3FBC9782BD45C5C00A69646 /* FrettingPattern.swift */,
+			);
+			path = Protocols;
+			sourceTree = "<group>";
+		};
+		D3FBC9752BD448FB00A69646 /* FrettingPattern */ = {
+			isa = PBXGroup;
+			children = (
+				D3FBC9762BD4493700A69646 /* MajorScaleThreeNotePerStringFrettingPatterns.swift */,
+			);
+			path = FrettingPattern;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -316,6 +341,8 @@
 			files = (
 				D301A3242BCEFEA6008BE4E8 /* Add.swift in Sources */,
 				D301A30F2BCEFE43008BE4E8 /* Chord.swift in Sources */,
+				D3FBC9742BD441F000A69646 /* NoteCollection.swift in Sources */,
+				D3FBC9792BD45C5C00A69646 /* FrettingPattern.swift in Sources */,
 				D3AA9B772BCDA01B00C78DF3 /* InstrumentView.swift in Sources */,
 				D3AA9B7B2BCDA08300C78DF3 /* Header.swift in Sources */,
 				D301A3272BCEFEA6008BE4E8 /* Secondary.swift in Sources */,
@@ -324,6 +351,7 @@
 				D301A3362BCEFF89008BE4E8 /* Constants.swift in Sources */,
 				D3AA9B732BCD9FBD00C78DF3 /* InstrumentType.swift in Sources */,
 				D301A3322BCEFEDF008BE4E8 /* MajorModes.swift in Sources */,
+				D3FBC9772BD4493700A69646 /* MajorScaleThreeNotePerStringFrettingPatterns.swift in Sources */,
 				D301A3262BCEFEA6008BE4E8 /* ChordType.swift in Sources */,
 				D301A3252BCEFEA6008BE4E8 /* Alter.swift in Sources */,
 				D3AA9B792BCDA06B00C78DF3 /* TabView.swift in Sources */,

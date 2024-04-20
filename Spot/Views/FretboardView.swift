@@ -87,7 +87,7 @@ struct FretboardView: View {
     }
     
     func drawFretMarkers(viewModel: FretboardViewModel, width: CGFloat, height: CGFloat, fretSpacing: CGFloat, stringSpacing: CGFloat) -> some View {
-        let singleFretMarkers: [Int] = [3, 5, 7, 9, 15, 17, 19, 21, 23] // TODO: Programatically derive this from the fret length
+        let singleFretMarkers: [Int] = [3, 5, 7, 9, 15, 17, 19, 21] // TODO: Programatically derive this from the fret length
         let doubleFretMarkers: [Int] = [12, 24] // TODO: Programatically derive this from the fret length
         
         return ZStack {
@@ -143,8 +143,10 @@ struct FretboardView: View {
                 let x = CGFloat(fretIndex) * fretSpacing - (isOpenString ? 0 : fretSpacing / 2)
                 let y = CGFloat(noteIndex + 1) * stringSpacing
                 
-                let isHighlighted = viewModel.highlightedNotes.isEmpty || 
-                                    viewModel.highlightedNotes[noteIndex]
+                let highlightedNotes = viewModel.getHighlightedNotesforScale()
+                
+                let isHighlighted = highlightedNotes.isEmpty ||
+                                    highlightedNotes[noteIndex]
                                              .contains(where: { highlightedNote in
                                                 highlightedNote == fretIndex % 12
                                              })
@@ -175,7 +177,7 @@ struct FretboardView: View {
                     )
                     .onTapGesture(perform: { clickedMarker(note: fret.type)})
                     .position(x: x, y: y)
-                    .opacity(hideUnrelatedNotes && noteInChord ? 1 : 0)
+//                    .opacity(hideUnrelatedNotes && noteInChord ? 1 : 0)
             }
         }
     }

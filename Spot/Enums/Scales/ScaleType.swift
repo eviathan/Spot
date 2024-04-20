@@ -8,8 +8,7 @@
 
 import Foundation
 
-public enum ScaleType: CustomStringConvertible {
-    
+public enum ScaleType: CustomStringConvertible, Hashable, NoteCollection {
     // Major (w/Modes)
     case Major(_ mode: MajorModes)
     
@@ -107,7 +106,7 @@ public enum ScaleType: CustomStringConvertible {
         }
     }
     
-    func getNotes(_ key: Note) -> [Note] {
+    func getNotes(_ key: Note, inversion: Inversion = .Root) -> [Note] {
         return NoteService
             .getNotes(self.intervals, key: key)
     }

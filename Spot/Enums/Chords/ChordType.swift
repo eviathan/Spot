@@ -9,7 +9,7 @@
 import Foundation
 
 // TODO: Figure out how to deal with optional notes
-public enum ChordType: String, CaseIterable, CustomStringConvertible {
+public enum ChordType: String, CaseIterable, CustomStringConvertible, Hashable, NoteCollection {
     
     // Major
     case Maj = "M"
@@ -71,9 +71,7 @@ public enum ChordType: String, CaseIterable, CustomStringConvertible {
     public var description: String {
         return self.rawValue
     }
-}
-
-extension ChordType {
+    
     var intervals: [Interval] {
         switch self {
             
