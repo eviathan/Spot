@@ -8,8 +8,12 @@
 import SwiftUI
 
 struct InstrumentView: View {
+    @EnvironmentObject var appState: AppState
+    
     var body: some View {
-        FretboardView()
+        let viewModel  = FretboardViewModel(appState: appState)
+        
+        return FretboardView(viewModel: viewModel)
     }
 }
 

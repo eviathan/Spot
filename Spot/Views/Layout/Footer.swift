@@ -15,6 +15,7 @@ struct Footer: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding()
             .background(backgroundColor)
+            .foregroundColor(.white)
     }
 }
 

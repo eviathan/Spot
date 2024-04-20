@@ -10,5 +10,5 @@ import Foundation
 class AppState: ObservableObject {
     @Published var test: String  = "Wooter"
     @Published var instrument: InstrumentType = .guitar
-    @Published var selectedNote: Note = .G
+    @Published var selectedNote: Note = .A
 }

@@ -12,10 +12,11 @@ struct TabView: View {
     let backgroundColor = Color(hue: 0.62, saturation: 0.38, brightness: 0.24, opacity: 1.00)
     
     var body: some View {
-        Text(appState.test)
+        Text("Tab View")
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding()
             .background(backgroundColor)
+            .foregroundColor(.white)
     }
 }
 

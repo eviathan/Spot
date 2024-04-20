@@ -8,13 +8,12 @@ import SwiftUI
 
 // TODO: This is innefficient we can reduce the iterations down to a single pass based on the fretboard
 struct FretboardView: View {
-    @EnvironmentObject var appState: AppState
+    @ObservedObject var viewModel: FretboardViewModel
     
-    let markerSize: CGFloat = 30.0 // TODO: Calculate this
+    let markerSize: CGFloat = 0.7 // TODO: Calculate this
+    let openStringOffset: CGFloat = 30
     
     var body: some View {
-        let viewModel: FretboardViewModel = FretboardViewModel(appState: appState) // TODO: Bind this above the view
-        
         GeometryReader { geometry in
             let width = geometry.size.width
             let height = geometry.size.height
@@ -47,8 +46,9 @@ struct FretboardView: View {
     func drawFrets(viewModel: FretboardViewModel, width: CGFloat, height: CGFloat, fretSpacing: CGFloat) -> some View {
         ZStack {
             ForEach(1...viewModel.numberOfFrets, id: \.self) { fret in
-                let fretColour = fret == 12 ? viewModel.stringColor : viewModel.stringColor
-                let fretWidth: CGFloat = fret == 12 ? 3 : 1
+                let isTwelthFret = fret % 12 == 11
+                let fretColour = isTwelthFret ? viewModel.stringColor : viewModel.stringColor
+                let fretWidth: CGFloat = isTwelthFret ? 3 : 1
                 
                 Path { path in
                     let x = CGFloat(fret) * fretSpacing
@@ -85,45 +85,51 @@ struct FretboardView: View {
     }
     
     func drawMarkers(viewModel: FretboardViewModel, width: CGFloat, height: CGFloat, fretSpacing: CGFloat, stringSpacing: CGFloat) -> some View {
-        ForEach(0..<viewModel.notes.count, id: \.self) { noteIndex in
+        let minSpacing = min(fretSpacing, stringSpacing)
+        
+        return ForEach(0..<viewModel.notes.count, id: \.self) { noteIndex in
             let note = viewModel.notes[noteIndex]
             
             ForEach(0..<note.count, id: \.self) { fretIndex in
                 let fret = note[fretIndex]
                 // TODO: Move this into the note service
-                let noteInChord = viewModel.chord.intervals.contains(
-                    fret.getInterval(rootNote: appState.selectedNote)
+//                let noteInChord = viewModel.chord.intervals.contains(
+//                    fret.getInterval(rootNote: appState.selectedNote)
+//                )
+                
+                let noteInChord = viewModel.scale.intervals.contains(
+                    fret.getInterval(rootNote: viewModel.appState.selectedNote)
                 )
                 
                 let x = CGFloat(fretIndex) * fretSpacing - (fretIndex == 0 ? 0 : fretSpacing / 2)
                 let y = CGFloat(noteIndex + 1) * stringSpacing
                 let markerColor =
                     noteInChord
-                        ? fret.type == appState.selectedNote
+                        ? fret.type == viewModel.appState.selectedNote
                             ? viewModel.markerColorC
                             : viewModel.markerColorA
                         : fretIndex == 0
                             ? viewModel.markerColorB
-                            : Color.white
+                            : viewModel.defaultMarkerColor
                 
+                // TODO: Adjust this so that the button wrapps the circle instead
                 Circle()
                     .stroke(lineWidth: 6)
                     .fill(markerColor)
                     .background(Circle().fill(noteInChord ? .black : markerColor))
-                    .frame(width: markerSize, height: markerSize)
+                    .frame(width: minSpacing * markerSize, height: minSpacing * markerSize)
                     .overlay(
                         Text(fret.getLabel()) // "O" for open string, "•" for fretted
                             .font(.caption)
                             .foregroundColor(noteInChord ? .white : viewModel.fretboardColor)
                     )
+                    .onTapGesture(perform: { clickedMarker(note: fret.type)})
                     .position(x: x, y: y)
             }
         }
     }
-}
-
-struct FretboardView_Previews: PreviewProvider {
-    static var previews: some View {
-        FretboardView()
+    
+    func clickedMarker(note: Note) {
+        viewModel.onNoteClicked(note: note)
     }
 }
