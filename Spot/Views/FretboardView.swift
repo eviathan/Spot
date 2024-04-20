@@ -22,7 +22,7 @@ struct FretboardView: View {
     let markerSize: CGFloat = 30.0
     
     var body: some View {
-        let viewModel: FretboardViewModel = FretboardViewModel(appState: appState)
+        let viewModel: FretboardViewModel = FretboardViewModel(appState: appState) // TODO: Bind this above the view
         
         GeometryReader { geometry in
             let width = geometry.size.width
