@@ -10,16 +10,7 @@ import SwiftUI
 struct FretboardView: View {
     @EnvironmentObject var appState: AppState
     
-    let numberOfFrets: Int = 24
-    let numberOfStrings: Int = 6
-    
-    let fretboardColor = Color(hue: 0.61, saturation: 0.42, brightness: 0.31, opacity: 1.00)
-    let stringColor = Color(hue: 0.63, saturation: 0.13, brightness: 0.28, opacity: 1.00)
-    let markerColorA = Color(hue: 0.04, saturation: 0.48, brightness: 0.95, opacity: 1.00)
-    let markerColorB = Color(hue: 0.98, saturation: 0.62, brightness: 0.89, opacity: 1.00)
-    let markerColorC = Color(hue: 0.62, saturation: 0.58, brightness: 0.86, opacity: 1.00)
-    
-    let markerSize: CGFloat = 30.0
+    let markerSize: CGFloat = 30.0 // TODO: Calculate this
     
     var body: some View {
         let viewModel: FretboardViewModel = FretboardViewModel(appState: appState) // TODO: Bind this above the view
@@ -27,14 +18,14 @@ struct FretboardView: View {
         GeometryReader { geometry in
             let width = geometry.size.width
             let height = geometry.size.height
-            let fretSpacing = width / CGFloat(numberOfFrets + 1)
-            let stringSpacing = height / CGFloat(numberOfStrings + 1)
+            let fretSpacing = width / CGFloat(viewModel.numberOfFrets + 1)
+            let stringSpacing = height / CGFloat(viewModel.numberOfStrings + 1)
             
             ZStack {
-                drawNut(width: width, height: height)
-                drawFrets(width: width, height: height, fretSpacing: fretSpacing)
-                drawStrings(width: width, height: height, stringSpacing: stringSpacing)
-                drawFretNumbers(width: width, height: height, fretSpacing: fretSpacing, stringSpacing: stringSpacing)
+                drawNut(viewModel: viewModel, width: width, height: height)
+                drawFrets(viewModel: viewModel, width: width, height: height, fretSpacing: fretSpacing)
+                drawStrings(viewModel: viewModel, width: width, height: height, stringSpacing: stringSpacing)
+                drawFretNumbers(viewModel: viewModel, width: width, height: height, fretSpacing: fretSpacing, stringSpacing: stringSpacing)
                 drawMarkers(viewModel: viewModel, width: width, height: height, fretSpacing: fretSpacing, stringSpacing: stringSpacing)
             }
         }
@@ -42,7 +33,7 @@ struct FretboardView: View {
         .padding()
     }
     
-    func drawNut(width: CGFloat, height: CGFloat) -> some View {
+    func drawNut(viewModel: FretboardViewModel, width: CGFloat, height: CGFloat) -> some View {
         let nutWidth: CGFloat = 6
         let nutX = nutWidth / 2
         
@@ -50,45 +41,44 @@ struct FretboardView: View {
             path.move(to: CGPoint(x: nutX, y: 0))
             path.addLine(to: CGPoint(x: nutX, y: height))
         }
-        .stroke(stringColor, lineWidth: 6)
+        .stroke(viewModel.stringColor, lineWidth: 6)
     }
     
-    func drawFrets(width: CGFloat, height: CGFloat, fretSpacing: CGFloat) -> some View {
+    func drawFrets(viewModel: FretboardViewModel, width: CGFloat, height: CGFloat, fretSpacing: CGFloat) -> some View {
         ZStack {
-            // Default frets
-            ForEach(1...numberOfFrets, id: \.self) { fret in
+            ForEach(1...viewModel.numberOfFrets, id: \.self) { fret in
+                let fretColour = fret == 12 ? viewModel.stringColor : viewModel.stringColor
+                let fretWidth: CGFloat = fret == 12 ? 3 : 1
+                
                 Path { path in
                     let x = CGFloat(fret) * fretSpacing
                     path.move(to: CGPoint(x: x, y: 0))
                     path.addLine(to: CGPoint(x: x, y: height))
                 }
-                .stroke(fret == 12 ? stringColor : stringColor,
-                        lineWidth: fret == 12 ? 3 : 1
-                )
+                .stroke(fretColour, lineWidth: fretWidth)
             }
         }
     }
     
-    func drawStrings(width: CGFloat, height: CGFloat, stringSpacing: CGFloat) -> some View {
+    func drawStrings(viewModel: FretboardViewModel, width: CGFloat, height: CGFloat, stringSpacing: CGFloat) -> some View {
         return Path { path in
-            for string in 1...numberOfStrings {
+            for string in 1...viewModel.numberOfStrings {
                 let y = CGFloat(string) * stringSpacing
                 path.move(to: CGPoint(x: 0, y: y))
                 path.addLine(to: CGPoint(x: width, y: y))
             }
         }
-        .stroke(stringColor, lineWidth: 1)
+        .stroke(viewModel.stringColor, lineWidth: 1)
     }
     
-    func drawFretNumbers(width: CGFloat, height: CGFloat, fretSpacing: CGFloat, stringSpacing: CGFloat) -> some View {
-        ForEach(1...numberOfFrets, id: \.self) { fret in
+    func drawFretNumbers(viewModel: FretboardViewModel, width: CGFloat, height: CGFloat, fretSpacing: CGFloat, stringSpacing: CGFloat) -> some View {
+        ForEach(1...viewModel.numberOfFrets, id: \.self) { fret in
             let x = CGFloat(fret) * fretSpacing - fretSpacing / 2
-            // Align the numbers with the bottom of the fret lines
-            let y = height - (stringSpacing / 4) // Adjust this value as needed to move the number up or down
+            let y = height - (stringSpacing / 4)
 
             Text("\(fret)")
                 .font(.caption)
-                .foregroundColor(fretboardColor)
+                .foregroundColor(viewModel.fretboardColor)
                 .frame(width: fretSpacing, height: stringSpacing / 2, alignment: .top)
                 .position(x: x, y: y)
         }
@@ -100,31 +90,33 @@ struct FretboardView: View {
             
             ForEach(0..<note.count, id: \.self) { fretIndex in
                 let fret = note[fretIndex]
+                // TODO: Move this into the note service
                 let noteInChord = viewModel.chord.intervals.contains(
                     fret.getInterval(rootNote: appState.selectedNote)
                 )
-//                    fretIndex == 0 ? "O" : "X"
                 
                 let x = CGFloat(fretIndex) * fretSpacing - (fretIndex == 0 ? 0 : fretSpacing / 2)
                 let y = CGFloat(noteIndex + 1) * stringSpacing
-                let markerColor = !noteInChord
-                    ? Color.white
-                    : fretIndex == 0
-                        ? markerColorB
-                        : fret.type == appState.selectedNote
-                            ? markerColorC
-                            : markerColorA
+                let markerColor =
+                    noteInChord
+                        ? fret.type == appState.selectedNote
+                            ? viewModel.markerColorC
+                            : viewModel.markerColorA
+                        : fretIndex == 0
+                            ? viewModel.markerColorB
+                            : Color.white
                 
                 Circle()
+                    .stroke(lineWidth: 6)
                     .fill(markerColor)
+                    .background(Circle().fill(noteInChord ? .black : markerColor))
                     .frame(width: markerSize, height: markerSize)
                     .overlay(
                         Text(fret.getLabel()) // "O" for open string, "•" for fretted
                             .font(.caption)
-                            .foregroundColor(fretboardColor)
+                            .foregroundColor(noteInChord ? .white : viewModel.fretboardColor)
                     )
                     .position(x: x, y: y)
-//                        .opacity(noteInChord ? 1 : 0.5)
             }
         }
     }
