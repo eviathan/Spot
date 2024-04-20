@@ -10,7 +10,7 @@ import SwiftUI
 struct FretboardView: View {
     @EnvironmentObject var appState: AppState
     
-    let numberOfFrets: Int = 22
+    let numberOfFrets: Int = 24
     let numberOfStrings: Int = 6
     
     let fretboardColor = Color(hue: 0.61, saturation: 0.42, brightness: 0.31, opacity: 1.00)
@@ -22,6 +22,8 @@ struct FretboardView: View {
     let markerSize: CGFloat = 30.0
     
     var body: some View {
+        let viewModel: FretboardViewModel = FretboardViewModel(appState: appState)
+        
         GeometryReader { geometry in
             let width = geometry.size.width
             let height = geometry.size.height
@@ -33,7 +35,7 @@ struct FretboardView: View {
                 drawFrets(width: width, height: height, fretSpacing: fretSpacing)
                 drawStrings(width: width, height: height, stringSpacing: stringSpacing)
                 drawFretNumbers(width: width, height: height, fretSpacing: fretSpacing, stringSpacing: stringSpacing)
-                drawMarkers(width: width, height: height, fretSpacing: fretSpacing, stringSpacing: stringSpacing)
+                drawMarkers(viewModel: viewModel, width: width, height: height, fretSpacing: fretSpacing, stringSpacing: stringSpacing)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: 300)
@@ -52,25 +54,19 @@ struct FretboardView: View {
     }
     
     func drawFrets(width: CGFloat, height: CGFloat, fretSpacing: CGFloat) -> some View {
-        return Path { path in
-            for fret in 1...numberOfFrets {
-                let lineWidth: CGFloat = (fret == 12) ? 3 : 1 // Make the 12th fret line thicker
-                let x = CGFloat(fret) * fretSpacing
-                path.move(to: CGPoint(x: x, y: 0))
-                path.addLine(to: CGPoint(x: x, y: height))
-                path.closeSubpath()
-                                    
-                // Draw the path for each fret to allow different line widths
-                if fret == 12 {
-                    // Optional: Add some more styling to the 12th fret, like a different color
-                    let highlightColor = Color.red // Example highlight color
-                    let _ = path.stroke(highlightColor, lineWidth: lineWidth)
-                } else {
-                    let _ = path.stroke(stringColor, lineWidth: lineWidth)
+        ZStack {
+            // Default frets
+            ForEach(1...numberOfFrets, id: \.self) { fret in
+                Path { path in
+                    let x = CGFloat(fret) * fretSpacing
+                    path.move(to: CGPoint(x: x, y: 0))
+                    path.addLine(to: CGPoint(x: x, y: height))
                 }
+                .stroke(fret == 12 ? stringColor : stringColor,
+                        lineWidth: fret == 12 ? 3 : 1
+                )
             }
         }
-        .stroke(stringColor, lineWidth: 1)
     }
     
     func drawStrings(width: CGFloat, height: CGFloat, stringSpacing: CGFloat) -> some View {
@@ -98,13 +94,15 @@ struct FretboardView: View {
         }
     }
     
-    func drawMarkers(width: CGFloat, height: CGFloat, fretSpacing: CGFloat, stringSpacing: CGFloat) -> some View {
-        ForEach(0..<appState.fretboardViewModel.notes.count, id: \.self) { noteIndex in
-            let note = appState.fretboardViewModel.notes[noteIndex]
+    func drawMarkers(viewModel: FretboardViewModel, width: CGFloat, height: CGFloat, fretSpacing: CGFloat, stringSpacing: CGFloat) -> some View {
+        ForEach(0..<viewModel.notes.count, id: \.self) { noteIndex in
+            let note = viewModel.notes[noteIndex]
             
             ForEach(0..<note.count, id: \.self) { fretIndex in
                 let fret = note[fretIndex]
-                let noteInChord = appState.fretboardViewModel.chord.intervals.contains(fret.getInterval(rootNote: .A))
+                let noteInChord = viewModel.chord.intervals.contains(
+                    fret.getInterval(rootNote: appState.selectedNote)
+                )
 //                    fretIndex == 0 ? "O" : "X"
                 
                 let x = CGFloat(fretIndex) * fretSpacing - (fretIndex == 0 ? 0 : fretSpacing / 2)
@@ -113,7 +111,7 @@ struct FretboardView: View {
                     ? Color.white
                     : fretIndex == 0
                         ? markerColorB
-                        : fret.type == .A
+                        : fret.type == appState.selectedNote
                             ? markerColorC
                             : markerColorA
                 

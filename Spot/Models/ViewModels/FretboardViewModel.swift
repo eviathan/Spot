@@ -11,8 +11,8 @@ class FretboardViewModel {
     var notes: [[FretNote]] = []
     let chord: ChordType = .Dom7
     
-    init() {
+    init(appState: AppState) {
         notes = NoteService.getNotesForTuning(tuning: [.E, .A, .D, .G, .B, .E].reversed(),
-                                              frets: 22)
+                                              frets: 24, root: appState.selectedNote)
     }
 }

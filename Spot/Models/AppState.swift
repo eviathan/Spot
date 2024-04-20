@@ -10,7 +10,5 @@ import Foundation
 class AppState: ObservableObject {
     @Published var test: String  = "Wooter"
     @Published var instrument: InstrumentType = .guitar
-    @Published var selectedNote: Note = .A
-    
-    @Published var fretboardViewModel: FretboardViewModel = FretboardViewModel()
+    @Published var selectedNote: Note = .G
 }

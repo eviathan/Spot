@@ -14,7 +14,7 @@ struct FretNote {
     func getLabel() -> String {
         switch labelType {
             case .interval(let note):
-            return getInterval(rootNote: note).description
+                return getInterval(rootNote: note).description
             case .note:
                 fallthrough
             default:
