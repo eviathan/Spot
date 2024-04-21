@@ -8,60 +8,43 @@
 
 import Foundation
 
-public enum ScaleType: CustomStringConvertible, CaseIterable, Hashable, NoteCollection {
-    // Major (w/Modes)
-    case Major(_ mode: MajorModes)
-    
-    // (Natural) Minor
-    case Minor
+public enum ScaleType: String, CaseIterable, CustomStringConvertible, Hashable, NoteCollection {
+    // Major Modes
+    case Major = "Major / Ionian"
+    case Dorian = "Dorian"
+    case Phrygian = "Phrygian"
+    case Lydian = "Lydian"
+    case Mixolydian = "Mixolydian"
+    case Minor = "Minor / Aolian / Natural"
+    case Locrian = "Locrian"
     
     // Harmonic Minor (w/Modes)
-    case HarmonicMinor
-    case Locrian13
-    case IonianSharp5
-    case DorianSharp11
-    case PhrygianDominant
-    case LydianSharp2
-    case SuperLocrianbb7
+    case HarmonicMinor = "Harmonic Minor"
+    case Locrian13 = "Locrian13"
+    case IonianSharp5 = "IonianSharp5"
+    case DorianSharp11 = "DorianSharp11"
+    case PhrygianDominant = "PhrygianDominant"
+    case LydianSharp2 = "LydianSharp2"
+    case SuperLocrianbb7 = "SuperLocrianbb7"
     
     // Meoldic Minor (w/Modes)
-    case MelodicMinor
-    case Dorianb2
-    case LydianAugmented
-    case LydianDominant
-    case Mixolydianb6
-    case Aeolianb5
-    case AlteredScale
+    case MelodicMinor = "MelodicMinor"
+    case Dorianb2 = "Dorianb2"
+    case LydianAugmented = "LydianAugmented"
+    case LydianDominant = "LydianDominant"
+    case Mixolydianb6 = "Mixolydianb6"
+    case Aeolianb5 = "Aeolianb5"
+    case AlteredScale = "AlteredScale"
     
     // Pentatonics
-    case MajorPentatonic
-    case MinorPentatonic
+    case MajorPentatonic = "MajorPentatonic"
+    case MinorPentatonic = "MinorPentatonic"
     
     // Blues
-    case Blues(_ style: ScaleStyle)
+    case Blues = "Blues"
     
     // Eastern
     // Wholetone & Diminished
-    
-    public static var allCases: [ScaleType] = [
-       Minor,
-       HarmonicMinor,
-       Locrian13,
-       IonianSharp5,
-       DorianSharp11,
-       PhrygianDominant,
-       LydianSharp2,
-       SuperLocrianbb7,
-       MelodicMinor,
-       Dorianb2,
-       LydianAugmented,
-       LydianDominant,
-       Mixolydianb6,
-       Aeolianb5,
-       AlteredScale,
-       MajorPentatonic,
-       MinorPentatonic
-    ]
     
     public var description: String {
         let mirror = Mirror(reflecting: self)
@@ -71,20 +54,13 @@ public enum ScaleType: CustomStringConvertible, CaseIterable, Hashable, NoteColl
     var intervals: [Interval] {
         switch self {
         // Major Modes
-        case .Major(let mode): do {
-            switch mode {
-            case .Ionian: return [.I, .II, .III, .IV, .V, .VI, .VII]
-            case .Dorian: return [.I, .II, .bIII, .IV, .V, .VI, .bVII]
-            case .Phrygian: return [.I, .bII, .bIII, .IV, .V, .bVI, .bVII]
-            case .Lydian: return [.I, .II, .III, .bV, .V, .VI, .VII]
-            case .Mixolydian: return [.I, .II, .III, .IV, .V, .VI, .bVII]
-            case .Aeolian: return [.I, .II, .bIII, .IV, .V, .bVI, .bVII]
-            case .Locrian: return [.I, .bII, .bIII, .IV, .bV, .bVI, .bVII]
-            }
-        }
-        
-        // (Natural) Minor
-        case .Minor: return ScaleType.Major(.Aeolian).intervals
+        case .Major: return [.I, .II, .III, .IV, .V, .VI, .VII]
+        case .Dorian: return [.I, .II, .bIII, .IV, .V, .VI, .bVII]
+        case .Phrygian: return [.I, .bII, .bIII, .IV, .V, .bVI, .bVII]
+        case .Lydian: return [.I, .II, .III, .bV, .V, .VI, .VII]
+        case .Mixolydian: return [.I, .II, .III, .IV, .V, .VI, .bVII]
+        case .Minor: return [.I, .II, .bIII, .IV, .V, .bVI, .bVII]
+        case .Locrian: return [.I, .bII, .bIII, .IV, .bV, .bVI, .bVII]
             
         // Harmonic Minor (w/Modes)
         case .HarmonicMinor: return [.I, .II, .bIII, .IV, .V, .bVI, .VII]
@@ -110,15 +86,16 @@ public enum ScaleType: CustomStringConvertible, CaseIterable, Hashable, NoteColl
         case .MinorPentatonic: return [.I, .bIII, .IV, .V, .bVII]
             
         // Blues
-        case .Blues(let style): do {
-            switch style {
-            case .Pentatonic: return [.I, .II, .III, .V, .VI]
-            case .Hexatonic: return [.I, .II, .III, .V, .VI]
-            case .Heptatonic: return [.I, .II, .III, .V, .VI]
-            case .Octatonic: return [.I, .II, .III, .V, .VI]
-            case .Nonatonic: return [.I, .II, .III, .V, .VI]
-            }
-        }
+        case .Blues: return [.I, .II, .III, .V, .VI]
+//            do {
+//            switch style {
+//            case .Pentatonic: return [.I, .II, .III, .V, .VI]
+//            case .Hexatonic: return [.I, .II, .III, .V, .VI]
+//            case .Heptatonic: return [.I, .II, .III, .V, .VI]
+//            case .Octatonic: return [.I, .II, .III, .V, .VI]
+//            case .Nonatonic: return [.I, .II, .III, .V, .VI]
+//            }
+//        }
             
         // Eastern
             

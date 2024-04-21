@@ -17,7 +17,7 @@ class AppState: ObservableObject {
     @Published var noteCollectionMode: NoteCollectionMode = .Scales
     
     @Published var selectedChord: ChordType = .Maj
-    @Published var selectedScale: ScaleType = .Major(.Ionian)
+    @Published var selectedScale: ScaleType = .Major
     
     
     

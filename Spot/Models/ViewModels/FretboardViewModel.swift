@@ -13,7 +13,7 @@ class FretboardViewModel: ObservableObject {
     let numberOfStrings: Int = 6
     var notes: [[FretNote]] = []
     let chord: ChordType = .Dom7
-    let scale: ScaleType = .Major(.Ionian)
+    let scale: ScaleType = .Major
     let tuning: [Note] = [.E, .A, .D, .G, .B, .E]
     
     let appState: AppState
@@ -56,7 +56,7 @@ class FretboardViewModel: ObservableObject {
         var notes:[[Int]]  = []
     
         switch scale {
-            case .Major(_):
+            case .Major:
                 notes = majorScalePatterns.getPattern(pattern: appState.inversion.rawValue, variation: variation)
             case .Minor:
                 fallthrough
@@ -92,7 +92,7 @@ class FretboardViewModel: ObservableObject {
                 fallthrough
             case .MinorPentatonic:
                 fallthrough
-            case .Blues(_):
+            case .Blues:
                 fallthrough
             default:
                 return []
