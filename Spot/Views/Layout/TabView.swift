@@ -8,22 +8,27 @@ import SwiftUI
 
 struct TabView: View {
     @EnvironmentObject var appState: AppState
-    @State private var favoriteColor: NoteCollectionMode = .Scales
+    @State private var selectedNoteCollectionMode: NoteCollectionMode = .Scales
 
     let backgroundColor = Color(hue: 0.62, saturation: 0.38, brightness: 0.24, opacity: 1.00)
+    let panelBackgroundColor = Color(hue: 0.63, saturation: 0.35, brightness: 0.44, opacity: 1.00)
+    
+    
     let menuOptions: [NoteCollectionMode] = [.Scales, .Chords]
     
     var body: some View {
         HStack {
-            HStack {
-                Picker("", selection: $favoriteColor) {
+            VStack {
+                Picker("", selection: $selectedNoteCollectionMode) {
                     ForEach(menuOptions, id: \.self) {
                         Text($0.description)
                             .font(.system(size: 66))
                     }
                 }
                 .pickerStyle(.segmented)
-                
+                .onChange(of: selectedNoteCollectionMode) { mode in
+                    appState.setNoteCollectionMode(mode: mode)
+                }
                 Menu {
                     ForEach(ChordType.allCases, id: \.self) { chord in
                         Button(action: { appState.selectedChord = chord }) {
@@ -34,14 +39,43 @@ struct TabView: View {
                 } label: {
                     Label(title: {Text(appState.selectedChord.description)}, icon: {})
                 }
+                HStack {
+                    Text("Inversion")
+                    Menu {
+                        ForEach(ChordType.allCases, id: \.self) { chord in
+                            Button(action: { appState.selectedChord = chord }) {
+                                Text(chord.description)
+                            }
+                        }
+                        
+                    } label: {
+                        Label(title: {Text(appState.selectedChord.description)}, icon: {})
+                    }
+                }
+                
+                HStack {
+                    Text("Variation")
+                    Menu {
+                        ForEach(ChordType.allCases, id: \.self) { chord in
+                            Button(action: { appState.selectedChord = chord }) {
+                                Text(chord.description)
+                            }
+                        }
+                        
+                    } label: {
+                        Label(title: {Text(appState.selectedChord.description)}, icon: {})
+                    }
+                }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding()
+            .background(panelBackgroundColor)
             
             
             Text("Tab View")
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding()
         .background(backgroundColor)
         .foregroundColor(.white)
     }

@@ -157,7 +157,15 @@ struct FretboardView: View {
                 let x = CGFloat(fretIndex) * fretSpacing - (isOpenString ? 0 : fretSpacing / 2)
                 let y = CGFloat(noteIndex + 1) * stringSpacing
                 
-                let highlightedNotes = viewModel.getHighlightedNotesforScale(pattern: 4, variation: 0)
+                
+                let highlightedNotes = NoteService.getHighlightedNotesforScale(
+                        pattern: 4,
+                        variation: 0,
+                        tuning: viewModel.tuning,
+                        scale: viewModel.appState.selectedScale,
+                        inversion: viewModel.appState.inversion,
+                        selectedNote: viewModel.appState.selectedNote
+                )
                 
                 let isHighlighted = viewModel.appState.highlightedMode ||
                                     (highlightedNotes.isEmpty ||

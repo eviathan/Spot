@@ -50,78 +50,11 @@ class FretboardViewModel: ObservableObject {
                                               labelType: .interval(note: appState.selectedNote))
     }
     
-    func getHighlightedNotesforScale(pattern: Int = 0, variation: Int = 0) -> [[Int]] {
-        let majorScalePatterns = MajorScaleThreeNotePerStringFrettingPatterns()
-        
-        var notes:[[Int]]  = []
-    
-        switch scale {
-            case .Major:
-                notes = majorScalePatterns.getPattern(pattern: appState.inversion.rawValue, variation: variation)
-            case .Minor:
-                fallthrough
-            case .HarmonicMinor:
-                fallthrough
-            case .Locrian13:
-                fallthrough
-            case .IonianSharp5:
-                fallthrough
-            case .DorianSharp11:
-                fallthrough
-            case .PhrygianDominant:
-                fallthrough
-            case .LydianSharp2:
-                fallthrough
-            case .SuperLocrianbb7:
-                fallthrough
-            case .MelodicMinor:
-                fallthrough
-            case .Dorianb2:
-                fallthrough
-            case .LydianAugmented:
-                fallthrough
-            case .LydianDominant:
-                fallthrough
-            case .Mixolydianb6:
-                fallthrough
-            case .Aeolianb5:
-                fallthrough
-            case .AlteredScale:
-                fallthrough
-            case .MajorPentatonic:
-                fallthrough
-            case .MinorPentatonic:
-                fallthrough
-            case .Blues:
-                fallthrough
-            default:
-                return []
-        }
-        
-        return transpose(notes: notes)
-    }
-    
     func onNoteClicked(note: Note) {
         appState.selectedNote = note
         
         notes = NoteService.getNotesForTuning(tuning: tuning.reversed(),
                                               frets: 24, root: appState.selectedNote,
                                               labelType: appState.labelMode)
-    }
-    
-    private func transpose(notes: [[Int]]) -> [[Int]] {
-        guard let bassStringOpenNote = tuning.first else {
-            return notes
-        }
-        
-        let fretOffset = appState.selectedNote.interval(key: bassStringOpenNote).rawValue
-
-        let output = notes.map { string in
-            string.map { fret in
-                fret + fretOffset  // Add the offset directly
-            }
-        }
-        
-        return output
     }
 }
