@@ -147,9 +147,9 @@ struct FretboardView: View {
                 
                 let isHighlighted = highlightedNotes.isEmpty ||
                                     highlightedNotes[noteIndex]
-                                             .contains(where: { highlightedNote in
-                                                highlightedNote == fretIndex % 12
-                                             })
+                                        .contains(where: { highlightedNote in
+                                            highlightedNote % 12 == fretIndex % 12
+                                        })
                 
                 let colorNoteIndex = viewModel.markerColours[intervalIndex]
                 

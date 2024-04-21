@@ -105,13 +105,30 @@ class FretboardViewModel: ObservableObject {
     }
     
     private func transpose(notes: [[Int]]) -> [[Int]] {
-        let bassStringOpenNote = tuning.first ?? .A
-        let fretOffset = appState.selectedNote.interval(key: bassStringOpenNote).rawValue
+        guard let bassStringOpenNote = tuning.first else {
+            return notes
+        }
         
-        return notes.map({ string in
-                string.map({fret in
-                    fretOffset + fret % 12
-            })
-        })
+        let fretOffset = appState.selectedNote.interval(key: bassStringOpenNote).rawValue
+
+        let output = notes.map { string in
+            string.map { fret in
+                fret + fretOffset  // Add the offset directly
+            }
+        }
+        
+        return output
     }
+//
+//    
+//    private func transpose(notes: [[Int]]) -> [[Int]] {
+//        let bassStringOpenNote = tuning.first ?? .A
+//        let fretOffset = appState.selectedNote.interval(key: bassStringOpenNote).rawValue
+//        
+//        return notes.map({ string in
+//                string.map({fret in
+//                    fretOffset + fret
+//            })
+//        })
+//    }
 }
