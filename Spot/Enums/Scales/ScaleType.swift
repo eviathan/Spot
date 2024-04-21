@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum ScaleType: CustomStringConvertible, Hashable, NoteCollection {
+public enum ScaleType: CustomStringConvertible, CaseIterable, Hashable, NoteCollection {
     // Major (w/Modes)
     case Major(_ mode: MajorModes)
     
@@ -42,6 +42,26 @@ public enum ScaleType: CustomStringConvertible, Hashable, NoteCollection {
     
     // Eastern
     // Wholetone & Diminished
+    
+    public static var allCases: [ScaleType] = [
+       Minor,
+       HarmonicMinor,
+       Locrian13,
+       IonianSharp5,
+       DorianSharp11,
+       PhrygianDominant,
+       LydianSharp2,
+       SuperLocrianbb7,
+       MelodicMinor,
+       Dorianb2,
+       LydianAugmented,
+       LydianDominant,
+       Mixolydianb6,
+       Aeolianb5,
+       AlteredScale,
+       MajorPentatonic,
+       MinorPentatonic
+    ]
     
     public var description: String {
         let mirror = Mirror(reflecting: self)

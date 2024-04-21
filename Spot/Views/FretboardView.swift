@@ -140,16 +140,19 @@ struct FretboardView: View {
             ForEach(0..<note.count, id: \.self) { fretIndex in
                 let fret = note[fretIndex]
                 // TODO: Move this into the note service
-//                let noteInChord = viewModel.chord.intervals.contains(
-//                    fret.getInterval(rootNote: appState.selectedNote)
-//                )
                 
-                let noteInCollection = viewModel.scale.intervals.contains(
-                    fret.getInterval(rootNote: viewModel.appState.selectedNote)
-                )
+                let noteInCollection: Bool = viewModel.appState.noteCollectionMode == .Chords
+                        ? viewModel.appState.selectedChord.intervals.contains(
+                            fret.getInterval(rootNote: viewModel.appState.selectedNote)
+                        )
+                        : viewModel.appState.selectedScale.intervals.contains(
+                            fret.getInterval(rootNote: viewModel.appState.selectedNote)
+                        )
                 
                 let isOpenString = fretIndex == 0
-                let intervalIndex = viewModel.scale.intervals.firstIndex(of: fret.getInterval(rootNote: viewModel.appState.selectedNote)) ?? 0
+                let intervalIndex = viewModel.appState.noteCollectionMode == .Chords
+                    ?viewModel.appState.selectedChord.intervals.firstIndex(of: fret.getInterval(rootNote: viewModel.appState.selectedNote)) ?? 0
+                    : viewModel.appState.selectedScale.intervals.firstIndex(of: fret.getInterval(rootNote: viewModel.appState.selectedNote)) ?? 0
                 
                 let x = CGFloat(fretIndex) * fretSpacing - (isOpenString ? 0 : fretSpacing / 2)
                 let y = CGFloat(noteIndex + 1) * stringSpacing
@@ -200,6 +203,7 @@ struct FretboardView: View {
                             mouseOverMarkerIndex = isHovering ? noteIndex * 100 + fretIndex : nil
                         }
                     }
+                    
                     .position(x: x, y: y)
                     .opacity((hideUnrelatedNotes && noteInCollection) || !hideUnrelatedNotes ? 1 : 0)
                     

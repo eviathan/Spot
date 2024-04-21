@@ -45,6 +45,7 @@
 		D3FBC9742BD441F000A69646 /* NoteCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FBC9732BD441F000A69646 /* NoteCollection.swift */; };
 		D3FBC9772BD4493700A69646 /* MajorScaleThreeNotePerStringFrettingPatterns.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FBC9762BD4493700A69646 /* MajorScaleThreeNotePerStringFrettingPatterns.swift */; };
 		D3FBC9792BD45C5C00A69646 /* FrettingPattern.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FBC9782BD45C5C00A69646 /* FrettingPattern.swift */; };
+		D3FBC97B2BD5535B00A69646 /* NoteCollectionMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FBC97A2BD5535B00A69646 /* NoteCollectionMode.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -89,6 +90,7 @@
 		D3FBC9732BD441F000A69646 /* NoteCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteCollection.swift; sourceTree = "<group>"; };
 		D3FBC9762BD4493700A69646 /* MajorScaleThreeNotePerStringFrettingPatterns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MajorScaleThreeNotePerStringFrettingPatterns.swift; sourceTree = "<group>"; };
 		D3FBC9782BD45C5C00A69646 /* FrettingPattern.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrettingPattern.swift; sourceTree = "<group>"; };
+		D3FBC97A2BD5535B00A69646 /* NoteCollectionMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteCollectionMode.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -207,6 +209,7 @@
 				D301A3122BCEFE8B008BE4E8 /* Note.swift */,
 				D3AA9B722BCD9FBD00C78DF3 /* InstrumentType.swift */,
 				D32AC5872BD24EA400F40B5B /* FretLabelType.swift */,
+				D3FBC97A2BD5535B00A69646 /* NoteCollectionMode.swift */,
 			);
 			path = Enums;
 			sourceTree = "<group>";
@@ -358,6 +361,7 @@
 				D3AA9B7D2BCDA08C00C78DF3 /* Footer.swift in Sources */,
 				D301A3222BCEFEA6008BE4E8 /* Suspension.swift in Sources */,
 				D3AA9B7F2BCEF8AB00C78DF3 /* AppState.swift in Sources */,
+				D3FBC97B2BD5535B00A69646 /* NoteCollectionMode.swift in Sources */,
 				D301A3232BCEFEA6008BE4E8 /* ChordStyle.swift in Sources */,
 				D301A3162BCEFE8B008BE4E8 /* Note.swift in Sources */,
 				D301A32D2BCEFECE008BE4E8 /* ScaleType.swift in Sources */,

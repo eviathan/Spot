@@ -14,6 +14,12 @@ class AppState: ObservableObject {
     @Published var hideUnrelatedNotes: Bool = false
     @Published var labelMode: FretLabelType = .note
     @Published var highlightedMode: Bool = true
+    @Published var noteCollectionMode: NoteCollectionMode = .Scales
+    
+    @Published var selectedChord: ChordType = .Maj
+    @Published var selectedScale: ScaleType = .Major(.Ionian)
+    
+    
     
     func toggleHideUnrelatedNotes() {
         hideUnrelatedNotes.toggle()
@@ -30,5 +36,9 @@ class AppState: ObservableObject {
         case .interval(_):
             labelMode = .note
         }
+    }
+    
+    func setNoteCollectionMode(mode: NoteCollectionMode) {
+        noteCollectionMode = mode
     }
 }
