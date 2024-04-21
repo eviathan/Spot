@@ -143,7 +143,7 @@ struct FretboardView: View {
                 let x = CGFloat(fretIndex) * fretSpacing - (isOpenString ? 0 : fretSpacing / 2)
                 let y = CGFloat(noteIndex + 1) * stringSpacing
                 
-                let highlightedNotes = viewModel.getHighlightedNotesforScale()
+                let highlightedNotes = viewModel.getHighlightedNotesforScale(pattern: 4, variation: 0)
                 
                 let isHighlighted = highlightedNotes.isEmpty ||
                                     highlightedNotes[noteIndex]
@@ -153,7 +153,7 @@ struct FretboardView: View {
                 
                 let colorNoteIndex = viewModel.markerColours[intervalIndex]
                 
-                let hideUnrelatedNotes = true // TODO: Move this somewhere where it can be user configurable
+                let hideUnrelatedNotes = viewModel.appState.hideUnrelatedNotes
                 
                 let markerColor =
                     !isHighlighted 
@@ -171,13 +171,13 @@ struct FretboardView: View {
                     .background(Circle().fill(noteInChord ? .black : markerColor))
                     .frame(width: minSpacing * markerSize, height: minSpacing * markerSize)
                     .overlay(
-                        Text(fret.getLabel()) // "O" for open string, "•" for fretted
+                        Text(fret.getLabel(labelType: viewModel.appState.labelMode)) // "O" for open string, "•" for fretted
                             .font(.caption)
                             .foregroundColor(noteInChord || (isOpenString && isHighlighted)  ? .white : viewModel.fretboardColor)
                     )
                     .onTapGesture(perform: { clickedMarker(note: fret.type)})
                     .position(x: x, y: y)
-//                    .opacity(hideUnrelatedNotes && noteInChord ? 1 : 0)
+                    .opacity((hideUnrelatedNotes && noteInChord) || !hideUnrelatedNotes ? 1 : 0)
             }
         }
     }

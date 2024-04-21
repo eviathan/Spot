@@ -55,8 +55,8 @@ class FretboardViewModel: ObservableObject {
         var notes:[[Int]]  = []
     
         switch scale {
-            case .Major(let mode):
-                notes = majorScalePatterns.getPattern(type: .Major(mode), pattern: pattern, variation: variation)
+            case .Major(_):
+                notes = majorScalePatterns.getPattern(pattern: appState.inversion.rawValue, variation: variation)
             case .Minor:
                 fallthrough
             case .HarmonicMinor:
@@ -119,16 +119,4 @@ class FretboardViewModel: ObservableObject {
         
         return output
     }
-//
-//    
-//    private func transpose(notes: [[Int]]) -> [[Int]] {
-//        let bassStringOpenNote = tuning.first ?? .A
-//        let fretOffset = appState.selectedNote.interval(key: bassStringOpenNote).rawValue
-//        
-//        return notes.map({ string in
-//                string.map({fret in
-//                    fretOffset + fret
-//            })
-//        })
-//    }
 }

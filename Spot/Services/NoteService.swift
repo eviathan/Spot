@@ -40,7 +40,7 @@ public class NoteService {
             
             for fret in 0...frets {
                 let currentFret = Note(rawValue: (fret + noteIndex) % 12)
-                let fretNote = FretNote(type: currentFret!, labelType: .interval(note: root))
+                let fretNote = FretNote(type: currentFret!)
                 stringNotes.append(fretNote)
             }
             

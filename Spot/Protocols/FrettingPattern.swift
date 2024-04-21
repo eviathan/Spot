@@ -8,9 +8,17 @@
 import Foundation
 
 protocol FrettingPattern {
-    associatedtype TNoteCollection: NoteCollection
+    var patterns: [NoteGroup] { get set }
     
-    var inversion: [TNoteCollection : [[[Int]]]] { get set }
+    func getPattern(pattern: Int, variation: Int) -> [[Int]]
+}
+
+class NoteGroup {
+    var name: String
+    var notes: [[[Int]]]
     
-    func getPattern(type: ScaleType, pattern: Int, variation: Int) -> [[Int]]
+    init(_ name: String = "", notes: [[[Int]]]) {
+        self.name = name
+        self.notes = notes
+    }
 }

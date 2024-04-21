@@ -9,9 +9,9 @@ import Foundation
 
 struct FretNote {
     var type: Note
-    var labelType: FretLabelType
+//    var labelType: FretLabelType
     
-    func getLabel() -> String {
+    func getLabel(labelType: FretLabelType) -> String {
         switch labelType {
             case .interval(let note):
                 return getInterval(rootNote: note).description
