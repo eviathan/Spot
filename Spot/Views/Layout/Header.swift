@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct Header: View {
+    @EnvironmentObject var appState: AppState
+    
     let backgroundColor = Color(hue: 0.61, saturation: 0.42, brightness: 0.31, opacity: 1.00)
     
     func dragWindow(value: DragGesture.Value) {
@@ -20,18 +22,21 @@ struct Header: View {
     }
     
     var body: some View {
-        Text("♮")
-            .font(.system(size: 36))
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding()
-            .background(backgroundColor)
-            .foregroundColor(.white)
-            .gesture(
-                DragGesture()
-                    .onChanged { value in
-                        self.dragWindow(value: value)
-                    }
-            )
+        HStack {
+            Text("♮")
+                .font(.system(size: 36))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding()
+                .background(backgroundColor)
+                .foregroundColor(.white)
+                .gesture(
+                    DragGesture()
+                        .onChanged { value in
+                            self.dragWindow(value: value)
+                        }
+                )
+        }
+        
     }
 }
 

@@ -39,6 +39,23 @@ public enum Note: Int, CaseIterable, CustomStringConvertible {
         case .Ab: return "A♭"
         }
     }
+    
+    public var longDescription: String {
+        switch self {
+        case .A: return "A♮"
+        case .Bb: return "A♯/B♭"
+        case .B: return "B♮"
+        case .C: return "C♮"
+        case .Db: return "C♯/D♭"
+        case .D: return "D♮"
+        case .Eb: return "D♯/E♭"
+        case .E: return "E♮"
+        case .F: return "F♮"
+        case .Gb: return "F♯/G♭"
+        case .G: return "G♮"
+        case .Ab: return "G♯/A♭"
+        }
+    }
 }
 
 extension Note {

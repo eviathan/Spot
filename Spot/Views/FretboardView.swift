@@ -61,14 +61,26 @@ struct FretboardView: View {
     }
     
     func drawStrings(viewModel: FretboardViewModel, width: CGFloat, height: CGFloat, stringSpacing: CGFloat) -> some View {
-        ZStack {
+        let exponent: CGFloat = 1.5
+        let minStringWidth: CGFloat = 1.0
+        let maxStringWidth: CGFloat = 5.0
+        
+        return ZStack {
             ForEach(1...viewModel.numberOfStrings, id: \.self) { string in
                 Path { path in
                     let y = CGFloat(string) * stringSpacing
                     path.move(to: CGPoint(x: 0, y: y))
                     path.addLine(to: CGPoint(x: width, y: y))
                 }
-                .stroke(viewModel.stringColor, style: StrokeStyle(lineWidth: CGFloat(string))) //dash: [CGFloat(2), CGFloat(2.0)]
+                .stroke(viewModel.stringColor, 
+                        style: StrokeStyle(
+                            lineWidth: calculateStringWidth(forString: string,
+                                                            totalStrings: viewModel.numberOfStrings,
+                                                            minLineWidth: minStringWidth,
+                                                            maxLineWidth: maxStringWidth,
+                                                            exponent: exponent)
+                        )
+                )
             }
         }
     }
@@ -91,7 +103,6 @@ struct FretboardView: View {
         let doubleFretMarkers: [Int] = [12, 24] // TODO: Programatically derive this from the fret length
         
         return ZStack {
-            // Single markers
             ForEach(singleFretMarkers, id: \.self) { fret in
                 let x = CGFloat(fret) * fretSpacing - fretSpacing / 2
                 
@@ -101,7 +112,6 @@ struct FretboardView: View {
                     .position(x: x, y: height / 2)
             }
 
-            // Double markers
             ForEach(doubleFretMarkers.indices, id: \.self) { index in
                 let fret = doubleFretMarkers[index]
                 let x = CGFloat(fret) * fretSpacing - fretSpacing / 2
@@ -171,7 +181,7 @@ struct FretboardView: View {
                     .background(Circle().fill(noteInChord ? .black : markerColor))
                     .frame(width: minSpacing * markerSize, height: minSpacing * markerSize)
                     .overlay(
-                        Text(fret.getLabel()) // "O" for open string, "•" for fretted
+                        Text(fret.getLabel())
                             .font(.caption)
                             .foregroundColor(noteInChord || (isOpenString && isHighlighted)  ? .white : viewModel.fretboardColor)
                     )
@@ -184,5 +194,11 @@ struct FretboardView: View {
     
     func clickedMarker(note: Note) {
         viewModel.onNoteClicked(note: note)
+    }
+    
+    private func calculateStringWidth(forString string: Int, totalStrings: Int, minLineWidth: CGFloat, maxLineWidth: CGFloat, exponent: CGFloat) -> CGFloat {
+        let normalizedIndex = CGFloat(string - 1) / CGFloat(totalStrings - 1)
+        let width = minLineWidth + (maxLineWidth - minLineWidth) * pow(normalizedIndex, exponent)
+        return width
     }
 }

@@ -8,14 +8,20 @@
 import SwiftUI
 
 struct Footer: View {
+    @EnvironmentObject var appState: AppState
     let backgroundColor = Color(hue: 0.62, saturation: 0.34, brightness: 0.20, opacity: 1.00)
     
     var body: some View {
-        Text("Footer")
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding()
-            .background(backgroundColor)
-            .foregroundColor(.white)
+        HStack {
+                
+            Text("⑂ \(appState.selectedNote.longDescription)")
+                .font(.system(size: 24))
+                .foregroundColor(.white)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding()
+        .background(backgroundColor)
+        .foregroundColor(.white)
     }
 }
 
