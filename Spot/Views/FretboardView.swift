@@ -9,6 +9,7 @@ import SwiftUI
 // TODO: This is innefficient we can reduce the iterations down to a single pass based on the fretboard
 struct FretboardView: View {
     @ObservedObject var viewModel: FretboardViewModel
+    @State private var mouseOverMarkerIndex: Int? = nil
     
     let markerSize: CGFloat = 0.7 // TODO: Calculate this
     
@@ -173,21 +174,29 @@ struct FretboardView: View {
                         : isOpenString
                             ? viewModel.openMarkerColor
                             : viewModel.defaultMarkerColor
+                
+                let markerSizeModifier = mouseOverMarkerIndex == noteIndex * 100 + fretIndex ? 1.1 : 1.0
                                 
                 // TODO: Adjust this so that the button wrapps the circle instead
                 Circle()
                     .stroke(lineWidth: 6)
                     .fill(markerColor)
                     .background(Circle().fill(noteInChord ? .black : markerColor))
-                    .frame(width: minSpacing * markerSize, height: minSpacing * markerSize)
+                    .frame(width: minSpacing * markerSize * markerSizeModifier, height: minSpacing * markerSize * markerSizeModifier)
                     .overlay(
                         Text(fret.getLabel())
                             .font(.caption)
                             .foregroundColor(noteInChord || (isOpenString && isHighlighted)  ? .white : viewModel.fretboardColor)
                     )
                     .onTapGesture(perform: { clickedMarker(note: fret.note)})
+                    .onHover { isHovering in
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            mouseOverMarkerIndex = isHovering ? noteIndex * 100 + fretIndex : nil
+                        }
+                    }
                     .position(x: x, y: y)
                     .opacity((hideUnrelatedNotes && noteInChord) || !hideUnrelatedNotes ? 1 : 0)
+                    
             }
         }
     }
