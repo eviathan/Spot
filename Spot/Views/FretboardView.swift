@@ -144,7 +144,7 @@ struct FretboardView: View {
 //                    fret.getInterval(rootNote: appState.selectedNote)
 //                )
                 
-                let noteInChord = viewModel.scale.intervals.contains(
+                let noteInCollection = viewModel.scale.intervals.contains(
                     fret.getInterval(rootNote: viewModel.appState.selectedNote)
                 )
                 
@@ -156,20 +156,22 @@ struct FretboardView: View {
                 
                 let highlightedNotes = viewModel.getHighlightedNotesforScale(pattern: 4, variation: 0)
                 
-                let isHighlighted = highlightedNotes.isEmpty ||
-                                    highlightedNotes[noteIndex]
+                let isHighlighted = viewModel.appState.highlightedMode ||
+                                    (highlightedNotes.isEmpty ||
+                                     highlightedNotes[noteIndex]
                                         .contains(where: { highlightedNote in
                                             highlightedNote % 12 == fretIndex % 12
-                                        })
+                                        }))
                 
                 let colorNoteIndex = viewModel.markerColours[intervalIndex]
                 
                 let hideUnrelatedNotes = viewModel.appState.hideUnrelatedNotes
                 
-                let markerColor =
-                    !isHighlighted 
-                    ? viewModel.defaultMarkerColor
-                    : noteInChord
+                let markerColor = !isHighlighted
+                    ? isOpenString
+                        ? viewModel.openMarkerColor
+                        : viewModel.defaultMarkerColor
+                    : noteInCollection
                         ? colorNoteIndex
                         : isOpenString
                             ? viewModel.openMarkerColor
@@ -181,12 +183,16 @@ struct FretboardView: View {
                 Circle()
                     .stroke(lineWidth: 6)
                     .fill(markerColor)
-                    .background(Circle().fill(noteInChord ? .black : markerColor))
+                    .background(Circle().fill(noteInCollection ? .black : markerColor))
                     .frame(width: minSpacing * markerSize * markerSizeModifier, height: minSpacing * markerSize * markerSizeModifier)
                     .overlay(
                         Text(fret.getLabel())
                             .font(.caption)
-                            .foregroundColor(noteInChord || (isOpenString && isHighlighted)  ? .white : viewModel.fretboardColor)
+                            .foregroundColor(
+                                noteInCollection || isOpenString
+                                             ? .white
+                                             : viewModel.fretboardColor
+                            )
                     )
                     .onTapGesture(perform: { clickedMarker(note: fret.note)})
                     .onHover { isHovering in
@@ -195,7 +201,7 @@ struct FretboardView: View {
                         }
                     }
                     .position(x: x, y: y)
-                    .opacity((hideUnrelatedNotes && noteInChord) || !hideUnrelatedNotes ? 1 : 0)
+                    .opacity((hideUnrelatedNotes && noteInCollection) || !hideUnrelatedNotes ? 1 : 0)
                     
             }
         }

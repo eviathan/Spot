@@ -13,9 +13,14 @@ class AppState: ObservableObject {
     @Published var inversion: Inversion = .Root
     @Published var hideUnrelatedNotes: Bool = false
     @Published var labelMode: FretLabelType = .note
+    @Published var highlightedMode: Bool = true
     
     func toggleHideUnrelatedNotes() {
         hideUnrelatedNotes.toggle()
+    }
+    
+    func toggleHighlightedMode() {
+        highlightedMode.toggle()
     }
     
     func toggleLabelMode() {
