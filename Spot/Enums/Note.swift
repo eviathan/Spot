@@ -26,17 +26,17 @@ public enum Note: Int, CaseIterable, CustomStringConvertible {
     public var description: String {
         switch self {
         case .A: return "A"
-        case .Bb: return "Bb"
+        case .Bb: return "B♭"
         case .B: return "B"
         case .C: return "C"
-        case .Db: return "Db"
+        case .Db: return "D♭"
         case .D: return "D"
-        case .Eb: return "Eb"
+        case .Eb: return "E♭"
         case .E: return "E"
         case .F: return "F"
-        case .Gb: return "Gb"
+        case .Gb: return "G♭"
         case .G: return "G"
-        case .Ab: return "Ab"
+        case .Ab: return "A♭"
         }
     }
 }

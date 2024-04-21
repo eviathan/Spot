@@ -171,11 +171,11 @@ struct FretboardView: View {
                     .background(Circle().fill(noteInChord ? .black : markerColor))
                     .frame(width: minSpacing * markerSize, height: minSpacing * markerSize)
                     .overlay(
-                        Text(fret.getLabel(labelType: viewModel.appState.labelMode)) // "O" for open string, "•" for fretted
+                        Text(fret.getLabel()) // "O" for open string, "•" for fretted
                             .font(.caption)
                             .foregroundColor(noteInChord || (isOpenString && isHighlighted)  ? .white : viewModel.fretboardColor)
                     )
-                    .onTapGesture(perform: { clickedMarker(note: fret.type)})
+                    .onTapGesture(perform: { clickedMarker(note: fret.note)})
                     .position(x: x, y: y)
                     .opacity((hideUnrelatedNotes && noteInChord) || !hideUnrelatedNotes ? 1 : 0)
             }

@@ -20,8 +20,8 @@ struct Header: View {
     }
     
     var body: some View {
-        Text("Spot")
-            .font(.system(size: 18))
+        Text("♮")
+            .font(.system(size: 36))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding()
             .background(backgroundColor)

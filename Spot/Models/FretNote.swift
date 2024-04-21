@@ -8,22 +8,20 @@
 import Foundation
 
 struct FretNote {
-    var type: Note
-//    var labelType: FretLabelType
+    var note: Note
+    var labelType: FretLabelType
     
-    func getLabel(labelType: FretLabelType) -> String {
+    func getLabel() -> String {
         switch labelType {
             case .interval(let note):
                 return getInterval(rootNote: note).description
             case .note:
-                fallthrough
-            default:
-                return type.description
+                return note.description
         }
     }
     
     func getInterval(rootNote: Note) -> Interval {
-        let intervals = NoteService.getIntervals(type, key: rootNote)
+        let intervals = NoteService.getIntervals(note, key: rootNote)
         return intervals.first ?? .I
     }
 }

@@ -31,7 +31,7 @@ public class NoteService {
         return notes.map({ $0.interval(key: key) })
     }
     
-    class func getNotesForTuning(tuning: [Note], frets: Int, root: Note) -> [[FretNote]] {
+    class func getNotesForTuning(tuning: [Note], frets: Int, root: Note, labelType: FretLabelType) -> [[FretNote]] {
         var output:[[FretNote]] = []
         
         for note in tuning {
@@ -40,7 +40,7 @@ public class NoteService {
             
             for fret in 0...frets {
                 let currentFret = Note(rawValue: (fret + noteIndex) % 12)
-                let fretNote = FretNote(type: currentFret!)
+                let fretNote = FretNote(note: currentFret!, labelType: labelType)
                 stringNotes.append(fretNote)
             }
             

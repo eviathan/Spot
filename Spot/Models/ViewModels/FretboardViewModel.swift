@@ -46,7 +46,8 @@ class FretboardViewModel: ObservableObject {
     init(appState: AppState) {
         self.appState = appState
         notes = NoteService.getNotesForTuning(tuning: tuning.reversed(),
-                                              frets: 24, root: appState.selectedNote)
+                                              frets: 24, root: appState.selectedNote,
+                                              labelType: .interval(note: appState.selectedNote))
     }
     
     func getHighlightedNotesforScale(pattern: Int = 0, variation: Int = 0) -> [[Int]] {
@@ -102,6 +103,10 @@ class FretboardViewModel: ObservableObject {
     
     func onNoteClicked(note: Note) {
         appState.selectedNote = note
+        
+        notes = NoteService.getNotesForTuning(tuning: tuning.reversed(),
+                                              frets: 24, root: appState.selectedNote,
+                                              labelType: appState.labelMode)
     }
     
     private func transpose(notes: [[Int]]) -> [[Int]] {
