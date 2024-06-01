@@ -7,7 +7,10 @@
 
 import Foundation
 
-class MajorScaleThreeNotePerStringFrettingPatterns : FrettingPattern {
+// TODO: Make this procedural
+// Each string just gets three note parts of the scale in ascending pitch sequentially i.e. (1,2,3) then (4,5,6) etc
+// Each Note group just augments the pattern by 1
+class ThreeNotePerStringFrettingPattern : FrettingPattern {
     var patterns: [NoteGroup]
     
     init() {
@@ -90,4 +93,44 @@ class MajorScaleThreeNotePerStringFrettingPatterns : FrettingPattern {
         let selectedVariation: [[Int]] = selectedPattern.notes[variation]
         return selectedVariation
     }
+    
+    
+    func getPatterns(_ scale: ScaleType,
+                     pattern: Int = 0,
+                     variation: Int = 0,
+                     key: Note,
+                     tuning: [Note],
+                     fretRange: Int,
+                     names: [String] = []) -> [[Int]] {
+        
+        var patterns: [[Int]] = []
+        
+        // Assume getNotes returns an array of Notes in the scale from the root
+        let scaleNotes = scale.getNotes(key)
+        
+        // Iterate over each string based on the tuning
+        for stringNote in tuning {
+            var stringFrets: [Int] = []
+            
+            // Check each fret up to the fretRange to see if it matches any note in the scale
+            for fret in 0...fretRange {
+                let noteAtFret = Note(rawValue: (stringNote.rawValue + fret) % 12)
+                if scaleNotes.contains(noteAtFret!) {
+                    stringFrets.append(fret)
+                    // Collect only the first three notes that can be played on this string
+                    if stringFrets.count == 3 {
+                        break
+                    }
+                }
+            }
+            
+            // Append only if there are at least three notes; otherwise, consider the next string
+            if stringFrets.count >= 3 {
+                patterns.append(stringFrets)
+            }
+        }
+        
+        return patterns
+    }
+
 }

@@ -43,9 +43,13 @@
 		D3E1F5492BCDDB2600167D43 /* FretboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E1F5482BCDDB2600167D43 /* FretboardViewModel.swift */; };
 		D3E1F54C2BCDDC9600167D43 /* NoteService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E1F54B2BCDDC9600167D43 /* NoteService.swift */; };
 		D3FBC9742BD441F000A69646 /* NoteCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FBC9732BD441F000A69646 /* NoteCollection.swift */; };
-		D3FBC9772BD4493700A69646 /* MajorScaleThreeNotePerStringFrettingPatterns.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FBC9762BD4493700A69646 /* MajorScaleThreeNotePerStringFrettingPatterns.swift */; };
+		D3FBC9772BD4493700A69646 /* ThreeNotePerStringFrettingPattern.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FBC9762BD4493700A69646 /* ThreeNotePerStringFrettingPattern.swift */; };
 		D3FBC9792BD45C5C00A69646 /* FrettingPattern.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FBC9782BD45C5C00A69646 /* FrettingPattern.swift */; };
 		D3FBC97B2BD5535B00A69646 /* NoteCollectionMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FBC97A2BD5535B00A69646 /* NoteCollectionMode.swift */; };
+		D3FBC9812BD57BCD00A69646 /* SQLite in Frameworks */ = {isa = PBXBuildFile; productRef = D3FBC9802BD57BCD00A69646 /* SQLite */; };
+		D3FBC9842BD57BF800A69646 /* DatabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FBC9832BD57BF800A69646 /* DatabaseManager.swift */; };
+		D3FBC9872BD79C2B00A69646 /* Theme.json in Resources */ = {isa = PBXBuildFile; fileRef = D3FBC9862BD79C2B00A69646 /* Theme.json */; };
+		D3FBC98B2BD79C6F00A69646 /* FrettingPattern.json in Resources */ = {isa = PBXBuildFile; fileRef = D3FBC98A2BD79C6E00A69646 /* FrettingPattern.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -88,9 +92,12 @@
 		D3E1F5482BCDDB2600167D43 /* FretboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FretboardViewModel.swift; sourceTree = "<group>"; };
 		D3E1F54B2BCDDC9600167D43 /* NoteService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteService.swift; sourceTree = "<group>"; };
 		D3FBC9732BD441F000A69646 /* NoteCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteCollection.swift; sourceTree = "<group>"; };
-		D3FBC9762BD4493700A69646 /* MajorScaleThreeNotePerStringFrettingPatterns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MajorScaleThreeNotePerStringFrettingPatterns.swift; sourceTree = "<group>"; };
+		D3FBC9762BD4493700A69646 /* ThreeNotePerStringFrettingPattern.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreeNotePerStringFrettingPattern.swift; sourceTree = "<group>"; };
 		D3FBC9782BD45C5C00A69646 /* FrettingPattern.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrettingPattern.swift; sourceTree = "<group>"; };
 		D3FBC97A2BD5535B00A69646 /* NoteCollectionMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteCollectionMode.swift; sourceTree = "<group>"; };
+		D3FBC9832BD57BF800A69646 /* DatabaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseManager.swift; sourceTree = "<group>"; };
+		D3FBC9862BD79C2B00A69646 /* Theme.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Theme.json; sourceTree = "<group>"; };
+		D3FBC98A2BD79C6E00A69646 /* FrettingPattern.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = FrettingPattern.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -98,6 +105,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D3FBC9812BD57BCD00A69646 /* SQLite in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -164,6 +172,8 @@
 		D3AA9B592BCD982E00C78DF3 /* Spot */ = {
 			isa = PBXGroup;
 			children = (
+				D3FBC9852BD79C0300A69646 /* Config */,
+				D3FBC9822BD57BE900A69646 /* DataAccess */,
 				D3FBC9722BD441D700A69646 /* Protocols */,
 				D301A3372BCEFF9A008BE4E8 /* Extensions */,
 				D3AA9B742BCD9FDF00C78DF3 /* Enums */,
@@ -267,9 +277,26 @@
 		D3FBC9752BD448FB00A69646 /* FrettingPattern */ = {
 			isa = PBXGroup;
 			children = (
-				D3FBC9762BD4493700A69646 /* MajorScaleThreeNotePerStringFrettingPatterns.swift */,
+				D3FBC9762BD4493700A69646 /* ThreeNotePerStringFrettingPattern.swift */,
 			);
 			path = FrettingPattern;
+			sourceTree = "<group>";
+		};
+		D3FBC9822BD57BE900A69646 /* DataAccess */ = {
+			isa = PBXGroup;
+			children = (
+				D3FBC9832BD57BF800A69646 /* DatabaseManager.swift */,
+			);
+			path = DataAccess;
+			sourceTree = "<group>";
+		};
+		D3FBC9852BD79C0300A69646 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				D3FBC98A2BD79C6E00A69646 /* FrettingPattern.json */,
+				D3FBC9862BD79C2B00A69646 /* Theme.json */,
+			);
+			path = Config;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -288,6 +315,9 @@
 			dependencies = (
 			);
 			name = Spot;
+			packageProductDependencies = (
+				D3FBC9802BD57BCD00A69646 /* SQLite */,
+			);
 			productName = Spot;
 			productReference = D3AA9B572BCD982E00C78DF3 /* Spot.app */;
 			productType = "com.apple.product-type.application";
@@ -316,6 +346,9 @@
 				Base,
 			);
 			mainGroup = D3AA9B4E2BCD982E00C78DF3;
+			packageReferences = (
+				D3FBC97F2BD57BCD00A69646 /* XCRemoteSwiftPackageReference "SQLite.swift" */,
+			);
 			productRefGroup = D3AA9B582BCD982E00C78DF3 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -330,6 +363,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D3FBC9872BD79C2B00A69646 /* Theme.json in Resources */,
+				D3FBC98B2BD79C6F00A69646 /* FrettingPattern.json in Resources */,
 				D3AA9B642BCD983000C78DF3 /* Preview Assets.xcassets in Resources */,
 				D3AA9B612BCD983000C78DF3 /* Assets.xcassets in Resources */,
 			);
@@ -354,8 +389,9 @@
 				D301A3362BCEFF89008BE4E8 /* Constants.swift in Sources */,
 				D3AA9B732BCD9FBD00C78DF3 /* InstrumentType.swift in Sources */,
 				D301A3322BCEFEDF008BE4E8 /* MajorModes.swift in Sources */,
-				D3FBC9772BD4493700A69646 /* MajorScaleThreeNotePerStringFrettingPatterns.swift in Sources */,
+				D3FBC9772BD4493700A69646 /* ThreeNotePerStringFrettingPattern.swift in Sources */,
 				D301A3262BCEFEA6008BE4E8 /* ChordType.swift in Sources */,
+				D3FBC9842BD57BF800A69646 /* DatabaseManager.swift in Sources */,
 				D301A3252BCEFEA6008BE4E8 /* Alter.swift in Sources */,
 				D3AA9B792BCDA06B00C78DF3 /* TabView.swift in Sources */,
 				D3AA9B7D2BCDA08C00C78DF3 /* Footer.swift in Sources */,
@@ -583,6 +619,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		D3FBC97F2BD57BCD00A69646 /* XCRemoteSwiftPackageReference "SQLite.swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/stephencelis/SQLite.swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.15.3;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		D3FBC9802BD57BCD00A69646 /* SQLite */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D3FBC97F2BD57BCD00A69646 /* XCRemoteSwiftPackageReference "SQLite.swift" */;
+			productName = SQLite;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = D3AA9B4F2BCD982E00C78DF3 /* Project object */;
 }

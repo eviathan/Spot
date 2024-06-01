@@ -1,0 +1,26 @@
+{
+    "name": "Standard",
+    "version": 1.0,
+    "light": {
+        "global": {
+            
+        },
+        "fretboard": {
+            
+        },
+        "keyboard": {
+            
+        }
+    },
+    "dark": {
+        "global": {
+            
+        },
+        "fretboard": {
+            
+        },
+        "keyboard": {
+            
+        }
+    },
+}

@@ -56,25 +56,29 @@ public class NoteService {
                                            scale: ScaleType,
                                            inversion: Inversion,
                                            selectedNote: Note) -> [[Int]] {
-        let majorScalePatterns = MajorScaleThreeNotePerStringFrettingPatterns()
+        let threeNotePerString = ThreeNotePerStringFrettingPattern()
         
         var notes:[[Int]]  = []
+        
+        let testMajor = threeNotePerString.getPatterns(scale, key: .A, tuning: tuning, fretRange: 24)
+        let testDorian = threeNotePerString.getPatterns(scale, key: .A, tuning: tuning, fretRange: 24)
+        let testMinor = threeNotePerString.getPatterns(scale, key: .A, tuning: tuning, fretRange: 24)
     
         switch scale {
             case .Major:
-                notes = majorScalePatterns.getPattern(pattern: inversion.rawValue, variation: variation)
+                notes = threeNotePerString.getPattern(pattern: inversion.rawValue, variation: variation)
             case .Dorian:
-                notes = majorScalePatterns.getPattern(pattern: inversion.rawValue + 1 % 7, variation: variation)
+                notes = threeNotePerString.getPattern(pattern: inversion.rawValue + 1 % 7, variation: variation)
             case .Phrygian:
-                notes = majorScalePatterns.getPattern(pattern: inversion.rawValue + 2 % 7, variation: variation)
+                notes = threeNotePerString.getPattern(pattern: inversion.rawValue + 2 % 7, variation: variation)
             case .Lydian:
-                notes = majorScalePatterns.getPattern(pattern: inversion.rawValue + 3 % 7, variation: variation)
+                notes = threeNotePerString.getPattern(pattern: inversion.rawValue + 3 % 7, variation: variation)
             case .Mixolydian:
-                notes = majorScalePatterns.getPattern(pattern: inversion.rawValue + 4 % 7, variation: variation)
+                notes = threeNotePerString.getPattern(pattern: inversion.rawValue + 4 % 7, variation: variation)
             case .Minor:
-                notes = majorScalePatterns.getPattern(pattern: inversion.rawValue + 5 % 7, variation: variation)
+                notes = threeNotePerString.getPattern(pattern: inversion.rawValue + 5 % 7, variation: variation)
             case .Locrian:
-                notes = majorScalePatterns.getPattern(pattern: inversion.rawValue + 6 % 7, variation: variation)
+                notes = threeNotePerString.getPattern(pattern: inversion.rawValue + 6 % 7, variation: variation)
             case .HarmonicMinor:
                 fallthrough
             case .Locrian13:
