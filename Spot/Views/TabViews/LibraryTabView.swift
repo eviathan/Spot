@@ -9,69 +9,43 @@ import SwiftUI
 
 struct LibraryTabView: View {
     @EnvironmentObject var appState: AppState
-    let geometryProxy: GeometryProxy
-    @State private var selectedNoteCollectionMode: NoteCollectionMode = .Scales
     
+    @State private var selectedNoteCollectionMode: NoteCollectionMode = .Scales
+    @State var chordSelection = ChordType.Maj
+    
+    let geometryProxy: GeometryProxy
     let menuOptions: [NoteCollectionMode] = [.Scales, .Chords]
     let panelBackgroundColor = Color(hue: 1.00, saturation: 0.00, brightness: 0.89, opacity: 1.00)
     
     var body: some View {
-        HStack {
-            Text("Something")
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            VStack {
-                Text("Library Tab View")
-                Picker("", selection: $selectedNoteCollectionMode) {
-                    ForEach(menuOptions, id: \.self) {
-                        Text($0.description)
-                            .font(.system(size: 66))
-                    }
-                }
-                .pickerStyle(.segmented)
-                .onChange(of: selectedNoteCollectionMode) { mode in
-                    appState.setNoteCollectionMode(mode: mode)
-                }
-                Menu {
-                    ForEach(ChordType.allCases, id: \.self) { chord in
-                        Button(action: { appState.selectedChord = chord }) {
-                            Text(chord.description)
-                        }
-                    }
-                    
-                } label: {
-                    Label(title: {Text(appState.selectedChord.description)}, icon: {})
-                }
-                HStack {
-                    Text("Inversion")
-                    Menu {
-                        ForEach(ChordType.allCases, id: \.self) { chord in
-                            Button(action: { appState.selectedChord = chord }) {
-                                Text(chord.description)
-                            }
-                        }
-                        
-                    } label: {
-                        Label(title: {Text(appState.selectedChord.description)}, icon: {})
+        VStack(alignment: .leading) {
+            LibraryMenu()
+            HStack {
+                if appState.displayLeftSidebar {
+                    withAnimation {
+                        Text("Filter List")
+                            .frame(maxWidth: 300)
+                            .transition(.move(edge: .leading).combined(with: .opacity))
                     }
                 }
                 
-                HStack {
-                    Text("Variation")
-                    Menu {
-                        ForEach(ChordType.allCases, id: \.self) { chord in
-                            Button(action: { appState.selectedChord = chord }) {
-                                Text(chord.description)
-                            }
-                        }
-                        
-                    } label: {
-                        Label(title: {Text(appState.selectedChord.description)}, icon: {})
+                VStack() {
+                    Text("Main Content")
+                        .frame(maxWidth: .infinity)
+                }
+                .frame(maxWidth: .infinity)
+                
+                if appState.displayRightSidebar {
+                    withAnimation {
+                        Text("Library Detail View")
+                            .frame(maxWidth: 600)
+                            .transition(.move(edge: .trailing).combined(with: .opacity))
                     }
                 }
             }
-            .frame(maxWidth: geometryProxy.size.width / 3, maxHeight: .infinity)
-            .padding()
-            .background(panelBackgroundColor)
+            .frame(maxHeight: .infinity)
+            .animation(.easeInOut, value: appState.displayLeftSidebar)
+            .animation(.easeInOut, value: appState.displayRightSidebar)
         }
     }
 }

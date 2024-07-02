@@ -22,13 +22,13 @@ struct Header: View {
     }
     
     var body: some View {
-        HStack {
+        VStack(alignment: .center) {
             Text("♮")
-                .font(.system(size: 36))
-            
+                .font(.system(size: 38))
+                .frame(maxHeight: .infinity)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding()
+        .padding([.all], 12)
+        .frame(maxWidth: .infinity, maxHeight: 52)
         .background(backgroundColor)
         .foregroundColor(.white)
         .gesture(
@@ -37,12 +37,5 @@ struct Header: View {
                     self.dragWindow(value: value)
                 }
         )
-        
-    }
-}
-
-struct Header_Previews: PreviewProvider {
-    static var previews: some View {
-        Header()
     }
 }

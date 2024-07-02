@@ -33,6 +33,8 @@
 		D37E4C3D2C346EA600179A19 /* LibraryTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C3C2C346EA600179A19 /* LibraryTabView.swift */; };
 		D37E4C412C34716D00179A19 /* TabViewType.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C402C34716D00179A19 /* TabViewType.swift */; };
 		D37E4C432C34777700179A19 /* EditorTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C422C34777700179A19 /* EditorTabView.swift */; };
+		D37E4C452C347D4400179A19 /* LibraryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C442C347D4400179A19 /* LibraryItem.swift */; };
+		D37E4C472C34BCA200179A19 /* LibraryMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C462C34BCA200179A19 /* LibraryMenu.swift */; };
 		D3AA9B5B2BCD982E00C78DF3 /* SpotApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B5A2BCD982E00C78DF3 /* SpotApp.swift */; };
 		D3AA9B5D2BCD982E00C78DF3 /* SpotDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B5C2BCD982E00C78DF3 /* SpotDocument.swift */; };
 		D3AA9B612BCD983000C78DF3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D3AA9B602BCD983000C78DF3 /* Assets.xcassets */; };
@@ -85,6 +87,8 @@
 		D37E4C3C2C346EA600179A19 /* LibraryTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryTabView.swift; sourceTree = "<group>"; };
 		D37E4C402C34716D00179A19 /* TabViewType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabViewType.swift; sourceTree = "<group>"; };
 		D37E4C422C34777700179A19 /* EditorTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorTabView.swift; sourceTree = "<group>"; };
+		D37E4C442C347D4400179A19 /* LibraryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryItem.swift; sourceTree = "<group>"; };
+		D37E4C462C34BCA200179A19 /* LibraryMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryMenu.swift; sourceTree = "<group>"; };
 		D3AA9B572BCD982E00C78DF3 /* Spot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Spot.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D3AA9B5A2BCD982E00C78DF3 /* SpotApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotApp.swift; sourceTree = "<group>"; };
 		D3AA9B5C2BCD982E00C78DF3 /* SpotDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotDocument.swift; sourceTree = "<group>"; };
@@ -231,6 +235,7 @@
 				D3AA9B762BCDA01B00C78DF3 /* InstrumentView.swift */,
 				D37E4C352C33FCBC00179A19 /* Transport.swift */,
 				D37E4C372C34610300179A19 /* ModeSwitcher.swift */,
+				D37E4C462C34BCA200179A19 /* LibraryMenu.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -270,6 +275,7 @@
 				D301A30D2BCEFE43008BE4E8 /* Scale.swift */,
 				D3E1F5452BCDDACC00167D43 /* FretNote.swift */,
 				D3AA9B7E2BCEF8AB00C78DF3 /* AppState.swift */,
+				D37E4C442C347D4400179A19 /* LibraryItem.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -418,6 +424,7 @@
 				D3AA9B732BCD9FBD00C78DF3 /* InstrumentType.swift in Sources */,
 				D37E4C382C34610300179A19 /* ModeSwitcher.swift in Sources */,
 				D301A3322BCEFEDF008BE4E8 /* MajorModes.swift in Sources */,
+				D37E4C452C347D4400179A19 /* LibraryItem.swift in Sources */,
 				D3FBC9772BD4493700A69646 /* ThreeNotePerStringFrettingPattern.swift in Sources */,
 				D301A3262BCEFEA6008BE4E8 /* ChordType.swift in Sources */,
 				D3FBC9842BD57BF800A69646 /* DatabaseManager.swift in Sources */,
@@ -440,6 +447,7 @@
 				D3AA9B5B2BCD982E00C78DF3 /* SpotApp.swift in Sources */,
 				D32AC5882BD24EA400F40B5B /* FretLabelType.swift in Sources */,
 				D3E1F5492BCDDB2600167D43 /* FretboardViewModel.swift in Sources */,
+				D37E4C472C34BCA200179A19 /* LibraryMenu.swift in Sources */,
 				D3E1F5462BCDDACC00167D43 /* FretNote.swift in Sources */,
 				D3AA9B712BCD9D6F00C78DF3 /* FretboardView.swift in Sources */,
 				D301A3282BCEFEA6008BE4E8 /* Inversion.swift in Sources */,
@@ -505,8 +513,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 12.3;
-				"MACOSX_DEPLOYMENT_TARGET[arch=*]" = 12.0;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				"MACOSX_DEPLOYMENT_TARGET[arch=*]" = 13.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -562,7 +570,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 12.4;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;

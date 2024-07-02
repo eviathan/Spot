@@ -11,8 +11,9 @@ struct FretNote {
     var note: Note
     var labelType: FretLabelType
     
-    func getLabel() -> String {
-        switch labelType {
+    func getLabel(_ type: FretLabelType?) -> String {
+        let selectedType = type ?? labelType
+        switch selectedType {
             case .interval(let note):
                 return getInterval(rootNote: note).description
             case .note:

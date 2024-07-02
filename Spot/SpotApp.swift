@@ -9,8 +9,6 @@ import SwiftUI
 
 @main
 struct SpotApp: App {
-//    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    
     var appState = AppState()
     
     init() {
@@ -22,6 +20,9 @@ struct SpotApp: App {
             LayoutView()
                 .frame(minWidth: 1280, minHeight: 800)
                 .environmentObject(appState)
+                .toolbar {
+                    Color.clear
+                }
         }
         .windowStyle(.hiddenTitleBar)
         .windowToolbarStyle(UnifiedWindowToolbarStyle(showsTitle: false))
@@ -58,18 +59,22 @@ struct SpotApp: App {
              }
             
             CommandGroup(before: .toolbar) {
-                Button(appState.hideUnrelatedNotes ? "Show Unrelated Notes" : "Hide Unrelated Notes") {
+                Button("Toggle Unrelated Notes") {
                     appState.toggleHideUnrelatedNotes()
                 }
                 .keyboardShortcut("U", modifiers: [.command])
-                Button("Toggle Label Mode") {
-                    appState.toggleLabelMode()
-                }
-                .keyboardShortcut("I", modifiers: [.command])
+//                Button("Toggle Label Mode") {
+//                    appState.toggleLabelMode()
+//                }
+//                .keyboardShortcut("I", modifiers: [.command])
                 Button("Toggle Highlighted Mode") {
                     appState.toggleHighlightedMode()
                 }
                 .keyboardShortcut("O", modifiers: [.command])
+                Button("Toggle Label Mode") {
+                    appState.toggleShowIntervalMode()
+                }
+                .keyboardShortcut("L", modifiers: [.command])
             }
        }
     }

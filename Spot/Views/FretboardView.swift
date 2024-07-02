@@ -151,7 +151,7 @@ struct FretboardView: View {
                 
                 let isOpenString = fretIndex == 0
                 let intervalIndex = viewModel.appState.noteCollectionMode == .Chords
-                    ?viewModel.appState.selectedChord.intervals.firstIndex(of: fret.getInterval(rootNote: viewModel.appState.selectedNote)) ?? 0
+                    ? viewModel.appState.selectedChord.intervals.firstIndex(of: fret.getInterval(rootNote: viewModel.appState.selectedNote)) ?? 0
                     : viewModel.appState.selectedScale.intervals.firstIndex(of: fret.getInterval(rootNote: viewModel.appState.selectedNote)) ?? 0
                 
                 let x = CGFloat(fretIndex) * fretSpacing - (isOpenString ? 0 : fretSpacing / 2)
@@ -197,7 +197,7 @@ struct FretboardView: View {
                     .background(Circle().fill(noteInCollection ? .black : markerColor))
                     .frame(width: minSpacing * markerSize * markerSizeModifier, height: minSpacing * markerSize * markerSizeModifier)
                     .overlay(
-                        Text(fret.getLabel())
+                        Text(fret.getLabel(viewModel.appState.displayIntervals ? nil : .note))
                             .font(.caption)
                             .foregroundColor(
                                 noteInCollection || isOpenString
@@ -211,7 +211,6 @@ struct FretboardView: View {
                             mouseOverMarkerIndex = isHovering ? noteIndex * 100 + fretIndex : nil
                         }
                     }
-                    
                     .position(x: x, y: y)
                     .opacity((hideUnrelatedNotes && noteInCollection) || !hideUnrelatedNotes ? 1 : 0)
                     
