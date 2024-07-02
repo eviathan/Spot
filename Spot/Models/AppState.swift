@@ -19,7 +19,7 @@ class AppState: ObservableObject {
     @Published var selectedChord: ChordType = .Maj
     @Published var selectedScale: ScaleType = .Major
     
-    
+    @Published var tab: TabViewType = .Library
     
     func toggleHideUnrelatedNotes() {
         hideUnrelatedNotes.toggle()

@@ -9,7 +9,13 @@ import SwiftUI
 
 @main
 struct SpotApp: App {
+//    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    
     var appState = AppState()
+    
+    init() {
+        NSWindow.allowsAutomaticWindowTabbing = false
+    }
 
     var body: some Scene {
         WindowGroup() {

@@ -25,17 +25,18 @@ struct Header: View {
         HStack {
             Text("♮")
                 .font(.system(size: 36))
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding()
-                .background(backgroundColor)
-                .foregroundColor(.white)
-                .gesture(
-                    DragGesture()
-                        .onChanged { value in
-                            self.dragWindow(value: value)
-                        }
-                )
+            
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding()
+        .background(backgroundColor)
+        .foregroundColor(.white)
+        .gesture(
+            DragGesture()
+                .onChanged { value in
+                    self.dragWindow(value: value)
+                }
+        )
         
     }
 }

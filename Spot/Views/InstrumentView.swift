@@ -13,7 +13,7 @@ struct InstrumentView: View {
     var body: some View {
         let viewModel  = FretboardViewModel(appState: appState)
         
-        return FretboardView(viewModel: viewModel)
+        return AnyView(appState.tab == .Sequence ? AnyView(EmptyView()) : AnyView(FretboardView(viewModel: viewModel)))
     }
 }
 

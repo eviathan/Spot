@@ -27,6 +27,12 @@
 		D301A3362BCEFF89008BE4E8 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = D301A3342BCEFF89008BE4E8 /* Constants.swift */; };
 		D301A3392BCEFFBC008BE4E8 /* CollectionExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D301A3382BCEFFBC008BE4E8 /* CollectionExtensions.swift */; };
 		D32AC5882BD24EA400F40B5B /* FretLabelType.swift in Sources */ = {isa = PBXBuildFile; fileRef = D32AC5872BD24EA400F40B5B /* FretLabelType.swift */; };
+		D37E4C362C33FCBC00179A19 /* Transport.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C352C33FCBC00179A19 /* Transport.swift */; };
+		D37E4C382C34610300179A19 /* ModeSwitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C372C34610300179A19 /* ModeSwitcher.swift */; };
+		D37E4C3B2C346E7E00179A19 /* SequenceTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C3A2C346E7E00179A19 /* SequenceTabView.swift */; };
+		D37E4C3D2C346EA600179A19 /* LibraryTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C3C2C346EA600179A19 /* LibraryTabView.swift */; };
+		D37E4C412C34716D00179A19 /* TabViewType.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C402C34716D00179A19 /* TabViewType.swift */; };
+		D37E4C432C34777700179A19 /* EditorTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C422C34777700179A19 /* EditorTabView.swift */; };
 		D3AA9B5B2BCD982E00C78DF3 /* SpotApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B5A2BCD982E00C78DF3 /* SpotApp.swift */; };
 		D3AA9B5D2BCD982E00C78DF3 /* SpotDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B5C2BCD982E00C78DF3 /* SpotDocument.swift */; };
 		D3AA9B612BCD983000C78DF3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D3AA9B602BCD983000C78DF3 /* Assets.xcassets */; };
@@ -73,6 +79,12 @@
 		D301A3342BCEFF89008BE4E8 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		D301A3382BCEFFBC008BE4E8 /* CollectionExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CollectionExtensions.swift; sourceTree = "<group>"; };
 		D32AC5872BD24EA400F40B5B /* FretLabelType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FretLabelType.swift; sourceTree = "<group>"; };
+		D37E4C352C33FCBC00179A19 /* Transport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transport.swift; sourceTree = "<group>"; };
+		D37E4C372C34610300179A19 /* ModeSwitcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModeSwitcher.swift; sourceTree = "<group>"; };
+		D37E4C3A2C346E7E00179A19 /* SequenceTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SequenceTabView.swift; sourceTree = "<group>"; };
+		D37E4C3C2C346EA600179A19 /* LibraryTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryTabView.swift; sourceTree = "<group>"; };
+		D37E4C402C34716D00179A19 /* TabViewType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabViewType.swift; sourceTree = "<group>"; };
+		D37E4C422C34777700179A19 /* EditorTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorTabView.swift; sourceTree = "<group>"; };
 		D3AA9B572BCD982E00C78DF3 /* Spot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Spot.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D3AA9B5A2BCD982E00C78DF3 /* SpotApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotApp.swift; sourceTree = "<group>"; };
 		D3AA9B5C2BCD982E00C78DF3 /* SpotDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotDocument.swift; sourceTree = "<group>"; };
@@ -153,6 +165,16 @@
 			path = Extensions;
 			sourceTree = "<group>";
 		};
+		D37E4C392C346E5100179A19 /* TabViews */ = {
+			isa = PBXGroup;
+			children = (
+				D37E4C3A2C346E7E00179A19 /* SequenceTabView.swift */,
+				D37E4C3C2C346EA600179A19 /* LibraryTabView.swift */,
+				D37E4C422C34777700179A19 /* EditorTabView.swift */,
+			);
+			path = TabViews;
+			sourceTree = "<group>";
+		};
 		D3AA9B4E2BCD982E00C78DF3 = {
 			isa = PBXGroup;
 			children = (
@@ -203,9 +225,12 @@
 		D3AA9B6D2BCD9A9300C78DF3 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				D37E4C392C346E5100179A19 /* TabViews */,
 				D3AA9B752BCD9FFC00C78DF3 /* Layout */,
 				D3AA9B702BCD9D6F00C78DF3 /* FretboardView.swift */,
 				D3AA9B762BCDA01B00C78DF3 /* InstrumentView.swift */,
+				D37E4C352C33FCBC00179A19 /* Transport.swift */,
+				D37E4C372C34610300179A19 /* ModeSwitcher.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -220,6 +245,7 @@
 				D3AA9B722BCD9FBD00C78DF3 /* InstrumentType.swift */,
 				D32AC5872BD24EA400F40B5B /* FretLabelType.swift */,
 				D3FBC97A2BD5535B00A69646 /* NoteCollectionMode.swift */,
+				D37E4C402C34716D00179A19 /* TabViewType.swift */,
 			);
 			path = Enums;
 			sourceTree = "<group>";
@@ -385,9 +411,12 @@
 				D3AA9B7B2BCDA08300C78DF3 /* Header.swift in Sources */,
 				D301A3272BCEFEA6008BE4E8 /* Secondary.swift in Sources */,
 				D301A3352BCEFF89008BE4E8 /* Appendix.swift in Sources */,
+				D37E4C3B2C346E7E00179A19 /* SequenceTabView.swift in Sources */,
 				D301A30B2BCEFE38008BE4E8 /* ChordService.swift in Sources */,
 				D301A3362BCEFF89008BE4E8 /* Constants.swift in Sources */,
+				D37E4C432C34777700179A19 /* EditorTabView.swift in Sources */,
 				D3AA9B732BCD9FBD00C78DF3 /* InstrumentType.swift in Sources */,
+				D37E4C382C34610300179A19 /* ModeSwitcher.swift in Sources */,
 				D301A3322BCEFEDF008BE4E8 /* MajorModes.swift in Sources */,
 				D3FBC9772BD4493700A69646 /* ThreeNotePerStringFrettingPattern.swift in Sources */,
 				D301A3262BCEFEA6008BE4E8 /* ChordType.swift in Sources */,
@@ -395,6 +424,7 @@
 				D301A3252BCEFEA6008BE4E8 /* Alter.swift in Sources */,
 				D3AA9B792BCDA06B00C78DF3 /* TabView.swift in Sources */,
 				D3AA9B7D2BCDA08C00C78DF3 /* Footer.swift in Sources */,
+				D37E4C3D2C346EA600179A19 /* LibraryTabView.swift in Sources */,
 				D301A3222BCEFEA6008BE4E8 /* Suspension.swift in Sources */,
 				D3AA9B7F2BCEF8AB00C78DF3 /* AppState.swift in Sources */,
 				D3FBC97B2BD5535B00A69646 /* NoteCollectionMode.swift in Sources */,
@@ -402,8 +432,10 @@
 				D301A3162BCEFE8B008BE4E8 /* Note.swift in Sources */,
 				D301A32D2BCEFECE008BE4E8 /* ScaleType.swift in Sources */,
 				D301A3392BCEFFBC008BE4E8 /* CollectionExtensions.swift in Sources */,
+				D37E4C362C33FCBC00179A19 /* Transport.swift in Sources */,
 				D301A3172BCEFE8B008BE4E8 /* Interval.swift in Sources */,
 				D3AA9B6F2BCD9AAA00C78DF3 /* LayoutView.swift in Sources */,
+				D37E4C412C34716D00179A19 /* TabViewType.swift in Sources */,
 				D3AA9B5D2BCD982E00C78DF3 /* SpotDocument.swift in Sources */,
 				D3AA9B5B2BCD982E00C78DF3 /* SpotApp.swift in Sources */,
 				D32AC5882BD24EA400F40B5B /* FretLabelType.swift in Sources */,
