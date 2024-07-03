@@ -18,7 +18,7 @@ struct LibraryTabView: View {
     let panelBackgroundColor = Color(hue: 1.00, saturation: 0.00, brightness: 0.89, opacity: 1.00)
     
     var body: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 0) {
             LibraryMenu()
             HStack {
                 if appState.displayLeftSidebar {
@@ -33,13 +33,16 @@ struct LibraryTabView: View {
                     Text("Main Content")
                         .frame(maxWidth: .infinity)
                 }
-                .frame(maxWidth: .infinity)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(.red)
+                
                 
                 if appState.displayRightSidebar {
                     withAnimation {
                         Text("Library Detail View")
-                            .frame(maxWidth: 600)
+                            .frame(maxWidth: 400, maxHeight: .infinity)
                             .transition(.move(edge: .trailing).combined(with: .opacity))
+                            .background(.gray)
                     }
                 }
             }

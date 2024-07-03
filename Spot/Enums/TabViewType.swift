@@ -11,4 +11,5 @@ enum TabViewType {
     case Library
     case Sequence
     case Editor
+    case Settings
 }

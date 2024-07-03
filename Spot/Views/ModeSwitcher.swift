@@ -36,6 +36,15 @@ struct ModeSwitcher: View {
         }
         .buttonStyle(PlainButtonStyle())
         .frame(width: 30, height: 30)
+        
+        Button(action: { appState.tab = .Settings }) {
+            Image(systemName: "slider.horizontal.3")
+                .imageScale(.large)
+                .foregroundColor(appState.tab == .Settings ? .white : unselectedColor)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .frame(width: 30, height: 30)
+        
     }
 }
 

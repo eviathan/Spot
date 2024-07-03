@@ -12,6 +12,8 @@ struct Transport: View {
     @State private var isPlaying: Bool = false;
     @State private var isRecording: Bool = false;
     @State private var isLooping: Bool = false;
+    @State private var isMetronomeOn: Bool = false;
+    @State private var bpm = 120
     
     func onClickTransport() -> Void {
         
@@ -29,16 +31,30 @@ struct Transport: View {
         isLooping = !isLooping;
     }
     
+    func onClickTransportMetronome() -> Void {
+        isMetronomeOn = !isMetronomeOn;
+    }
+    
     var body: some View {
-//        Button(action: onClickTransportRecord)
-//        {
-//            Image(systemName: isRecording ? "smallcircle.fill.circle.fill" : "circle.fill")
-//                .imageScale(.large)
-//                .foregroundColor(isRecording ? Color(red:0.83, green:0.38, blue:0.42) : .white)
-//        }
-//        .buttonStyle(PlainButtonStyle())
-//        .frame(width: 30, height: 30)
-//        
+        Button(action: onClickTransportMetronome)
+        {
+            Image(systemName: "metronome")
+                .imageScale(.large)
+                .foregroundColor(isMetronomeOn ? .white : Color(hue: 0.62, saturation: 0.38, brightness: 0.38, opacity: 1.00))
+            
+        }
+        .buttonStyle(PlainButtonStyle())
+        .frame(width: 30, height: 30)
+        
+        Button(action: onClickTransportRecord)
+        {
+            Image(systemName: isRecording ? "smallcircle.fill.circle.fill" : "circle.fill")
+                .imageScale(.large)
+                .foregroundColor(isRecording ? Color(red:0.83, green:0.38, blue:0.42) : .white)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .frame(width: 30, height: 30)
+        
         Button(action: onClickTransport)
         {
             Image(systemName: "backward.end.fill")
@@ -73,6 +89,8 @@ struct Transport: View {
         }
         .buttonStyle(PlainButtonStyle())
         .frame(width: 30, height: 30)
+        
+        Stepper("\(bpm) BPM", value: $bpm)
     }
 }
 

@@ -18,12 +18,14 @@ struct Footer: View {
             Spacer()
             Transport()
             Spacer()
-            Image(systemName: "tuningfork")
-                .font(.system(size: 18))
-                .foregroundColor(.white)
-            Text(appState.selectedNote.longDescription)
-                .font(.system(size: 24))
-                .foregroundColor(.white)
+            HStack {
+                Image(systemName: "tuningfork")
+                    .font(.system(size: 18))
+                    .foregroundColor(.white)
+                Text(appState.selectedNote.longDescription)
+                    .font(.system(size: 24))
+                    .foregroundColor(.white)
+            }
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

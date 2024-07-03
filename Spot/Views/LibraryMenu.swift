@@ -10,7 +10,7 @@ import SwiftUI
 struct LibraryMenu: View {
     @EnvironmentObject var appState: AppState
     
-    @State var buttonSize = CGFloat(80)
+    @State var buttonSize = CGFloat(50)
     @State var text: String = ""
     @State private var isEditing = false
     
@@ -47,6 +47,7 @@ struct LibraryMenu: View {
             .buttonStyle(PlainButtonStyle())
             .frame(width: buttonSize, height: buttonSize)
         }
+        .background(Color(hue: 0.63, saturation: 0.30, brightness: 0.20, opacity: 1.00))
         //        VStack(alignment: .leading) {
         //            Button(action: {}) {
         //                VStack {
