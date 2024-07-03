@@ -13,8 +13,7 @@ struct Transport: View {
     @State private var isRecording: Bool = false;
     @State private var isLooping: Bool = false;
     @State private var isMetronomeOn: Bool = false;
-    @State private var bpm = 120
-    
+   
     func onClickTransport() -> Void {
         
     }
@@ -89,8 +88,6 @@ struct Transport: View {
         }
         .buttonStyle(PlainButtonStyle())
         .frame(width: 30, height: 30)
-        
-        Stepper("\(bpm) BPM", value: $bpm)
     }
 }
 

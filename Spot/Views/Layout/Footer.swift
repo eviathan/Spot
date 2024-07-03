@@ -9,6 +9,8 @@ import SwiftUI
 
 struct Footer: View {
     @EnvironmentObject var appState: AppState
+    @State private var bpm = 120
+    
     let backgroundColor = Color(hue: 0.62, saturation: 0.34, brightness: 0.20, opacity: 1.00)
     
     var body: some View {
@@ -20,11 +22,13 @@ struct Footer: View {
             Spacer()
             HStack {
                 Image(systemName: "tuningfork")
-                    .font(.system(size: 18))
+                    .font(.system(size: 16))
                     .foregroundColor(.white)
                 Text(appState.selectedNote.longDescription)
-                    .font(.system(size: 24))
+                    .font(.system(size: 20))
                     .foregroundColor(.white)
+                Stepper("| \(bpm) BPM", value: $bpm)
+                    .font(.system(size: 20))
             }
             Spacer()
         }

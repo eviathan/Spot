@@ -13,7 +13,9 @@ struct InstrumentView: View {
     var body: some View {
         let viewModel  = FretboardViewModel(appState: appState)
         
-        return AnyView(appState.tab == .Sequence ? AnyView(EmptyView()) : AnyView(FretboardView(viewModel: viewModel)))
+        return AnyView([.Sequence, .Settings].contains(where: {tab in tab == appState.tab})
+                       ? AnyView(EmptyView())
+                       : AnyView(FretboardView(viewModel: viewModel)))
     }
 }
 
