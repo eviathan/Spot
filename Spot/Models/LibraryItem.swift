@@ -9,9 +9,18 @@ import Foundation
 
 class LibraryItem : Identifiable, Hashable {    
     var name: String
+    var type: NoteCollectionMode
+    var rating: Int = 0
     
-    init(name: String) {
+    var chordType: ChordType? = nil
+    var scaleType: ScaleType? = nil
+    
+    init(name: String, type: NoteCollectionMode, chordType: ChordType? = nil, scaleType: ScaleType? = nil) {
         self.name = name
+        self.type = type
+        
+        self.chordType = chordType
+        self.scaleType = scaleType
     }
     
     static func == (lhs: LibraryItem, rhs: LibraryItem) -> Bool {

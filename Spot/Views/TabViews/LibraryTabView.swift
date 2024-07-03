@@ -10,11 +10,11 @@ import SwiftUI
 struct LibraryTabView: View {
     @EnvironmentObject var appState: AppState
     
-    @State private var selectedNoteCollectionMode: NoteCollectionMode = .Scales
+    @State private var selectedNoteCollectionMode: NoteCollectionMode = .Scale
     @State var chordSelection = ChordType.Maj
     
     let geometryProxy: GeometryProxy
-    let menuOptions: [NoteCollectionMode] = [.Scales, .Chords]
+    let menuOptions: [NoteCollectionMode] = [.Scale, .Chord]
     let panelBackgroundColor = Color(hue: 1.00, saturation: 0.00, brightness: 0.89, opacity: 1.00)
     
     var body: some View {
@@ -30,8 +30,10 @@ struct LibraryTabView: View {
                 }
                 
                 VStack() {
-                    TableView()
-                        .frame(maxWidth: .infinity)
+                    TableView(data: appState.library.items.map({ item in DataModel(name: item.name, type: item.type.description, item: item)}),
+                              onSelect: onSelect
+                    )
+                    .frame(maxWidth: .infinity)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 
@@ -49,5 +51,17 @@ struct LibraryTabView: View {
             .animation(.easeInOut, value: appState.displayLeftSidebar)
             .animation(.easeInOut, value: appState.displayRightSidebar)
         }
+    }
+    
+    func onSelect(model: DataModel) {
+        appState.noteCollectionMode = model.item.type
+        
+        if let scaleType = model.item.scaleType {
+            appState.selectedScale = scaleType
+        }
+        
+        if let chordType = model.item.chordType {
+            appState.selectedChord = chordType
+        }        
     }
 }

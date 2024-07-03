@@ -34,7 +34,7 @@ struct Footer: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding()
-        .background(backgroundColor)
+        .background(.black)
         .foregroundColor(.white)
     }
 }

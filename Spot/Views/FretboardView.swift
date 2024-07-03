@@ -141,7 +141,7 @@ struct FretboardView: View {
                 let fret = note[fretIndex]
                 // TODO: Move this into the note service
                 
-                let noteInCollection: Bool = viewModel.appState.noteCollectionMode == .Chords
+                let noteInCollection: Bool = viewModel.appState.noteCollectionMode == .Chord
                         ? viewModel.appState.selectedChord.intervals.contains(
                             fret.getInterval(rootNote: viewModel.appState.selectedNote)
                         )
@@ -150,7 +150,7 @@ struct FretboardView: View {
                         )
                 
                 let isOpenString = fretIndex == 0
-                let intervalIndex = viewModel.appState.noteCollectionMode == .Chords
+                let intervalIndex = viewModel.appState.noteCollectionMode == .Chord
                     ? viewModel.appState.selectedChord.intervals.firstIndex(of: fret.getInterval(rootNote: viewModel.appState.selectedNote)) ?? 0
                     : viewModel.appState.selectedScale.intervals.firstIndex(of: fret.getInterval(rootNote: viewModel.appState.selectedNote)) ?? 0
                 

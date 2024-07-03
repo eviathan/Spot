@@ -62,7 +62,7 @@ public enum Interval: Int, CustomStringConvertible {
         case .bIII: return "m3"
         case .III: return "M3"
         case .IV: return "P4"
-        case .bV: return "A4"
+        case .bV: return "TT"
         case .V: return "P5"
         case .bVI: return "m6"
         case .VI: return "M6"

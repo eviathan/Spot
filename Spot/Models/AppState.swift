@@ -15,17 +15,13 @@ class AppState: ObservableObject {
     @Published var labelMode: FretLabelType = .note // TODO: Deprecate this if I cant fix it in place of the display intervals implementation below
     @Published var highlightedMode: Bool = true
     @Published var displayIntervals: Bool = true
-    
     @Published var displayLeftSidebar: Bool = false
     @Published var displayRightSidebar: Bool = false
-    
-    @Published var noteCollectionMode: NoteCollectionMode = .Scales
-    
+    @Published var noteCollectionMode: NoteCollectionMode = .Scale
     @Published var selectedChord: ChordType = .Maj
     @Published var selectedScale: ScaleType = .Major
-    
     @Published var tab: TabViewType = .Library
-    
+    @Published var library: Library = Library()
     @Published var theme: Theme = Theme()
     
     func toggleHideUnrelatedNotes() {
@@ -35,15 +31,6 @@ class AppState: ObservableObject {
     func toggleHighlightedMode() {
         highlightedMode.toggle()
     }
-    
-//    func toggleLabelMode() {
-//        switch labelMode {
-//        case .note:
-//            labelMode = .interval(note: selectedNote)
-//        case .interval(_):
-//            labelMode = .note
-//        }
-//    }
     
     func toggleShowIntervalMode() {
         displayIntervals.toggle()
@@ -59,5 +46,17 @@ class AppState: ObservableObject {
     
     func toggleRightSidebar() {
         displayRightSidebar.toggle()
+    }
+    
+    func getSelectedIntervals() -> [Interval] {
+        return noteCollectionMode == .Scale
+            ? selectedScale.intervals
+            : selectedChord.intervals
+    }
+    
+    func getSelectedName() -> String {
+        return noteCollectionMode == .Scale
+            ? selectedScale.description
+            : selectedChord.description
     }
 }

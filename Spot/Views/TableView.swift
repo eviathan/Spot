@@ -11,6 +11,7 @@ struct DataModel: Identifiable {
     let id = UUID()
     let name: String
     let type: String
+    let item: LibraryItem
     let tags: String = ""
     let rating: String = ""
 }
@@ -18,28 +19,11 @@ struct DataModel: Identifiable {
 struct TableView: View {
     @State private var selection: UUID? = nil
     
+    var data: [DataModel]
+    var onSelect: (_ model: DataModel) -> Void
+    
     var body: some View {
-        CustomTableView(data: [
-            DataModel(name: "Major", type: "Scale"),
-            DataModel(name: "Ionian", type: "Mode"),
-            DataModel(name: "Dorian", type: "Mode"),
-            DataModel(name: "Phrygian", type: "Mode"),
-            DataModel(name: "Lydian", type: "Mode"),
-            DataModel(name: "Mixolydian", type: "Mode"),
-            DataModel(name: "Aeolian", type: "Mode"),
-            DataModel(name: "Locrian", type: "Mode"),
-            DataModel(name: "Blues", type: "Scale"),
-            DataModel(name: "Minor", type: "Scale"),
-            DataModel(name: "Pentatonic", type: "Scale"),
-            DataModel(name: "Chromatic", type: "Scale"),
-            DataModel(name: "Wholetone", type: "Scale"),
-            DataModel(name: "Maj7", type: "Chord"),
-            DataModel(name: "Maj", type: "Chord"),
-            DataModel(name: "Min", type: "Chord"),
-            DataModel(name: "Dim", type: "Chord"),
-            DataModel(name: "Maj7b5", type: "Chord"),
-            DataModel(name: "M7", type: "Chord")
-        ])
+        CustomTableView(data: data, onSelect: onSelect)
         .background(Color(hue: 0.63, saturation: 0.28, brightness: 0.20, opacity: 1.00))
         .tableStyle(BorderedTableStyle())
         .scrollContentBackground(.hidden)
@@ -50,6 +34,8 @@ struct TableView: View {
 struct CustomTableView: NSViewRepresentable {
     @State var data: [DataModel]
     @State private var sortOrder: [NSSortDescriptor] = []
+    
+    var onSelect: (_ model: DataModel) -> Void
 
     func makeNSView(context: Context) -> NSScrollView {
         let scrollView = NSScrollView()
@@ -130,15 +116,18 @@ struct CustomTableView: NSViewRepresentable {
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(self, sortOrder: $sortOrder)
+        Coordinator(self, onSelect: onSelect, sortOrder: $sortOrder)
     }
 
     class Coordinator: NSObject, NSTableViewDelegate, NSTableViewDataSource {
         @Binding var sortOrder: [NSSortDescriptor]
+        
+        var onSelect: (_ model: DataModel) -> Void
         var parent: CustomTableView
 
-        init(_ parent: CustomTableView, sortOrder: Binding<[NSSortDescriptor]>) {
+        init(_ parent: CustomTableView, onSelect: @escaping (_ model: DataModel) -> Void, sortOrder: Binding<[NSSortDescriptor]>) {
             self.parent = parent
+            self.onSelect = onSelect
             _sortOrder = sortOrder
         }
 
@@ -215,6 +204,14 @@ struct CustomTableView: NSViewRepresentable {
                     return sortDescriptor.ascending ? lhs < rhs : lhs > rhs
                 }
                 tableView.reloadData()
+            }
+        }
+        
+        func tableViewSelectionDidChange(_ notification: Notification) {
+            guard let tableView = notification.object as? NSTableView else { return }
+            let selectedRow = tableView.selectedRow
+            if selectedRow >= 0 && selectedRow < parent.data.count {
+                onSelect(parent.data[selectedRow])
             }
         }
     }

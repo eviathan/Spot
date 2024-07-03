@@ -47,8 +47,7 @@ public enum ScaleType: String, CaseIterable, CustomStringConvertible, Hashable, 
     // Wholetone & Diminished
     
     public var description: String {
-        let mirror = Mirror(reflecting: self)
-        return mirror.children.first?.label ?? String(describing: self)
+        return self.rawValue
     }
     
     var intervals: [Interval] {

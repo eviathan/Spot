@@ -8,14 +8,14 @@
 import Foundation
 
 enum NoteCollectionMode : CustomStringConvertible {
-    case Scales
-    case Chords
+    case Scale
+    case Chord
     
     public var description: String {
         switch self {
-            case .Scales:
+            case .Scale:
                 return "Scales"
-            case .Chords:
+            case .Chord:
                 return "Chords"
         }
     }
