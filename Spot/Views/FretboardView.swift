@@ -21,21 +21,22 @@ struct FretboardView: View {
             let stringSpacing = height / CGFloat(viewModel.numberOfStrings + 1)
             
             ZStack {
-                drawNut(viewModel: viewModel, width: width, height: height)
+                drawNut(viewModel: viewModel, width: width, height: height, fretSpacing: fretSpacing)
                 drawFretMarkers(viewModel: viewModel, width: width, height: height, fretSpacing: fretSpacing, stringSpacing: stringSpacing)
                 drawFrets(viewModel: viewModel, width: width, height: height, fretSpacing: fretSpacing)
                 drawStrings(viewModel: viewModel, width: width, height: height, stringSpacing: stringSpacing)
                 drawFretNumbers(viewModel: viewModel, width: width, height: height, fretSpacing: fretSpacing, stringSpacing: stringSpacing)
                 drawMarkers(viewModel: viewModel, width: width, height: height, fretSpacing: fretSpacing, stringSpacing: stringSpacing)
             }
+            .frame(maxWidth: .infinity)
         }
         .frame(maxWidth: .infinity, maxHeight: 300)
         .padding()
     }
     
-    func drawNut(viewModel: FretboardViewModel, width: CGFloat, height: CGFloat) -> some View {
+    func drawNut(viewModel: FretboardViewModel, width: CGFloat, height: CGFloat, fretSpacing: CGFloat) -> some View {
         let nutWidth: CGFloat = 6
-        let nutX = nutWidth / 2
+        let nutX = (nutWidth / 2) + fretSpacing
         
         return Path { path in
             path.move(to: CGPoint(x: nutX, y: 0))
@@ -52,7 +53,7 @@ struct FretboardView: View {
                 let fretWidth: CGFloat = isTwelthFret ? 4 : 1
                 
                 Path { path in
-                    let x = CGFloat(fret) * fretSpacing
+                    let x = (CGFloat(fret) * fretSpacing) + fretSpacing
                     path.move(to: CGPoint(x: x, y: 0))
                     path.addLine(to: CGPoint(x: x, y: height))
                 }
@@ -87,8 +88,8 @@ struct FretboardView: View {
     }
     
     func drawFretNumbers(viewModel: FretboardViewModel, width: CGFloat, height: CGFloat, fretSpacing: CGFloat, stringSpacing: CGFloat) -> some View {
-        ForEach(1...viewModel.numberOfFrets, id: \.self) { fret in
-            let x = CGFloat(fret) * fretSpacing - fretSpacing / 2
+        ForEach(0...viewModel.numberOfFrets, id: \.self) { fret in
+            let x = (CGFloat(fret) * fretSpacing - fretSpacing / 2) + fretSpacing
             let y = height - (stringSpacing / 4)
 
             Text("\(fret)")
@@ -105,7 +106,7 @@ struct FretboardView: View {
         
         return ZStack {
             ForEach(singleFretMarkers, id: \.self) { fret in
-                let x = CGFloat(fret) * fretSpacing - fretSpacing / 2
+                let x = (CGFloat(fret) * fretSpacing - fretSpacing / 2) + fretSpacing
                 
                 Circle()
                     .fill(viewModel.fretMarkerColor)
@@ -115,7 +116,7 @@ struct FretboardView: View {
 
             ForEach(doubleFretMarkers.indices, id: \.self) { index in
                 let fret = doubleFretMarkers[index]
-                let x = CGFloat(fret) * fretSpacing - fretSpacing / 2
+                let x = (CGFloat(fret) * fretSpacing - fretSpacing / 2) + fretSpacing
                 
                 VStack(spacing: stringSpacing) {
                     Circle()
@@ -154,7 +155,7 @@ struct FretboardView: View {
                     ? viewModel.appState.selectedChord.intervals.firstIndex(of: fret.getInterval(rootNote: viewModel.appState.selectedNote)) ?? 0
                     : viewModel.appState.selectedScale.intervals.firstIndex(of: fret.getInterval(rootNote: viewModel.appState.selectedNote)) ?? 0
                 
-                let x = CGFloat(fretIndex) * fretSpacing - (isOpenString ? 0 : fretSpacing / 2)
+                let x = (CGFloat(fretIndex) * fretSpacing - fretSpacing / 2) + fretSpacing
                 let y = CGFloat(noteIndex + 1) * stringSpacing
                 
                 
