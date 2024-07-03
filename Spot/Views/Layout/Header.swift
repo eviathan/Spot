@@ -10,7 +10,8 @@ import SwiftUI
 struct Header: View {
     @EnvironmentObject var appState: AppState
     
-    let backgroundColor = Color(hue: 0.63, saturation: 0.28, brightness: 0.20, opacity: 1.00)
+    let backgroundColor = Color(hue: 0.75, saturation: 0.01, brightness: 0.80, opacity: 1.00)
+    //Color(hue: 0.63, saturation: 0.28, brightness: 0.20, opacity: 1.00)
 //    Color(hue: 0.61, saturation: 0.42, brightness: 0.31, opacity: 1.00)
     
     func dragWindow(value: DragGesture.Value) {
