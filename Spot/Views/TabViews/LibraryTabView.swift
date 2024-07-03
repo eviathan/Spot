@@ -20,7 +20,7 @@ struct LibraryTabView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             LibraryMenu()
-            HStack {
+            HStack(spacing: 0) {
                 if appState.displayLeftSidebar {
                     withAnimation {
                         Text("Filter List")
@@ -30,11 +30,10 @@ struct LibraryTabView: View {
                 }
                 
                 VStack() {
-                    Text("Main Content")
+                    TableView()
                         .frame(maxWidth: .infinity)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(.red)
                 
                 
                 if appState.displayRightSidebar {
