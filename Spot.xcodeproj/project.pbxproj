@@ -36,6 +36,8 @@
 		D37E4C452C347D4400179A19 /* LibraryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C442C347D4400179A19 /* LibraryItem.swift */; };
 		D37E4C472C34BCA200179A19 /* LibraryMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C462C34BCA200179A19 /* LibraryMenu.swift */; };
 		D37E4C492C35517A00179A19 /* TableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C482C35517A00179A19 /* TableView.swift */; };
+		D37E4C4B2C35944000179A19 /* LibraryDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C4A2C35944000179A19 /* LibraryDetailView.swift */; };
+		D37E4C4D2C359A5100179A19 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C4C2C359A5100179A19 /* Theme.swift */; };
 		D3AA9B5B2BCD982E00C78DF3 /* SpotApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B5A2BCD982E00C78DF3 /* SpotApp.swift */; };
 		D3AA9B5D2BCD982E00C78DF3 /* SpotDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B5C2BCD982E00C78DF3 /* SpotDocument.swift */; };
 		D3AA9B612BCD983000C78DF3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D3AA9B602BCD983000C78DF3 /* Assets.xcassets */; };
@@ -91,6 +93,8 @@
 		D37E4C442C347D4400179A19 /* LibraryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryItem.swift; sourceTree = "<group>"; };
 		D37E4C462C34BCA200179A19 /* LibraryMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryMenu.swift; sourceTree = "<group>"; };
 		D37E4C482C35517A00179A19 /* TableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableView.swift; sourceTree = "<group>"; };
+		D37E4C4A2C35944000179A19 /* LibraryDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryDetailView.swift; sourceTree = "<group>"; };
+		D37E4C4C2C359A5100179A19 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		D3AA9B572BCD982E00C78DF3 /* Spot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Spot.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D3AA9B5A2BCD982E00C78DF3 /* SpotApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotApp.swift; sourceTree = "<group>"; };
 		D3AA9B5C2BCD982E00C78DF3 /* SpotDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotDocument.swift; sourceTree = "<group>"; };
@@ -239,6 +243,7 @@
 				D37E4C372C34610300179A19 /* ModeSwitcher.swift */,
 				D37E4C462C34BCA200179A19 /* LibraryMenu.swift */,
 				D37E4C482C35517A00179A19 /* TableView.swift */,
+				D37E4C4A2C35944000179A19 /* LibraryDetailView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -279,6 +284,7 @@
 				D3E1F5452BCDDACC00167D43 /* FretNote.swift */,
 				D3AA9B7E2BCEF8AB00C78DF3 /* AppState.swift */,
 				D37E4C442C347D4400179A19 /* LibraryItem.swift */,
+				D37E4C4C2C359A5100179A19 /* Theme.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -432,6 +438,7 @@
 				D3FBC9772BD4493700A69646 /* ThreeNotePerStringFrettingPattern.swift in Sources */,
 				D301A3262BCEFEA6008BE4E8 /* ChordType.swift in Sources */,
 				D3FBC9842BD57BF800A69646 /* DatabaseManager.swift in Sources */,
+				D37E4C4D2C359A5100179A19 /* Theme.swift in Sources */,
 				D301A3252BCEFEA6008BE4E8 /* Alter.swift in Sources */,
 				D3AA9B792BCDA06B00C78DF3 /* TabView.swift in Sources */,
 				D3AA9B7D2BCDA08C00C78DF3 /* Footer.swift in Sources */,
@@ -449,6 +456,7 @@
 				D37E4C412C34716D00179A19 /* TabViewType.swift in Sources */,
 				D3AA9B5D2BCD982E00C78DF3 /* SpotDocument.swift in Sources */,
 				D3AA9B5B2BCD982E00C78DF3 /* SpotApp.swift in Sources */,
+				D37E4C4B2C35944000179A19 /* LibraryDetailView.swift in Sources */,
 				D32AC5882BD24EA400F40B5B /* FretLabelType.swift in Sources */,
 				D3E1F5492BCDDB2600167D43 /* FretboardViewModel.swift in Sources */,
 				D37E4C472C34BCA200179A19 /* LibraryMenu.swift in Sources */,

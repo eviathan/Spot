@@ -38,8 +38,8 @@ struct LibraryTabView: View {
                 
                 if appState.displayRightSidebar {
                     withAnimation {
-                        Text("Library Detail View")
-                            .frame(maxWidth: 400, maxHeight: .infinity)
+                        LibraryDetailView()
+                            .frame(maxWidth: 450, maxHeight: .infinity)
                             .transition(.move(edge: .trailing).combined(with: .opacity))
                             .background(.gray)
                     }

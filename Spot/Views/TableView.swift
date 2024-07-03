@@ -54,6 +54,7 @@ struct CustomTableView: NSViewRepresentable {
     func makeNSView(context: Context) -> NSScrollView {
         let scrollView = NSScrollView()
         let tableView = NSTableView()
+        tableView.wantsLayer = true  // Enable layer-backed views
 
         scrollView.backgroundColor = NSColor(red: 0.14, green: 0.15, blue: 0.20, alpha: 1.00)
         tableView.backgroundColor = NSColor(red: 0.14, green: 0.15, blue: 0.20, alpha: 1.00)
@@ -164,15 +165,17 @@ struct CustomTableView: NSViewRepresentable {
                 text = ""
             }
 
-            if let cell = tableView.makeView(withIdentifier: identifier, owner: self) as? CustomTableCellView {
-                cell.configure(text: text)
-                return cell
+            let cell: CustomTableCellView
+            if let existingCell = tableView.makeView(withIdentifier: identifier, owner: self) as? CustomTableCellView {
+                cell = existingCell
             } else {
-                let cell = CustomTableCellView()
+                cell = CustomTableCellView()
                 cell.identifier = identifier
-                cell.configure(text: text)
-                return cell
             }
+
+            cell.configure(text: text)
+            
+            return cell
         }
 
         func tableView(_ tableView: NSTableView, rowViewForRow row: Int) -> NSTableRowView? {
@@ -300,9 +303,18 @@ class CustomTableRowView: NSTableRowView {
 
     override func drawSelection(in dirtyRect: NSRect) {
         if self.selectionHighlightStyle != .none {
-            NSColor(red: 0.19, green: 0.22, blue: 0.31, alpha: 1.00).setFill()
+//            NSColor(red: 0.93, green: 0.92, blue: 0.92, alpha: 1.00).setFill()
+//            NSColor(red: 0.19, green: 0.22, blue: 0.30, alpha: 1.00).setFill()
+            NSColor(red: 0.39, green: 0.50, blue: 0.84, alpha: 1.00).setFill()
             __NSRectFill(dirtyRect)
         }
+    }
+
+    override func drawSeparator(in dirtyRect: NSRect) {
+        let separatorColor = NSColor.gray
+        separatorColor.setFill()
+        let separatorRect = NSRect(x: dirtyRect.origin.x, y: dirtyRect.maxY - 1, width: dirtyRect.width, height: 1)
+        __NSRectFill(separatorRect)
     }
 }
 
@@ -321,7 +333,6 @@ class CustomTableCellView: NSTableCellView {
 
     private func setup() {
         customTextField = NSTextField()
-
         customTextField.isBordered = false
         customTextField.isEditable = false
         customTextField.backgroundColor = .clear
@@ -329,6 +340,7 @@ class CustomTableCellView: NSTableCellView {
         customTextField.textColor = .white
         customTextField.alignment = .left
         customTextField.lineBreakMode = .byTruncatingTail
+        customTextField.drawsBackground = false
 
         addSubview(customTextField)
 
@@ -343,6 +355,7 @@ class CustomTableCellView: NSTableCellView {
         customTextField.stringValue = text
     }
 }
+
 
 struct CustomRowView: View {
     var text: String

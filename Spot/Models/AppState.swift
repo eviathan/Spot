@@ -26,6 +26,8 @@ class AppState: ObservableObject {
     
     @Published var tab: TabViewType = .Library
     
+    @Published var theme: Theme = Theme()
+    
     func toggleHideUnrelatedNotes() {
         hideUnrelatedNotes.toggle()
     }
