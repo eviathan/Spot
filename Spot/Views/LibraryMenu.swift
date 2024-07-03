@@ -12,7 +12,9 @@ struct LibraryMenu: View {
     
     @State var buttonSize = CGFloat(50)
     @State var text: String = ""
-    @State private var isEditing = false
+    
+    @FocusState private var isFocused: Bool
+    @State private var isSearching = false
     
     let unselectedColor: Color = Color(hue: 0.62, saturation: 0.38, brightness: 0.38, opacity: 1.00)
     
@@ -26,18 +28,44 @@ struct LibraryMenu: View {
             }
             .buttonStyle(PlainButtonStyle())
             .frame(width: buttonSize, height: buttonSize)
+            
             Spacer()
-            TextField("Search ...", text: $text)
-                .padding(7)
-                .padding(.horizontal, 12)
-                .background(Color(.black))
-                .cornerRadius(18)
-                .padding(.horizontal, 10)
-                .onTapGesture {
-                    self.isEditing = true
+            
+            HStack {
+                Image(systemName: "magnifyingglass")
+                    .imageScale(.large)
+                    .foregroundColor(isSearching ? .white : unselectedColor)
+                    .padding([.bottom], 2)
+                    .animation(.easeInOut, value: isSearching)
+                
+                TextField("", text: $text)
+                    .textFieldStyle(PlainTextFieldStyle())
+                    .foregroundColor(.white)
+                    .focused($isFocused)
+                    .onHover { hovering in
+                        self.isSearching = hovering
+                    }
+                    .onChange(of: text) { newValue in
+                        isSearching = text.count > 0
+                    }
+                
+                Button(action: {text = ""}) {
+                    Image(systemName: "xmark")
+                        .imageScale(.large)
+                        .foregroundColor(isSearching ? .white : unselectedColor)
+                        .padding([.bottom], 2)
+                        .animation(.easeInOut, value: isSearching)
                 }
-                .frame(maxWidth: 500)
+                .buttonStyle(PlainButtonStyle())
+                .opacity(text.count > 0 ? 1 : 0)
+            }
+            .padding(8)
+            .background(RoundedRectangle(cornerRadius: 2).stroke(isSearching ? .white : unselectedColor))
+            .animation(.easeInOut, value: isSearching)
+            .frame(maxWidth: 500)
+            
             Spacer()
+            
             Button(action: {appState.toggleRightSidebar()}) {
                 Image(systemName: "sidebar.right")
                     .imageScale(.large)
