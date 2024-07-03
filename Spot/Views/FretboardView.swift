@@ -151,13 +151,9 @@ struct FretboardView: View {
                         )
                 
                 let isOpenString = fretIndex == 0
-                let intervalIndex = viewModel.appState.noteCollectionMode == .Chord
-                    ? viewModel.appState.selectedChord.intervals.firstIndex(of: fret.getInterval(rootNote: viewModel.appState.selectedNote)) ?? 0
-                    : viewModel.appState.selectedScale.intervals.firstIndex(of: fret.getInterval(rootNote: viewModel.appState.selectedNote)) ?? 0
-                
+                let noteInterval = fret.getInterval(rootNote: viewModel.appState.selectedNote)
                 let x = (CGFloat(fretIndex) * fretSpacing - fretSpacing / 2) + fretSpacing
                 let y = CGFloat(noteIndex + 1) * stringSpacing
-                
                 
                 let highlightedNotes = NoteService.getHighlightedNotesforScale(
                         pattern: 4,
@@ -175,8 +171,7 @@ struct FretboardView: View {
                                             highlightedNote % 12 == fretIndex % 12
                                         }))
                 
-                let colorNoteIndex = viewModel.markerColours[intervalIndex]
-                
+                let markerColourForNote = viewModel.appState.theme.markerColours[noteInterval.noteIndex]
                 let hideUnrelatedNotes = viewModel.appState.hideUnrelatedNotes
                 
                 let markerColor = !isHighlighted
@@ -184,16 +179,19 @@ struct FretboardView: View {
                         ? viewModel.openMarkerColor
                         : viewModel.defaultMarkerColor
                     : noteInCollection
-                        ? colorNoteIndex
+                        ? markerColourForNote
                         : isOpenString
                             ? viewModel.openMarkerColor
                             : viewModel.defaultMarkerColor
                 
                 let markerSizeModifier = mouseOverMarkerIndex == noteIndex * 100 + fretIndex ? 1.1 : 1.0
+                
+                // isolatedMode && !inScale/chord && notIn
+                let showMarker = (hideUnrelatedNotes && noteInCollection) || !hideUnrelatedNotes
                                 
                 // TODO: Adjust this so that the button wrapps the circle instead
                 Circle()
-                    .stroke(lineWidth: 6)
+                    .stroke(lineWidth: 5)
                     .fill(markerColor)
                     .background(Circle().fill(noteInCollection ? .black : markerColor))
                     .frame(width: minSpacing * markerSize * markerSizeModifier, height: minSpacing * markerSize * markerSizeModifier)
@@ -213,7 +211,7 @@ struct FretboardView: View {
                         }
                     }
                     .position(x: x, y: y)
-                    .opacity((hideUnrelatedNotes && noteInCollection) || !hideUnrelatedNotes ? 1 : 0)
+                    .opacity(showMarker ? 1 : 0)
                     
             }
         }

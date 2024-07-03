@@ -28,43 +28,43 @@ struct LibraryDetailView: View {
                 }
                 
                 if(appState.getSelectedIntervals().contains(.II)) {
-                    drawMarker("M2", markerColor: appState.theme.markerColours[1])
+                    drawMarker("M2", markerColor: appState.theme.markerColours[2])
                 }
                 
                 if(appState.getSelectedIntervals().contains(.bIII)) {
-                    drawMarker("m3", markerColor: appState.theme.markerColours[2])
+                    drawMarker("m3", markerColor: appState.theme.markerColours[3])
                 }
                 
                 if(appState.getSelectedIntervals().contains(.III)) {
-                    drawMarker("M3", markerColor: appState.theme.markerColours[2])
+                    drawMarker("M3", markerColor: appState.theme.markerColours[4])
                 }
                 
                 if(appState.getSelectedIntervals().contains(.IV)) {
-                    drawMarker("P4", markerColor: appState.theme.markerColours[3])
+                    drawMarker("P4", markerColor: appState.theme.markerColours[5])
                 }
                 
                 if(appState.getSelectedIntervals().contains(.bV)) {
-                    drawMarker("TT", markerColor: appState.theme.markerColours[3])
+                    drawMarker("TT", markerColor: appState.theme.markerColours[6])
                 }
                 
                 if(appState.getSelectedIntervals().contains(.V)) {
-                    drawMarker("P5", markerColor: appState.theme.markerColours[4])
+                    drawMarker("P5", markerColor: appState.theme.markerColours[7])
                 }
                 
                 if(appState.getSelectedIntervals().contains(.bVI)) {
-                    drawMarker("m6", markerColor: appState.theme.markerColours[5])
+                    drawMarker("m6", markerColor: appState.theme.markerColours[8])
                 }
                 
                 if(appState.getSelectedIntervals().contains(.VI)) {
-                    drawMarker("M6", markerColor: appState.theme.markerColours[5])
+                    drawMarker("M6", markerColor: appState.theme.markerColours[9])
                 }
                 
                 if(appState.getSelectedIntervals().contains(.bVII)) {
-                    drawMarker("m7", markerColor: appState.theme.markerColours[6])
+                    drawMarker("m7", markerColor: appState.theme.markerColours[10])
                 }
                 
                 if(appState.getSelectedIntervals().contains(.VII)) {
-                    drawMarker("M7", markerColor: appState.theme.markerColours[6])
+                    drawMarker("M7", markerColor: appState.theme.markerColours[11])
                 }
             }
             .padding([.top], 4)

@@ -63,10 +63,10 @@ struct SpotApp: App {
                     appState.toggleHideUnrelatedNotes()
                 }
                 .keyboardShortcut("U", modifiers: [.command])
-//                Button("Toggle Label Mode") {
-//                    appState.toggleLabelMode()
-//                }
-//                .keyboardShortcut("I", modifiers: [.command])
+                Button("Toggle Inversion Isolation") {
+                    appState.toggleIsolatedInversion()
+                }
+                .keyboardShortcut("I", modifiers: [.command])
                 Button("Toggle Highlighted Mode") {
                     appState.toggleHighlightedMode()
                 }

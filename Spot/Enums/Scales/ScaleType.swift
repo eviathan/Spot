@@ -43,6 +43,8 @@ public enum ScaleType: String, CaseIterable, CustomStringConvertible, Hashable, 
     // Blues
     case Blues = "Blues"
     
+    case Chromatic = "Chromatic"
+    
     // Eastern
     // Wholetone & Diminished
     
@@ -95,6 +97,8 @@ public enum ScaleType: String, CaseIterable, CustomStringConvertible, Hashable, 
 //            case .Nonatonic: return [.I, .II, .III, .V, .VI]
 //            }
 //        }
+            
+        case .Chromatic: return [.I, .bII, .II, .bIII, .III, .IV, .bV, .V, .bVI, .VI, .bVII, .VII]
             
         // Eastern
             

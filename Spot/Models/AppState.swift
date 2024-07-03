@@ -14,6 +14,7 @@ class AppState: ObservableObject {
     @Published var hideUnrelatedNotes: Bool = false
     @Published var labelMode: FretLabelType = .note // TODO: Deprecate this if I cant fix it in place of the display intervals implementation below
     @Published var highlightedMode: Bool = true
+    @Published var isolateInversion: Bool = true
     @Published var displayIntervals: Bool = true
     @Published var displayLeftSidebar: Bool = false
     @Published var displayRightSidebar: Bool = false
@@ -30,6 +31,10 @@ class AppState: ObservableObject {
     
     func toggleHighlightedMode() {
         highlightedMode.toggle()
+    }
+    
+    func toggleIsolatedInversion() {
+        isolateInversion.toggle()
     }
     
     func toggleShowIntervalMode() {
