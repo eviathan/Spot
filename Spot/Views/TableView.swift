@@ -61,6 +61,10 @@ struct CustomTableView: NSViewRepresentable {
         tableView.delegate = context.coordinator
         tableView.dataSource = context.coordinator
 
+        // Use the custom header view
+        let headerView = CustomTableHeaderView(frame: NSRect(x: 0, y: 0, width: 0, height: 25))
+        tableView.headerView = headerView
+
         let column1 = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("Name"))
         column1.title = "Name"
         column1.sortDescriptorPrototype = NSSortDescriptor(key: "name", ascending: true)
@@ -114,11 +118,6 @@ struct CustomTableView: NSViewRepresentable {
     }
 
     func customizeTableView(_ tableView: NSTableView) {
-        if let headerView = tableView.headerView {
-            headerView.wantsLayer = true
-            headerView.layer?.backgroundColor = CGColor(red: 0.14, green: 0.15, blue: 0.20, alpha: 1.00)
-        }
-
         for column in tableView.tableColumns {
             let headerTextColor = NSColor.white
             let customHeaderCell = CustomHeaderCell(textCell: column.headerCell.stringValue)
@@ -218,13 +217,36 @@ struct CustomTableView: NSViewRepresentable {
     }
 }
 
+class CustomTableHeaderView: NSTableHeaderView {
+    override func draw(_ dirtyRect: NSRect) {
+        // Set the background color for the header view
+        NSColor(calibratedRed: 0.14, green: 0.15, blue: 0.20, alpha: 1.00).setFill()
+        __NSRectFill(dirtyRect)
+        
+        // Draw the column dividers
+        super.draw(dirtyRect)
+        
+        let path = NSBezierPath()
+        let numberOfColumns = self.tableView?.numberOfColumns ?? 0
+        for columnIndex in 0..<numberOfColumns {
+            let columnRect = self.headerRect(ofColumn: columnIndex)
+            path.move(to: NSPoint(x: columnRect.maxX, y: columnRect.minY))
+            path.line(to: NSPoint(x: columnRect.maxX, y: columnRect.maxY))
+        }
+        NSColor.gray.setStroke()
+        path.lineWidth = 1.0
+        path.stroke()
+    }
+}
+
+
 class CustomHeaderCell: NSTableHeaderCell {
     override func draw(withFrame cellFrame: NSRect, in controlView: NSView) {
         // Set the background color for the header cell
-        NSColor(calibratedRed: 0.14, green: 0.15, blue: 0.20, alpha: 1.00).set()
+        NSColor(calibratedRed: 0.14, green: 0.15, blue: 0.20, alpha: 1.00).setFill()
         __NSRectFill(cellFrame)
 
-        // Draw the text centered vertically
+        // Draw the text centered vertically and horizontally with custom padding
         let textRect = self.titleRect(forBounds: cellFrame)
         let textStyle = NSMutableParagraphStyle()
         textStyle.alignment = .center
@@ -240,8 +262,24 @@ class CustomHeaderCell: NSTableHeaderCell {
         let yOffset = (cellFrame.height - attributedString.size().height) / 2
         let textOrigin = NSPoint(x: textRect.origin.x, y: textRect.origin.y + yOffset)
         attributedString.draw(at: textOrigin)
+
+        // Draw a border around the cell
+        NSColor(calibratedRed: 0.14, green: 0.15, blue: 0.20, alpha: 1.00).setStroke()
+        let borderRect = NSInsetRect(cellFrame, 0.5, 0.5)
+        let borderPath = NSBezierPath(rect: borderRect)
+        borderPath.lineWidth = 1.0
+        borderPath.stroke()
+    }
+
+    override func titleRect(forBounds rect: NSRect) -> NSRect {
+        // Adjust the titleRect to control padding
+        let padding: CGFloat = 5.0
+        let newRect = NSRect(x: rect.origin.x + padding, y: rect.origin.y, width: rect.width - 2 * padding, height: rect.height)
+        return super.titleRect(forBounds: newRect)
     }
 }
+
+
 
 class CustomTableRowView: NSTableRowView {
     var rowIndex: Int = 0
