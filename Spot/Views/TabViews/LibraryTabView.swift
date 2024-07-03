@@ -24,7 +24,7 @@ struct LibraryTabView: View {
                 if appState.displayLeftSidebar {
                     withAnimation {
                         Text("Filter List")
-                            .frame(maxWidth: 300)
+                            .frame(maxWidth: 200)
                             .transition(.move(edge: .leading).combined(with: .opacity))
                     }
                 }

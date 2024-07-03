@@ -59,7 +59,7 @@ struct LibraryMenu: View {
                 .buttonStyle(PlainButtonStyle())
                 .opacity(text.count > 0 ? 1 : 0)
             }
-            .padding(8)
+            .padding(6)
             .background(RoundedRectangle(cornerRadius: 2).stroke(isSearching ? .white : unselectedColor))
             .animation(.easeInOut, value: isSearching)
             .frame(maxWidth: 500)
@@ -76,56 +76,5 @@ struct LibraryMenu: View {
             .frame(width: buttonSize, height: buttonSize)
         }
         .background(Color(hue: 0.63, saturation: 0.30, brightness: 0.20, opacity: 1.00))
-        //        VStack(alignment: .leading) {
-        //            Button(action: {}) {
-        //                VStack {
-        //                    Image(systemName: "music.note.list")
-        //                        .imageScale(.large)
-        //                        .foregroundColor(.white)
-        //                        .padding([.bottom], 2)
-        //                    Text("Scales")
-        //                }
-        //            }
-        //            .buttonStyle(PlainButtonStyle())
-        //            .frame(width: buttonSize, height: buttonSize)
-        //
-        //            Button(action: {}) {
-        //                VStack {
-        //                    Image(systemName: "rectangle.split.3x1")
-        //                        .imageScale(.large)
-        //                        .foregroundColor(.white)
-        //                        .padding([.bottom], 2)
-        //                    Text("Chords")
-        //                }
-        //            }
-        //            .buttonStyle(PlainButtonStyle())
-        //            .frame(width: buttonSize, height: buttonSize)
-        //
-        //            Button(action: {}) {
-        //                VStack {
-        //                    Image(systemName: "rectangle.split.3x1")
-        //                        .imageScale(.large)
-        //                        .foregroundColor(.white)
-        //                        .padding([.bottom], 2)
-        //                    Text("Scales")
-        //                }
-        //            }
-        //            .buttonStyle(PlainButtonStyle())
-        //            .frame(width: buttonSize, height: buttonSize)
-        //
-        //            Button(action: {}) {
-        //                VStack {
-        //                    Image(systemName: "star")
-        //                        .imageScale(.large)
-        //                        .foregroundColor(.white)
-        //                        .padding([.bottom], 2)
-        //                    Text("Favorites")
-        //                }
-        //            }
-        //            .buttonStyle(PlainButtonStyle())
-        //            .frame(width: buttonSize, height: buttonSize)
-        //        }
-        //        .frame(maxHeight: .infinity)
-        //    }
     }
 }
