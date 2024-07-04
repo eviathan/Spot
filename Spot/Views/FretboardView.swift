@@ -195,7 +195,7 @@ struct FretboardView: View {
                                             highlightedNote % 12 == fretIndex % 12
                                         }))
                 
-                let markerColourForNote = viewModel.appState.theme.markerColours[noteInterval.noteIndex]
+                let markerColourForNote = viewModel.appState.theme.intervalColors[noteInterval.noteIndex]
                 let hideUnrelatedNotes = viewModel.appState.hideUnrelatedNotes
                 
                 let markerColor = !isHighlighted

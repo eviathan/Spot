@@ -84,15 +84,14 @@ struct LibraryListItem: View {
                 Text(item.type.description)
                     .foregroundColor(foregroundColor.opacity(0.5))
             }
-            
-            Spacer()
+            .frame(width: 200, alignment: .leading) // TODO: Derive this from the longest name in item.name
             
             HStack {
-                Text("Rest of stuff here")
+                Text("TODO: Rest of stuff here")
                     .foregroundColor(foregroundColor)
             }
-            .frame(maxWidth: 400)
-            .background(.red)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color(hue: 0.99, saturation: 0.55, brightness: 0.83, opacity: 1.00)) // TODO: Remove this
         }
         .padding([.vertical, .horizontal], 12)
         .padding([.horizontal], 12)

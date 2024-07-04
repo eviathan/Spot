@@ -76,6 +76,7 @@
 		D3E653F12C36238700401B60 /* FuzzyResultSegment.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E653DC2C36238700401B60 /* FuzzyResultSegment.swift */; };
 		D3E653F22C36238700401B60 /* Array+.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E653DD2C36238700401B60 /* Array+.swift */; };
 		D3F0DD282C36D2FE00AFDA6A /* LibraryList.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F0DD272C36D2FE00AFDA6A /* LibraryList.swift */; };
+		D3F0DD2C2C37102E00AFDA6A /* IntervalBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F0DD2B2C37102E00AFDA6A /* IntervalBannerView.swift */; };
 		D3FBC9742BD441F000A69646 /* NoteCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FBC9732BD441F000A69646 /* NoteCollection.swift */; };
 		D3FBC9772BD4493700A69646 /* ThreeNotePerStringFrettingPattern.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FBC9762BD4493700A69646 /* ThreeNotePerStringFrettingPattern.swift */; };
 		D3FBC9792BD45C5C00A69646 /* FrettingPattern.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FBC9782BD45C5C00A69646 /* FrettingPattern.swift */; };
@@ -159,6 +160,7 @@
 		D3E653DC2C36238700401B60 /* FuzzyResultSegment.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = FuzzyResultSegment.swift; path = Levenstain/FuzzyFind/FuzzyResultSegment.swift; sourceTree = "<group>"; };
 		D3E653DD2C36238700401B60 /* Array+.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Array+.swift"; path = "Exts/Array+.swift"; sourceTree = "<group>"; };
 		D3F0DD272C36D2FE00AFDA6A /* LibraryList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryList.swift; sourceTree = "<group>"; };
+		D3F0DD2B2C37102E00AFDA6A /* IntervalBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntervalBannerView.swift; sourceTree = "<group>"; };
 		D3FBC9732BD441F000A69646 /* NoteCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteCollection.swift; sourceTree = "<group>"; };
 		D3FBC9762BD4493700A69646 /* ThreeNotePerStringFrettingPattern.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreeNotePerStringFrettingPattern.swift; sourceTree = "<group>"; };
 		D3FBC9782BD45C5C00A69646 /* FrettingPattern.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrettingPattern.swift; sourceTree = "<group>"; };
@@ -310,16 +312,14 @@
 		D3AA9B6D2BCD9A9300C78DF3 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				D3F0DD292C370FDB00AFDA6A /* Components */,
 				D37E4C392C346E5100179A19 /* TabViews */,
 				D3AA9B752BCD9FFC00C78DF3 /* Layout */,
 				D3AA9B702BCD9D6F00C78DF3 /* FretboardView.swift */,
 				D3AA9B762BCDA01B00C78DF3 /* InstrumentView.swift */,
 				D37E4C352C33FCBC00179A19 /* Transport.swift */,
 				D37E4C372C34610300179A19 /* ModeSwitcher.swift */,
-				D37E4C462C34BCA200179A19 /* LibraryMenu.swift */,
 				D37E4C482C35517A00179A19 /* LegacyTableView.swift */,
-				D37E4C4A2C35944000179A19 /* LibraryDetailView.swift */,
-				D3F0DD272C36D2FE00AFDA6A /* LibraryList.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -381,6 +381,25 @@
 				D3E1F54B2BCDDC9600167D43 /* NoteService.swift */,
 			);
 			path = Services;
+			sourceTree = "<group>";
+		};
+		D3F0DD292C370FDB00AFDA6A /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				D3F0DD2A2C370FE000AFDA6A /* Library */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		D3F0DD2A2C370FE000AFDA6A /* Library */ = {
+			isa = PBXGroup;
+			children = (
+				D37E4C462C34BCA200179A19 /* LibraryMenu.swift */,
+				D37E4C4A2C35944000179A19 /* LibraryDetailView.swift */,
+				D3F0DD272C36D2FE00AFDA6A /* LibraryList.swift */,
+				D3F0DD2B2C37102E00AFDA6A /* IntervalBannerView.swift */,
+			);
+			path = Library;
 			sourceTree = "<group>";
 		};
 		D3FBC9722BD441D700A69646 /* Protocols */ = {
@@ -557,6 +576,7 @@
 				D3E653E52C36238700401B60 /* Fuse+ArrStrings.swift in Sources */,
 				D3E1F5492BCDDB2600167D43 /* FretboardViewModel.swift in Sources */,
 				D3E653E72C36238700401B60 /* Levenstain.swift in Sources */,
+				D3F0DD2C2C37102E00AFDA6A /* IntervalBannerView.swift in Sources */,
 				D37E4C472C34BCA200179A19 /* LibraryMenu.swift in Sources */,
 				D3E1F5462BCDDACC00167D43 /* FretNote.swift in Sources */,
 				D3AA9B712BCD9D6F00C78DF3 /* FretboardView.swift in Sources */,

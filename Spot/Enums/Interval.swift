@@ -8,14 +8,14 @@
 
 import Foundation
 
-public enum Interval: Int, CustomStringConvertible {
+public enum Interval: Int, CustomStringConvertible, Identifiable {
     case I = 0
     case bII = 1
     case II = 2
     case bIII = 3
     case III = 4
     case IV = 5
-    case bV = 6
+    case TT = 6
     case V = 7
     case bVI = 8
     case VI = 9
@@ -37,6 +37,10 @@ public enum Interval: Int, CustomStringConvertible {
 //    case bXIV = 22
 //    case XIV = 23
     
+    public var id: Int {
+        return self.rawValue
+    }
+    
     public var noteIndex: Int {
         switch self {
         case .I: return 0
@@ -45,7 +49,7 @@ public enum Interval: Int, CustomStringConvertible {
         case .bIII, .bX: return 3
         case .III: return 4
         case .IV, .XI: return 5
-        case .bV, .bXII: return 6
+        case .TT, .bXII: return 6
         case .V: return 7
         case .bVI, .bXIII: return 8
         case .VI, .XIII: return 9
@@ -62,7 +66,7 @@ public enum Interval: Int, CustomStringConvertible {
         case .bIII: return "m3"
         case .III: return "M3"
         case .IV: return "P4"
-        case .bV: return "TT"
+        case .TT: return "TT"
         case .V: return "P5"
         case .bVI: return "m6"
         case .VI: return "M6"
