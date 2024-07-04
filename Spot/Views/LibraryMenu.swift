@@ -47,6 +47,8 @@ struct LibraryMenu: View {
                     }
                     .onChange(of: text) { newValue in
                         isSearching = text.count > 0
+                        appState.library.query = text
+                        appState.library.refresh()
                     }
                 
                 Button(action: {text = ""}) {

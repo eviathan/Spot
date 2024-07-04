@@ -7,6 +7,12 @@
 
 import SwiftUI
 
+//                    LegacyTableView(
+//                        data: library.getItems().map({item in DataModel(name: item.name, type: item.type.description, item: item)}),
+//                        onSelect: onSelect
+//                    )
+//                    .frame(maxWidth: .infinity)
+
 struct DataModel: Identifiable {
     let id = UUID()
     let name: String
@@ -16,14 +22,14 @@ struct DataModel: Identifiable {
     let rating: String = ""
 }
 
-struct TableView: View {
+struct LegacyTableView: View {
     @State private var selection: UUID? = nil
     
     var data: [DataModel]
     var onSelect: (_ model: DataModel) -> Void
     
     var body: some View {
-        CustomTableView(data: data, onSelect: onSelect)
+        LegacyCustomTableView(data: data, onSelect: onSelect)
         .background(Color(hue: 0.63, saturation: 0.28, brightness: 0.20, opacity: 1.00))
         .tableStyle(BorderedTableStyle())
         .scrollContentBackground(.hidden)
@@ -31,7 +37,7 @@ struct TableView: View {
     }
 }
 
-struct CustomTableView: NSViewRepresentable {
+struct LegacyCustomTableView: NSViewRepresentable {
     @State var data: [DataModel]
     @State private var sortOrder: [NSSortDescriptor] = []
     
@@ -123,9 +129,9 @@ struct CustomTableView: NSViewRepresentable {
         @Binding var sortOrder: [NSSortDescriptor]
         
         var onSelect: (_ model: DataModel) -> Void
-        var parent: CustomTableView
+        var parent: LegacyCustomTableView
 
-        init(_ parent: CustomTableView, onSelect: @escaping (_ model: DataModel) -> Void, sortOrder: Binding<[NSSortDescriptor]>) {
+        init(_ parent: LegacyCustomTableView, onSelect: @escaping (_ model: DataModel) -> Void, sortOrder: Binding<[NSSortDescriptor]>) {
             self.parent = parent
             self.onSelect = onSelect
             _sortOrder = sortOrder

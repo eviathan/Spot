@@ -9,15 +9,15 @@ import Foundation
 
 class AppState: ObservableObject {
     @Published var instrument: InstrumentType = .guitar
-    @Published var selectedNote: Note = .E
+    @Published var selectedNote: Note = .A
     @Published var inversion: Inversion = .Root
     @Published var hideUnrelatedNotes: Bool = false
     @Published var labelMode: FretLabelType = .note // TODO: Deprecate this if I cant fix it in place of the display intervals implementation below
-    @Published var highlightedMode: Bool = true
+    @Published var highlightedMode: Bool = false
     @Published var isolateInversion: Bool = true
     @Published var displayIntervals: Bool = true
-    @Published var displayLeftSidebar: Bool = false
-    @Published var displayRightSidebar: Bool = false
+    @Published var displayLeftSidebar: Bool = true
+    @Published var displayRightSidebar: Bool = true
     @Published var noteCollectionMode: NoteCollectionMode = .Scale
     @Published var selectedChord: ChordType = .Maj
     @Published var selectedScale: ScaleType = .Major

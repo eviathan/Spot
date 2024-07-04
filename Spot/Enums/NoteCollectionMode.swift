@@ -14,9 +14,9 @@ enum NoteCollectionMode : CustomStringConvertible {
     public var description: String {
         switch self {
             case .Scale:
-                return "Scales"
+                return "Scale"
             case .Chord:
-                return "Chords"
+                return "Chord"
         }
     }
 }

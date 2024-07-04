@@ -16,7 +16,7 @@ struct TabView: View {
             VStack {
                 switch appState.tab {
                     case .Library:
-                        LibraryTabView(geometryProxy: geometryProxy)
+                    LibraryTabView(library: appState.library, geometryProxy: geometryProxy)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     case .Editor:
                         EditorTabView()

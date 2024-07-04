@@ -21,11 +21,12 @@ struct FretboardView: View {
             let stringSpacing = height / CGFloat(viewModel.numberOfStrings + 1)
             
             ZStack {
-                drawNut(viewModel: viewModel, width: width, height: height, fretSpacing: fretSpacing)
+//                drawFretboard(viewModel: viewModel, width: width, height: height, fretSpacing: fretSpacing, stringSpacing: stringSpacing)
                 drawFretMarkers(viewModel: viewModel, width: width, height: height, fretSpacing: fretSpacing, stringSpacing: stringSpacing)
                 drawFrets(viewModel: viewModel, width: width, height: height, fretSpacing: fretSpacing)
-                drawStrings(viewModel: viewModel, width: width, height: height, stringSpacing: stringSpacing)
+                drawStrings(viewModel: viewModel, width: width, height: height, fretSpacing: fretSpacing, stringSpacing: stringSpacing)
                 drawFretNumbers(viewModel: viewModel, width: width, height: height, fretSpacing: fretSpacing, stringSpacing: stringSpacing)
+                drawNut(viewModel: viewModel, width: width, height: height, fretSpacing: fretSpacing)
                 drawMarkers(viewModel: viewModel, width: width, height: height, fretSpacing: fretSpacing, stringSpacing: stringSpacing)
             }
             .frame(maxWidth: .infinity)
@@ -34,15 +35,38 @@ struct FretboardView: View {
         .padding()
     }
     
+    func drawFretboard(viewModel: FretboardViewModel, width: CGFloat, height: CGFloat, fretSpacing: CGFloat, stringSpacing: CGFloat) -> some View {
+        let fretboardEdges: CGFloat = 2
+        let nutWidth: CGFloat = 4
+        let nutX = (nutWidth / 2) + fretSpacing
+        
+        return ZStack {
+            Path { path in
+                path.move(to: CGPoint(x: nutX, y: (fretboardEdges / 2)))
+                path.addLine(to: CGPoint(x: width, y: (fretboardEdges / 2)))
+            }
+            .stroke(viewModel.fretColor, lineWidth: fretboardEdges)
+            
+            Spacer()
+            
+            Path { path in
+                path.move(to: CGPoint(x: nutX, y: height - (fretboardEdges / 2)))
+                path.addLine(to: CGPoint(x: width, y: height - (fretboardEdges / 2)))
+            }
+            .stroke(viewModel.fretColor, lineWidth: fretboardEdges)
+        }
+        .frame(maxWidth: width, maxHeight: height)
+    }
+    
     func drawNut(viewModel: FretboardViewModel, width: CGFloat, height: CGFloat, fretSpacing: CGFloat) -> some View {
-        let nutWidth: CGFloat = 6
+        let nutWidth: CGFloat = 4
         let nutX = (nutWidth / 2) + fretSpacing
         
         return Path { path in
             path.move(to: CGPoint(x: nutX, y: 0))
             path.addLine(to: CGPoint(x: nutX, y: height))
         }
-        .stroke(viewModel.fretColor, lineWidth: 6)
+        .stroke(viewModel.fretColor, lineWidth: nutWidth)
     }
     
     func drawFrets(viewModel: FretboardViewModel, width: CGFloat, height: CGFloat, fretSpacing: CGFloat) -> some View {
@@ -50,7 +74,7 @@ struct FretboardView: View {
             ForEach(1...viewModel.numberOfFrets, id: \.self) { fret in
                 let isTwelthFret = fret % 12 == 11 || fret % 12 == 0
                 let fretColour = isTwelthFret ? viewModel.fretColor : viewModel.fretColor
-                let fretWidth: CGFloat = isTwelthFret ? 4 : 1
+                let fretWidth: CGFloat = isTwelthFret ? 2 : 1
                 
                 Path { path in
                     let x = (CGFloat(fret) * fretSpacing) + fretSpacing
@@ -62,16 +86,16 @@ struct FretboardView: View {
         }
     }
     
-    func drawStrings(viewModel: FretboardViewModel, width: CGFloat, height: CGFloat, stringSpacing: CGFloat) -> some View {
+    func drawStrings(viewModel: FretboardViewModel, width: CGFloat, height: CGFloat, fretSpacing: CGFloat, stringSpacing: CGFloat) -> some View {
         let exponent: CGFloat = 1.5
-        let minStringWidth: CGFloat = 1.0
-        let maxStringWidth: CGFloat = 5.0
+        let minStringWidth: CGFloat = 2.0
+        let maxStringWidth: CGFloat = 2.0
         
         return ZStack {
             ForEach(1...viewModel.numberOfStrings, id: \.self) { string in
                 Path { path in
                     let y = CGFloat(string) * stringSpacing
-                    path.move(to: CGPoint(x: 0, y: y))
+                    path.move(to: CGPoint(x: fretSpacing, y: y))
                     path.addLine(to: CGPoint(x: width, y: y))
                 }
                 .stroke(viewModel.stringColor, 
@@ -92,7 +116,7 @@ struct FretboardView: View {
             let x = (CGFloat(fret) * fretSpacing - fretSpacing / 2) + fretSpacing
             let y = height - (stringSpacing / 4)
 
-            Text("\(fret)")
+            Text(fret == 0 ? "" : "\(fret)")
                 .font(.caption.weight(.bold))
                 .foregroundColor(viewModel.fretboardColor)
                 .frame(width: fretSpacing, height: stringSpacing / 2, alignment: .top)

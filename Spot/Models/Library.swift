@@ -7,16 +7,22 @@
 
 import Foundation
 
-class Library {
-    var items: [LibraryItem] = []
+class Library: ObservableObject {
+    @Published var items: [LibraryItem] = []
+    @Published var query: String? = nil
+    
+    let fuse: Fuse = Fuse()
     
     init() {
+        refresh()
+    }
+    
+    func refresh() {
         items = getItems()
     }
     
     func getItems() -> [LibraryItem] {
-        
-        var output: [LibraryItem] = []
+         var output: [LibraryItem] = []
         
         for scale in ScaleType.allCases {
             let item = LibraryItem(name: scale.description, type: .Scale)
@@ -30,6 +36,15 @@ class Library {
             output.append(item)
         }
         
-        return output
+        if(query == nil || query!.isEmpty) {
+            return output
+        }
+        
+        if let query = query, !query.isEmpty {
+            let results = fuse.searchSync(query, in: output, by: \LibraryItem.properties)
+            return results.map { result in output[result.index] }
+        }
+        
+        return []
     }
 }

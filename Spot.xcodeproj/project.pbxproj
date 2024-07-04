@@ -35,7 +35,7 @@
 		D37E4C432C34777700179A19 /* EditorTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C422C34777700179A19 /* EditorTabView.swift */; };
 		D37E4C452C347D4400179A19 /* LibraryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C442C347D4400179A19 /* LibraryItem.swift */; };
 		D37E4C472C34BCA200179A19 /* LibraryMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C462C34BCA200179A19 /* LibraryMenu.swift */; };
-		D37E4C492C35517A00179A19 /* TableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C482C35517A00179A19 /* TableView.swift */; };
+		D37E4C492C35517A00179A19 /* LegacyTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C482C35517A00179A19 /* LegacyTableView.swift */; };
 		D37E4C4B2C35944000179A19 /* LibraryDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C4A2C35944000179A19 /* LibraryDetailView.swift */; };
 		D37E4C4D2C359A5100179A19 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C4C2C359A5100179A19 /* Theme.swift */; };
 		D37E4C4F2C35A66E00179A19 /* Library.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C4E2C35A66E00179A19 /* Library.swift */; };
@@ -54,6 +54,28 @@
 		D3E1F5462BCDDACC00167D43 /* FretNote.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E1F5452BCDDACC00167D43 /* FretNote.swift */; };
 		D3E1F5492BCDDB2600167D43 /* FretboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E1F5482BCDDB2600167D43 /* FretboardViewModel.swift */; };
 		D3E1F54C2BCDDC9600167D43 /* NoteService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E1F54B2BCDDC9600167D43 /* NoteService.swift */; };
+		D3E653DE2C36238700401B60 /* Exts in Resources */ = {isa = PBXBuildFile; fileRef = D3E653C92C36238600401B60 /* Exts */; };
+		D3E653DF2C36238700401B60 /* FuseUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E653CA2C36238600401B60 /* FuseUtilities.swift */; };
+		D3E653E02C36238700401B60 /* Levenstain in Resources */ = {isa = PBXBuildFile; fileRef = D3E653CB2C36238600401B60 /* Levenstain */; };
+		D3E653E12C36238700401B60 /* Alignment.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E653CC2C36238700401B60 /* Alignment.swift */; };
+		D3E653E22C36238700401B60 /* Searchable.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E653CD2C36238700401B60 /* Searchable.swift */; };
+		D3E653E32C36238700401B60 /* FuseProp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E653CE2C36238700401B60 /* FuseProp.swift */; };
+		D3E653E42C36238700401B60 /* Fuse+ArrObjects.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E653CF2C36238700401B60 /* Fuse+ArrObjects.swift */; };
+		D3E653E52C36238700401B60 /* Fuse+ArrStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E653D02C36238700401B60 /* Fuse+ArrStrings.swift */; };
+		D3E653E62C36238700401B60 /* String+.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E653D12C36238700401B60 /* String+.swift */; };
+		D3E653E72C36238700401B60 /* Levenstain.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E653D22C36238700401B60 /* Levenstain.swift */; };
+		D3E653E82C36238700401B60 /* Score.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E653D32C36238700401B60 /* Score.swift */; };
+		D3E653E92C36238700401B60 /* Classes in Resources */ = {isa = PBXBuildFile; fileRef = D3E653D42C36238700401B60 /* Classes */; };
+		D3E653EA2C36238700401B60 /* Fuse+String.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E653D52C36238700401B60 /* Fuse+String.swift */; };
+		D3E653EB2C36238700401B60 /* Fuse.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E653D62C36238700401B60 /* Fuse.swift */; };
+		D3E653EC2C36238700401B60 /* FuzzyFind in Resources */ = {isa = PBXBuildFile; fileRef = D3E653D72C36238700401B60 /* FuzzyFind */; };
+		D3E653ED2C36238700401B60 /* Fuzzy.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E653D82C36238700401B60 /* Fuzzy.swift */; };
+		D3E653EE2C36238700401B60 /* FuzzyResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E653D92C36238700401B60 /* FuzzyResult.swift */; };
+		D3E653EF2C36238700401B60 /* Fuse+ in Resources */ = {isa = PBXBuildFile; fileRef = D3E653DA2C36238700401B60 /* Fuse+ */; };
+		D3E653F02C36238700401B60 /* String+Fuse.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E653DB2C36238700401B60 /* String+Fuse.swift */; };
+		D3E653F12C36238700401B60 /* FuzzyResultSegment.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E653DC2C36238700401B60 /* FuzzyResultSegment.swift */; };
+		D3E653F22C36238700401B60 /* Array+.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E653DD2C36238700401B60 /* Array+.swift */; };
+		D3F0DD282C36D2FE00AFDA6A /* LibraryList.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F0DD272C36D2FE00AFDA6A /* LibraryList.swift */; };
 		D3FBC9742BD441F000A69646 /* NoteCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FBC9732BD441F000A69646 /* NoteCollection.swift */; };
 		D3FBC9772BD4493700A69646 /* ThreeNotePerStringFrettingPattern.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FBC9762BD4493700A69646 /* ThreeNotePerStringFrettingPattern.swift */; };
 		D3FBC9792BD45C5C00A69646 /* FrettingPattern.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FBC9782BD45C5C00A69646 /* FrettingPattern.swift */; };
@@ -93,7 +115,7 @@
 		D37E4C422C34777700179A19 /* EditorTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorTabView.swift; sourceTree = "<group>"; };
 		D37E4C442C347D4400179A19 /* LibraryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryItem.swift; sourceTree = "<group>"; };
 		D37E4C462C34BCA200179A19 /* LibraryMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryMenu.swift; sourceTree = "<group>"; };
-		D37E4C482C35517A00179A19 /* TableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableView.swift; sourceTree = "<group>"; };
+		D37E4C482C35517A00179A19 /* LegacyTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyTableView.swift; sourceTree = "<group>"; };
 		D37E4C4A2C35944000179A19 /* LibraryDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryDetailView.swift; sourceTree = "<group>"; };
 		D37E4C4C2C359A5100179A19 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		D37E4C4E2C35A66E00179A19 /* Library.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Library.swift; sourceTree = "<group>"; };
@@ -115,6 +137,28 @@
 		D3E1F5452BCDDACC00167D43 /* FretNote.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FretNote.swift; sourceTree = "<group>"; };
 		D3E1F5482BCDDB2600167D43 /* FretboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FretboardViewModel.swift; sourceTree = "<group>"; };
 		D3E1F54B2BCDDC9600167D43 /* NoteService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteService.swift; sourceTree = "<group>"; };
+		D3E653C92C36238600401B60 /* Exts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Exts; sourceTree = "<group>"; };
+		D3E653CA2C36238600401B60 /* FuseUtilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = FuseUtilities.swift; path = Classes/FuseUtilities.swift; sourceTree = "<group>"; };
+		D3E653CB2C36238600401B60 /* Levenstain */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Levenstain; sourceTree = "<group>"; };
+		D3E653CC2C36238700401B60 /* Alignment.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Alignment.swift; path = Levenstain/FuzzyFind/Alignment.swift; sourceTree = "<group>"; };
+		D3E653CD2C36238700401B60 /* Searchable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Searchable.swift; path = Classes/Searchable.swift; sourceTree = "<group>"; };
+		D3E653CE2C36238700401B60 /* FuseProp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = FuseProp.swift; path = Classes/FuseProp.swift; sourceTree = "<group>"; };
+		D3E653CF2C36238700401B60 /* Fuse+ArrObjects.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Fuse+ArrObjects.swift"; path = "Classes/Fuse+/Fuse+ArrObjects.swift"; sourceTree = "<group>"; };
+		D3E653D02C36238700401B60 /* Fuse+ArrStrings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Fuse+ArrStrings.swift"; path = "Classes/Fuse+/Fuse+ArrStrings.swift"; sourceTree = "<group>"; };
+		D3E653D12C36238700401B60 /* String+.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "String+.swift"; path = "Levenstain/String+.swift"; sourceTree = "<group>"; };
+		D3E653D22C36238700401B60 /* Levenstain.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Levenstain.swift; path = Levenstain/Levenstain.swift; sourceTree = "<group>"; };
+		D3E653D32C36238700401B60 /* Score.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Score.swift; path = Levenstain/FuzzyFind/Score.swift; sourceTree = "<group>"; };
+		D3E653D42C36238700401B60 /* Classes */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Classes; sourceTree = "<group>"; };
+		D3E653D52C36238700401B60 /* Fuse+String.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Fuse+String.swift"; path = "Classes/Fuse+/Fuse+String.swift"; sourceTree = "<group>"; };
+		D3E653D62C36238700401B60 /* Fuse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Fuse.swift; path = Classes/Fuse.swift; sourceTree = "<group>"; };
+		D3E653D72C36238700401B60 /* FuzzyFind */ = {isa = PBXFileReference; lastKnownFileType = folder; name = FuzzyFind; path = Levenstain/FuzzyFind; sourceTree = "<group>"; };
+		D3E653D82C36238700401B60 /* Fuzzy.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Fuzzy.swift; path = Levenstain/FuzzyFind/Fuzzy.swift; sourceTree = "<group>"; };
+		D3E653D92C36238700401B60 /* FuzzyResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = FuzzyResult.swift; path = Levenstain/FuzzyFind/FuzzyResult.swift; sourceTree = "<group>"; };
+		D3E653DA2C36238700401B60 /* Fuse+ */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "Fuse+"; path = "Classes/Fuse+"; sourceTree = "<group>"; };
+		D3E653DB2C36238700401B60 /* String+Fuse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "String+Fuse.swift"; path = "Exts/String+Fuse.swift"; sourceTree = "<group>"; };
+		D3E653DC2C36238700401B60 /* FuzzyResultSegment.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = FuzzyResultSegment.swift; path = Levenstain/FuzzyFind/FuzzyResultSegment.swift; sourceTree = "<group>"; };
+		D3E653DD2C36238700401B60 /* Array+.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Array+.swift"; path = "Exts/Array+.swift"; sourceTree = "<group>"; };
+		D3F0DD272C36D2FE00AFDA6A /* LibraryList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryList.swift; sourceTree = "<group>"; };
 		D3FBC9732BD441F000A69646 /* NoteCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteCollection.swift; sourceTree = "<group>"; };
 		D3FBC9762BD4493700A69646 /* ThreeNotePerStringFrettingPattern.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreeNotePerStringFrettingPattern.swift; sourceTree = "<group>"; };
 		D3FBC9782BD45C5C00A69646 /* FrettingPattern.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrettingPattern.swift; sourceTree = "<group>"; };
@@ -187,6 +231,34 @@
 			path = TabViews;
 			sourceTree = "<group>";
 		};
+		D37E4C502C360E6100179A19 /* Search */ = {
+			isa = PBXGroup;
+			children = (
+				D3E653CC2C36238700401B60 /* Alignment.swift */,
+				D3E653DD2C36238700401B60 /* Array+.swift */,
+				D3E653D42C36238700401B60 /* Classes */,
+				D3E653C92C36238600401B60 /* Exts */,
+				D3E653D62C36238700401B60 /* Fuse.swift */,
+				D3E653DA2C36238700401B60 /* Fuse+ */,
+				D3E653CF2C36238700401B60 /* Fuse+ArrObjects.swift */,
+				D3E653D02C36238700401B60 /* Fuse+ArrStrings.swift */,
+				D3E653D52C36238700401B60 /* Fuse+String.swift */,
+				D3E653CE2C36238700401B60 /* FuseProp.swift */,
+				D3E653CA2C36238600401B60 /* FuseUtilities.swift */,
+				D3E653D82C36238700401B60 /* Fuzzy.swift */,
+				D3E653D72C36238700401B60 /* FuzzyFind */,
+				D3E653D92C36238700401B60 /* FuzzyResult.swift */,
+				D3E653DC2C36238700401B60 /* FuzzyResultSegment.swift */,
+				D3E653CB2C36238600401B60 /* Levenstain */,
+				D3E653D22C36238700401B60 /* Levenstain.swift */,
+				D3E653D32C36238700401B60 /* Score.swift */,
+				D3E653CD2C36238700401B60 /* Searchable.swift */,
+				D3E653D12C36238700401B60 /* String+.swift */,
+				D3E653DB2C36238700401B60 /* String+Fuse.swift */,
+			);
+			path = Search;
+			sourceTree = "<group>";
+		};
 		D3AA9B4E2BCD982E00C78DF3 = {
 			isa = PBXGroup;
 			children = (
@@ -206,6 +278,7 @@
 		D3AA9B592BCD982E00C78DF3 /* Spot */ = {
 			isa = PBXGroup;
 			children = (
+				D37E4C502C360E6100179A19 /* Search */,
 				D3FBC9852BD79C0300A69646 /* Config */,
 				D3FBC9822BD57BE900A69646 /* DataAccess */,
 				D3FBC9722BD441D700A69646 /* Protocols */,
@@ -244,8 +317,9 @@
 				D37E4C352C33FCBC00179A19 /* Transport.swift */,
 				D37E4C372C34610300179A19 /* ModeSwitcher.swift */,
 				D37E4C462C34BCA200179A19 /* LibraryMenu.swift */,
-				D37E4C482C35517A00179A19 /* TableView.swift */,
+				D37E4C482C35517A00179A19 /* LegacyTableView.swift */,
 				D37E4C4A2C35944000179A19 /* LibraryDetailView.swift */,
+				D3F0DD272C36D2FE00AFDA6A /* LibraryList.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -409,8 +483,13 @@
 			files = (
 				D3FBC9872BD79C2B00A69646 /* Theme.json in Resources */,
 				D3FBC98B2BD79C6F00A69646 /* FrettingPattern.json in Resources */,
+				D3E653EC2C36238700401B60 /* FuzzyFind in Resources */,
+				D3E653E92C36238700401B60 /* Classes in Resources */,
 				D3AA9B642BCD983000C78DF3 /* Preview Assets.xcassets in Resources */,
+				D3E653DE2C36238700401B60 /* Exts in Resources */,
+				D3E653EF2C36238700401B60 /* Fuse+ in Resources */,
 				D3AA9B612BCD983000C78DF3 /* Assets.xcassets in Resources */,
+				D3E653E02C36238700401B60 /* Levenstain in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -422,18 +501,25 @@
 			buildActionMask = 2147483647;
 			files = (
 				D301A3242BCEFEA6008BE4E8 /* Add.swift in Sources */,
+				D3E653F22C36238700401B60 /* Array+.swift in Sources */,
 				D301A30F2BCEFE43008BE4E8 /* Chord.swift in Sources */,
+				D3E653ED2C36238700401B60 /* Fuzzy.swift in Sources */,
 				D3FBC9742BD441F000A69646 /* NoteCollection.swift in Sources */,
 				D3FBC9792BD45C5C00A69646 /* FrettingPattern.swift in Sources */,
 				D3AA9B772BCDA01B00C78DF3 /* InstrumentView.swift in Sources */,
+				D3F0DD282C36D2FE00AFDA6A /* LibraryList.swift in Sources */,
 				D3AA9B7B2BCDA08300C78DF3 /* Header.swift in Sources */,
 				D301A3272BCEFEA6008BE4E8 /* Secondary.swift in Sources */,
 				D301A3352BCEFF89008BE4E8 /* Appendix.swift in Sources */,
-				D37E4C492C35517A00179A19 /* TableView.swift in Sources */,
+				D37E4C492C35517A00179A19 /* LegacyTableView.swift in Sources */,
 				D37E4C3B2C346E7E00179A19 /* SequenceTabView.swift in Sources */,
+				D3E653EE2C36238700401B60 /* FuzzyResult.swift in Sources */,
+				D3E653F12C36238700401B60 /* FuzzyResultSegment.swift in Sources */,
+				D3E653E22C36238700401B60 /* Searchable.swift in Sources */,
 				D301A30B2BCEFE38008BE4E8 /* ChordService.swift in Sources */,
 				D301A3362BCEFF89008BE4E8 /* Constants.swift in Sources */,
 				D37E4C432C34777700179A19 /* EditorTabView.swift in Sources */,
+				D3E653E82C36238700401B60 /* Score.swift in Sources */,
 				D3AA9B732BCD9FBD00C78DF3 /* InstrumentType.swift in Sources */,
 				D37E4C382C34610300179A19 /* ModeSwitcher.swift in Sources */,
 				D301A3322BCEFEDF008BE4E8 /* MajorModes.swift in Sources */,
@@ -442,6 +528,7 @@
 				D301A3262BCEFEA6008BE4E8 /* ChordType.swift in Sources */,
 				D3FBC9842BD57BF800A69646 /* DatabaseManager.swift in Sources */,
 				D37E4C4D2C359A5100179A19 /* Theme.swift in Sources */,
+				D3E653E12C36238700401B60 /* Alignment.swift in Sources */,
 				D301A3252BCEFEA6008BE4E8 /* Alter.swift in Sources */,
 				D3AA9B792BCDA06B00C78DF3 /* TabView.swift in Sources */,
 				D3AA9B7D2BCDA08C00C78DF3 /* Footer.swift in Sources */,
@@ -449,22 +536,31 @@
 				D301A3222BCEFEA6008BE4E8 /* Suspension.swift in Sources */,
 				D3AA9B7F2BCEF8AB00C78DF3 /* AppState.swift in Sources */,
 				D3FBC97B2BD5535B00A69646 /* NoteCollectionMode.swift in Sources */,
+				D3E653F02C36238700401B60 /* String+Fuse.swift in Sources */,
+				D3E653DF2C36238700401B60 /* FuseUtilities.swift in Sources */,
 				D301A3232BCEFEA6008BE4E8 /* ChordStyle.swift in Sources */,
 				D301A3162BCEFE8B008BE4E8 /* Note.swift in Sources */,
 				D301A32D2BCEFECE008BE4E8 /* ScaleType.swift in Sources */,
+				D3E653E42C36238700401B60 /* Fuse+ArrObjects.swift in Sources */,
 				D301A3392BCEFFBC008BE4E8 /* CollectionExtensions.swift in Sources */,
+				D3E653E32C36238700401B60 /* FuseProp.swift in Sources */,
 				D37E4C362C33FCBC00179A19 /* Transport.swift in Sources */,
 				D301A3172BCEFE8B008BE4E8 /* Interval.swift in Sources */,
 				D3AA9B6F2BCD9AAA00C78DF3 /* LayoutView.swift in Sources */,
 				D37E4C412C34716D00179A19 /* TabViewType.swift in Sources */,
 				D3AA9B5D2BCD982E00C78DF3 /* SpotDocument.swift in Sources */,
+				D3E653EB2C36238700401B60 /* Fuse.swift in Sources */,
 				D3AA9B5B2BCD982E00C78DF3 /* SpotApp.swift in Sources */,
+				D3E653E62C36238700401B60 /* String+.swift in Sources */,
 				D37E4C4B2C35944000179A19 /* LibraryDetailView.swift in Sources */,
 				D32AC5882BD24EA400F40B5B /* FretLabelType.swift in Sources */,
+				D3E653E52C36238700401B60 /* Fuse+ArrStrings.swift in Sources */,
 				D3E1F5492BCDDB2600167D43 /* FretboardViewModel.swift in Sources */,
+				D3E653E72C36238700401B60 /* Levenstain.swift in Sources */,
 				D37E4C472C34BCA200179A19 /* LibraryMenu.swift in Sources */,
 				D3E1F5462BCDDACC00167D43 /* FretNote.swift in Sources */,
 				D3AA9B712BCD9D6F00C78DF3 /* FretboardView.swift in Sources */,
+				D3E653EA2C36238700401B60 /* Fuse+String.swift in Sources */,
 				D301A3282BCEFEA6008BE4E8 /* Inversion.swift in Sources */,
 				D301A32F2BCEFECE008BE4E8 /* Mode.swift in Sources */,
 				D301A32E2BCEFECE008BE4E8 /* ScaleStyle.swift in Sources */,

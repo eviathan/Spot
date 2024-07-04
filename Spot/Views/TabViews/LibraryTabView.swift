@@ -9,6 +9,7 @@ import SwiftUI
 
 struct LibraryTabView: View {
     @EnvironmentObject var appState: AppState
+    @ObservedObject var library: Library
     
     @State private var selectedNoteCollectionMode: NoteCollectionMode = .Scale
     @State var chordSelection = ChordType.Maj
@@ -16,6 +17,11 @@ struct LibraryTabView: View {
     let geometryProxy: GeometryProxy
     let menuOptions: [NoteCollectionMode] = [.Scale, .Chord]
     let panelBackgroundColor = Color(hue: 1.00, saturation: 0.00, brightness: 0.89, opacity: 1.00)
+    
+    func convertSearchResults(result: FuzzySrchResult) -> DataModel {
+        let item = library.items[result.index]
+        return DataModel(name: item.name, type: item.type.description, item: item)
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -29,15 +35,13 @@ struct LibraryTabView: View {
                     }
                 }
                 
-                VStack() {
-                    TableView(data: appState.library.items.map({ item in DataModel(name: item.name, type: item.type.description, item: item)}),
-                              onSelect: onSelect
-                    )
-                    .frame(maxWidth: .infinity)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                
-                
+                LibraryList(library: library,
+                            onSelect: onSelect,
+                            currentSelectionMode: appState.noteCollectionMode,
+                            currentSelectionScale: appState.selectedScale,
+                            currentSelectionChord: appState.selectedChord)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                
                 if appState.displayRightSidebar {
                     withAnimation {
                         LibraryDetailView()
@@ -53,14 +57,14 @@ struct LibraryTabView: View {
         }
     }
     
-    func onSelect(model: DataModel) {
-        appState.noteCollectionMode = model.item.type
+    func onSelect(_ item: LibraryItem) {
+        appState.noteCollectionMode = item.type
         
-        if let scaleType = model.item.scaleType {
+        if let scaleType = item.scaleType {
             appState.selectedScale = scaleType
         }
         
-        if let chordType = model.item.chordType {
+        if let chordType = item.chordType {
             appState.selectedChord = chordType
         }        
     }
