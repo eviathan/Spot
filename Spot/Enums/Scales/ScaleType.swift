@@ -20,25 +20,25 @@ public enum ScaleType: String, CaseIterable, CustomStringConvertible, Hashable, 
     
     // Harmonic Minor (w/Modes)
     case HarmonicMinor = "Harmonic Minor"
-    case Locrian13 = "Locrian13"
-    case IonianSharp5 = "IonianSharp5"
-    case DorianSharp11 = "DorianSharp11"
-    case PhrygianDominant = "PhrygianDominant"
-    case LydianSharp2 = "LydianSharp2"
-    case SuperLocrianbb7 = "SuperLocrianbb7"
+    case Locrian13 = "Locrian 13"
+    case IonianSharp5 = "Ionian Sharp 5"
+    case DorianSharp11 = "Dorian Sharp 11"
+    case PhrygianDominant = "Phrygian Dominant"
+    case LydianSharp2 = "Lydian Sharp 2"
+    case SuperLocrianbb7 = "Super Locrian bb7"
     
     // Meoldic Minor (w/Modes)
-    case MelodicMinor = "MelodicMinor"
-    case Dorianb2 = "Dorianb2"
-    case LydianAugmented = "LydianAugmented"
-    case LydianDominant = "LydianDominant"
-    case Mixolydianb6 = "Mixolydianb6"
-    case Aeolianb5 = "Aeolianb5"
-    case AlteredScale = "AlteredScale"
+    case MelodicMinor = "Melodic Minor"
+    case Dorianb2 = "Dorian b2"
+    case LydianAugmented = "Lydian Augmented"
+    case LydianDominant = "Lydian Dominant"
+    case Mixolydianb6 = "Mixolydian b6"
+    case Aeolianb5 = "Aeolian b5"
+    case AlteredScale = "Altered Scale"
     
     // Pentatonics
-    case MajorPentatonic = "MajorPentatonic"
-    case MinorPentatonic = "MinorPentatonic"
+    case MajorPentatonic = "Major Pentatonic"
+    case MinorPentatonic = "Minor Pentatonic"
     
     // Blues
     case Blues = "Blues"

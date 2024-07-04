@@ -39,11 +39,12 @@ struct LibraryMenu: View {
                     .animation(.easeInOut, value: isSearching)
                 
                 TextField("", text: $text)
+                    .accentColor(.red)
                     .textFieldStyle(PlainTextFieldStyle())
                     .foregroundColor(.white)
                     .focused($isFocused)
                     .onHover { hovering in
-                        self.isSearching = hovering
+                        self.isSearching = text.count > 0 || hovering
                     }
                     .onChange(of: text) { newValue in
                         isSearching = text.count > 0

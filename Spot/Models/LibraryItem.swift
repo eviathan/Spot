@@ -11,6 +11,7 @@ class LibraryItem : Identifiable, Hashable, Searchable {
     let name: String
     var type: NoteCollectionMode
     var rating: Int = 0
+    var favourite: Bool = false
     
     var chordType: ChordType? = nil
     var scaleType: ScaleType? = nil

@@ -25,6 +25,8 @@ class AppState: ObservableObject {
     @Published var library: Library = Library()
     @Published var theme: Theme = Theme()
     
+    @Published var isFullScreen: Bool = false
+    
     func toggleHideUnrelatedNotes() {
         hideUnrelatedNotes.toggle()
     }

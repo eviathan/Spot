@@ -65,26 +65,34 @@ struct LibraryListItem: View {
         }
     }
     
+    var foregroundColor: Color {
+        isHovered || isSelected ? .white : .black
+    }
+    
     var body: some View {
         HStack(spacing: 0) {
+            Button(action: { item.favourite.toggle() }) {
+                Image(systemName: item.favourite ? "heart.fill" : "heart")
+                    .foregroundColor(foregroundColor)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .padding(.trailing, 12)
+            
             VStack(alignment: .leading, spacing: 0) {
                 Text(item.name)
-                    .foregroundColor(isHovered || isSelected ? .white : .black)
+                    .foregroundColor(foregroundColor)
                 Text(item.type.description)
-                    .foregroundColor((isHovered || isSelected ? Color.white : Color.black).opacity(0.5))
+                    .foregroundColor(foregroundColor.opacity(0.5))
             }
+            
+            Spacer()
             
             HStack {
                 Text("Rest of stuff here")
-                    .foregroundColor(isHovered || isSelected ? .white : .black)
+                    .foregroundColor(foregroundColor)
             }
-            .frame(maxWidth: .infinity)
-            .onTapGesture {
-                onSelect(item)
-            }
-            .onHover { hover in
-                isHovered = hover
-            }
+            .frame(maxWidth: 400)
+            .background(.red)
         }
         .padding([.vertical, .horizontal], 12)
         .padding([.horizontal], 12)
@@ -94,6 +102,9 @@ struct LibraryListItem: View {
         .background(backgroundColor)
         .onTapGesture {
             onSelect(item)
+        }
+        .onHover { hover in
+            isHovered = hover
         }
         .animation(.easeInOut, value: isSelected)
         .animation(.easeInOut, value: isHovered)
