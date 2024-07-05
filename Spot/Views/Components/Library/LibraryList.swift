@@ -43,6 +43,7 @@ struct LibraryListItem: View {
     var currentSelectionMode: NoteCollectionMode
     var currentSelectionScale: ScaleType?
     var currentSelectionChord: ChordType?
+    var currentSelectionInterval: Interval?
     
     var onSelect: (_ item: LibraryItem) -> Void
     
@@ -62,6 +63,8 @@ struct LibraryListItem: View {
             return currentSelectionScale == item.scaleType
         case .Chord:
             return currentSelectionChord == item.chordType
+        case .Interval:
+            return currentSelectionInterval == item.interval
         }
     }
     

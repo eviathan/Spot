@@ -27,6 +27,7 @@
 		D301A3362BCEFF89008BE4E8 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = D301A3342BCEFF89008BE4E8 /* Constants.swift */; };
 		D301A3392BCEFFBC008BE4E8 /* CollectionExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D301A3382BCEFFBC008BE4E8 /* CollectionExtensions.swift */; };
 		D32AC5882BD24EA400F40B5B /* FretLabelType.swift in Sources */ = {isa = PBXBuildFile; fileRef = D32AC5872BD24EA400F40B5B /* FretLabelType.swift */; };
+		D34355062C375C6700059737 /* TreeMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34355052C375C6700059737 /* TreeMenuView.swift */; };
 		D37E4C362C33FCBC00179A19 /* Transport.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C352C33FCBC00179A19 /* Transport.swift */; };
 		D37E4C382C34610300179A19 /* ModeSwitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C372C34610300179A19 /* ModeSwitcher.swift */; };
 		D37E4C3B2C346E7E00179A19 /* SequenceTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C3A2C346E7E00179A19 /* SequenceTabView.swift */; };
@@ -77,6 +78,7 @@
 		D3E653F22C36238700401B60 /* Array+.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E653DD2C36238700401B60 /* Array+.swift */; };
 		D3F0DD282C36D2FE00AFDA6A /* LibraryList.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F0DD272C36D2FE00AFDA6A /* LibraryList.swift */; };
 		D3F0DD2C2C37102E00AFDA6A /* IntervalBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F0DD2B2C37102E00AFDA6A /* IntervalBannerView.swift */; };
+		D3F0DD2F2C3724AE00AFDA6A /* Dropdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F0DD2E2C3724AE00AFDA6A /* Dropdown.swift */; };
 		D3FBC9742BD441F000A69646 /* NoteCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FBC9732BD441F000A69646 /* NoteCollection.swift */; };
 		D3FBC9772BD4493700A69646 /* ThreeNotePerStringFrettingPattern.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FBC9762BD4493700A69646 /* ThreeNotePerStringFrettingPattern.swift */; };
 		D3FBC9792BD45C5C00A69646 /* FrettingPattern.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FBC9782BD45C5C00A69646 /* FrettingPattern.swift */; };
@@ -108,6 +110,7 @@
 		D301A3342BCEFF89008BE4E8 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		D301A3382BCEFFBC008BE4E8 /* CollectionExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CollectionExtensions.swift; sourceTree = "<group>"; };
 		D32AC5872BD24EA400F40B5B /* FretLabelType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FretLabelType.swift; sourceTree = "<group>"; };
+		D34355052C375C6700059737 /* TreeMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreeMenuView.swift; sourceTree = "<group>"; };
 		D37E4C352C33FCBC00179A19 /* Transport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transport.swift; sourceTree = "<group>"; };
 		D37E4C372C34610300179A19 /* ModeSwitcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModeSwitcher.swift; sourceTree = "<group>"; };
 		D37E4C3A2C346E7E00179A19 /* SequenceTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SequenceTabView.swift; sourceTree = "<group>"; };
@@ -161,6 +164,7 @@
 		D3E653DD2C36238700401B60 /* Array+.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Array+.swift"; path = "Exts/Array+.swift"; sourceTree = "<group>"; };
 		D3F0DD272C36D2FE00AFDA6A /* LibraryList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryList.swift; sourceTree = "<group>"; };
 		D3F0DD2B2C37102E00AFDA6A /* IntervalBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntervalBannerView.swift; sourceTree = "<group>"; };
+		D3F0DD2E2C3724AE00AFDA6A /* Dropdown.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dropdown.swift; sourceTree = "<group>"; };
 		D3FBC9732BD441F000A69646 /* NoteCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteCollection.swift; sourceTree = "<group>"; };
 		D3FBC9762BD4493700A69646 /* ThreeNotePerStringFrettingPattern.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreeNotePerStringFrettingPattern.swift; sourceTree = "<group>"; };
 		D3FBC9782BD45C5C00A69646 /* FrettingPattern.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrettingPattern.swift; sourceTree = "<group>"; };
@@ -386,6 +390,7 @@
 		D3F0DD292C370FDB00AFDA6A /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				D3F0DD2D2C3724A400AFDA6A /* Shared */,
 				D3F0DD2A2C370FE000AFDA6A /* Library */,
 			);
 			path = Components;
@@ -400,6 +405,15 @@
 				D3F0DD2B2C37102E00AFDA6A /* IntervalBannerView.swift */,
 			);
 			path = Library;
+			sourceTree = "<group>";
+		};
+		D3F0DD2D2C3724A400AFDA6A /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				D3F0DD2E2C3724AE00AFDA6A /* Dropdown.swift */,
+				D34355052C375C6700059737 /* TreeMenuView.swift */,
+			);
+			path = Shared;
 			sourceTree = "<group>";
 		};
 		D3FBC9722BD441D700A69646 /* Protocols */ = {
@@ -520,6 +534,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D301A3242BCEFEA6008BE4E8 /* Add.swift in Sources */,
+				D3F0DD2F2C3724AE00AFDA6A /* Dropdown.swift in Sources */,
 				D3E653F22C36238700401B60 /* Array+.swift in Sources */,
 				D301A30F2BCEFE43008BE4E8 /* Chord.swift in Sources */,
 				D3E653ED2C36238700401B60 /* Fuzzy.swift in Sources */,
@@ -553,6 +568,7 @@
 				D3AA9B7D2BCDA08C00C78DF3 /* Footer.swift in Sources */,
 				D37E4C3D2C346EA600179A19 /* LibraryTabView.swift in Sources */,
 				D301A3222BCEFEA6008BE4E8 /* Suspension.swift in Sources */,
+				D34355062C375C6700059737 /* TreeMenuView.swift in Sources */,
 				D3AA9B7F2BCEF8AB00C78DF3 /* AppState.swift in Sources */,
 				D3FBC97B2BD5535B00A69646 /* NoteCollectionMode.swift in Sources */,
 				D3E653F02C36238700401B60 /* String+Fuse.swift in Sources */,

@@ -15,17 +15,19 @@ class LibraryItem : Identifiable, Hashable, Searchable {
     
     var chordType: ChordType? = nil
     var scaleType: ScaleType? = nil
+    var interval: Interval? = nil
     
     var properties: [FuseProp] {
         [name].map{ FuseProp($0) }
     }
     
-    init(name: String, type: NoteCollectionMode, chordType: ChordType? = nil, scaleType: ScaleType? = nil) {
+    init(name: String, type: NoteCollectionMode, chordType: ChordType? = nil, scaleType: ScaleType? = nil, interval: Interval? = nil) {
         self.name = name
         self.type = type
         
         self.chordType = chordType
         self.scaleType = scaleType
+        self.interval = interval
     }
     
     static func == (lhs: LibraryItem, rhs: LibraryItem) -> Bool {

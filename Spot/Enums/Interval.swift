@@ -81,4 +81,28 @@ public enum Interval: Int, CustomStringConvertible, Identifiable {
         case .XIII: return "13"
         }
     }
+    
+    public var prettyName: String {
+        switch self {
+        case .I: return "Root"
+        case .bII: return "Minor 2nd / 9th"
+        case .II: return "Major 2nd / 9th"
+        case .bIII: return "Minor 3rd"
+        case .III: return "Major 3rd"
+        case .IV: return "Perfect 4th / 11th"
+        case .TT: return "Augmented 4th / 11th / Tritone"
+        case .V: return "Perfect 5th"
+        case .bVI: return "Minor 6th / 13th"
+        case .VI: return "Major 6th / 13th"
+        case .bVII: return "Minor 7th"
+        case .VII: return "Major 7th"
+        case .bIX: return "m9"
+        case .IX: return "M9"
+        case .bX: return "9#"
+        case .XI: return "11"
+        case .bXII: return "11#"
+        case .bXIII: return "♭13"
+        case .XIII: return "13"
+        }
+    }
 }

@@ -10,6 +10,7 @@ import Foundation
 enum NoteCollectionMode : CustomStringConvertible {
     case Scale
     case Chord
+    case Interval
     
     public var description: String {
         switch self {
@@ -17,6 +18,8 @@ enum NoteCollectionMode : CustomStringConvertible {
                 return "Scale"
             case .Chord:
                 return "Chord"
+            case .Interval:
+                return "Interval"
         }
     }
 }

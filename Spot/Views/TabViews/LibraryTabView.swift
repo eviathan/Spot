@@ -29,7 +29,7 @@ struct LibraryTabView: View {
             HStack(spacing: 0) {
                 if appState.displayLeftSidebar {
                     withAnimation {
-                        Text("Filter List")
+                        TreeMenuView()
                             .frame(maxWidth: 200)
                             .transition(.move(edge: .leading).combined(with: .opacity))
                     }

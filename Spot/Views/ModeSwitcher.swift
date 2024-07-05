@@ -47,7 +47,3 @@ struct ModeSwitcher: View {
         
     }
 }
-
-#Preview {
-    ModeSwitcher()
-}

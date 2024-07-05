@@ -36,6 +36,8 @@ class Library: ObservableObject {
             output.append(item)
         }
         
+        output.append(contentsOf: getIntervals())
+        
         if(query == nil || query!.isEmpty) {
             return output
         }
@@ -46,5 +48,22 @@ class Library: ObservableObject {
         }
         
         return []
+    }
+    
+    private func getIntervals() -> [LibraryItem] {
+        return [
+            LibraryItem(name: Interval.I.prettyName, type: .Interval),
+            LibraryItem(name: Interval.bII.prettyName, type: .Interval),
+            LibraryItem(name: Interval.II.prettyName, type: .Interval),
+            LibraryItem(name: Interval.bIII.prettyName, type: .Interval),
+            LibraryItem(name: Interval.III.prettyName, type: .Interval),
+            LibraryItem(name: Interval.IV.prettyName, type: .Interval),
+            LibraryItem(name: Interval.TT.prettyName, type: .Interval),
+            LibraryItem(name: Interval.V.prettyName, type: .Interval),
+            LibraryItem(name: Interval.bVI.prettyName, type: .Interval),
+            LibraryItem(name: Interval.VI.prettyName, type: .Interval),
+            LibraryItem(name: Interval.bVII.prettyName, type: .Interval),
+            LibraryItem(name: Interval.VII.prettyName, type: .Interval),
+        ]
     }
 }
