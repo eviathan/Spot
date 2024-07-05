@@ -10,6 +10,7 @@ import SwiftUI
 struct FretboardView: View {
     @ObservedObject var viewModel: FretboardViewModel
     @State private var mouseOverMarkerIndex: Int? = nil
+    @State private var guitarOpacity: CGFloat = 0.3
     
     let markerSize: CGFloat = 0.7 // TODO: Calculate this
     
@@ -21,67 +22,54 @@ struct FretboardView: View {
             let stringSpacing = height / CGFloat(viewModel.numberOfStrings + 1)
             
             ZStack {
-//                drawFretboard(viewModel: viewModel, width: width, height: height, fretSpacing: fretSpacing, stringSpacing: stringSpacing)
                 drawFretMarkers(viewModel: viewModel, width: width, height: height, fretSpacing: fretSpacing, stringSpacing: stringSpacing)
-                drawFrets(viewModel: viewModel, width: width, height: height, fretSpacing: fretSpacing)
+                    .opacity(guitarOpacity)
+                drawFrets(viewModel: viewModel, width: width, height: height, fretSpacing: fretSpacing, stringSpacing: stringSpacing)
+                    .opacity(guitarOpacity)
+                drawNut(viewModel: viewModel, width: width, height: height, fretSpacing: fretSpacing, stringSpacing: stringSpacing)
+                    .opacity(guitarOpacity)
                 drawStrings(viewModel: viewModel, width: width, height: height, fretSpacing: fretSpacing, stringSpacing: stringSpacing)
+                    .opacity(guitarOpacity)
                 drawFretNumbers(viewModel: viewModel, width: width, height: height, fretSpacing: fretSpacing, stringSpacing: stringSpacing)
-                drawNut(viewModel: viewModel, width: width, height: height, fretSpacing: fretSpacing)
+                    .opacity(guitarOpacity)
                 drawMarkers(viewModel: viewModel, width: width, height: height, fretSpacing: fretSpacing, stringSpacing: stringSpacing)
             }
-            .frame(maxWidth: .infinity)
-        }
-        .frame(maxWidth: .infinity, maxHeight: 300)
-        .padding()
+            .frame(maxWidth: .infinity)        }
+            .frame(maxWidth: .infinity, maxHeight: 300)
+            .padding(0)
     }
     
-    func drawFretboard(viewModel: FretboardViewModel, width: CGFloat, height: CGFloat, fretSpacing: CGFloat, stringSpacing: CGFloat) -> some View {
-        let fretboardEdges: CGFloat = 2
-        let nutWidth: CGFloat = 4
-        let nutX = (nutWidth / 2) + fretSpacing
+    func drawNut(viewModel: FretboardViewModel, width: CGFloat, height: CGFloat, fretSpacing: CGFloat, stringSpacing: CGFloat) -> some View {
+        let nutWidth: CGFloat = fretSpacing
         
         return ZStack {
             Path { path in
-                path.move(to: CGPoint(x: nutX, y: (fretboardEdges / 2)))
-                path.addLine(to: CGPoint(x: width, y: (fretboardEdges / 2)))
+                path.move(to: CGPoint(x: fretSpacing, y: stringSpacing - 1.0))
+                path.addLine(to: CGPoint(x: fretSpacing, y: height - stringSpacing + 1.0))
             }
-            .stroke(viewModel.fretColor, lineWidth: fretboardEdges)
-            
-            Spacer()
+            .stroke(viewModel.fretColor, lineWidth: 4)
             
             Path { path in
-                path.move(to: CGPoint(x: nutX, y: height - (fretboardEdges / 2)))
-                path.addLine(to: CGPoint(x: width, y: height - (fretboardEdges / 2)))
+                path.move(to: CGPoint(x: fretSpacing * 0.5, y: stringSpacing - 1.0))
+                path.addLine(to: CGPoint(x: fretSpacing * 0.5, y: height - stringSpacing + 1.0))
             }
-            .stroke(viewModel.fretColor, lineWidth: fretboardEdges)
+            .stroke(Color(hue: 0.75, saturation: 0.01, brightness: 0.80, opacity: 1.00), lineWidth: nutWidth)
         }
-        .frame(maxWidth: width, maxHeight: height)
     }
     
-    func drawNut(viewModel: FretboardViewModel, width: CGFloat, height: CGFloat, fretSpacing: CGFloat) -> some View {
-        let nutWidth: CGFloat = 4
-        let nutX = (nutWidth / 2) + fretSpacing
-        
-        return Path { path in
-            path.move(to: CGPoint(x: nutX, y: 0))
-            path.addLine(to: CGPoint(x: nutX, y: height))
-        }
-        .stroke(viewModel.fretColor, lineWidth: nutWidth)
-    }
-    
-    func drawFrets(viewModel: FretboardViewModel, width: CGFloat, height: CGFloat, fretSpacing: CGFloat) -> some View {
+    func drawFrets(viewModel: FretboardViewModel, width: CGFloat, height: CGFloat, fretSpacing: CGFloat, stringSpacing: CGFloat) -> some View {
         ZStack {
-            ForEach(1...viewModel.numberOfFrets, id: \.self) { fret in
+            ForEach(1...viewModel.numberOfFrets - 1, id: \.self) { fret in
                 let isTwelthFret = fret % 12 == 11 || fret % 12 == 0
                 let fretColour = isTwelthFret ? viewModel.fretColor : viewModel.fretColor
                 let fretWidth: CGFloat = isTwelthFret ? 2 : 1
                 
                 Path { path in
                     let x = (CGFloat(fret) * fretSpacing) + fretSpacing
-                    path.move(to: CGPoint(x: x, y: 0))
-                    path.addLine(to: CGPoint(x: x, y: height))
+                    path.move(to: CGPoint(x: x, y: stringSpacing))
+                    path.addLine(to: CGPoint(x: x, y: height - stringSpacing))
                 }
-                .stroke(fretColour,style: StrokeStyle(lineWidth: fretWidth))
+                .stroke(fretColour, style: StrokeStyle(lineWidth: fretWidth))
             }
         }
     }
@@ -95,7 +83,7 @@ struct FretboardView: View {
             ForEach(1...viewModel.numberOfStrings, id: \.self) { string in
                 Path { path in
                     let y = CGFloat(string) * stringSpacing
-                    path.move(to: CGPoint(x: fretSpacing, y: y))
+                    path.move(to: CGPoint(x: 0, y: y))
                     path.addLine(to: CGPoint(x: width, y: y))
                 }
                 .stroke(viewModel.stringColor, 
@@ -114,9 +102,9 @@ struct FretboardView: View {
     func drawFretNumbers(viewModel: FretboardViewModel, width: CGFloat, height: CGFloat, fretSpacing: CGFloat, stringSpacing: CGFloat) -> some View {
         ForEach(0...viewModel.numberOfFrets, id: \.self) { fret in
             let x = (CGFloat(fret) * fretSpacing - fretSpacing / 2) + fretSpacing
-            let y = height - (stringSpacing / 4)
+            let y = (height - (stringSpacing / 4)) + 2
 
-            Text(fret == 0 ? "" : "\(fret)")
+            Text(fret == 0 ? "0" : "\(fret)")
                 .font(.caption.weight(.bold))
                 .foregroundColor(viewModel.fretboardColor)
                 .frame(width: fretSpacing, height: stringSpacing / 2, alignment: .top)
@@ -197,6 +185,7 @@ struct FretboardView: View {
                 
                 let markerColourForNote = viewModel.appState.theme.intervalColors[noteInterval.noteIndex]
                 let hideUnrelatedNotes = viewModel.appState.hideUnrelatedNotes
+                let isolateInversion = viewModel.appState.isolateInversion
                 
                 let markerColor = !isHighlighted
                     ? isOpenString
@@ -211,7 +200,9 @@ struct FretboardView: View {
                 let markerSizeModifier = mouseOverMarkerIndex == noteIndex * 100 + fretIndex ? 1.1 : 1.0
                 
                 // isolatedMode && !inScale/chord && notIn
-                let showMarker = (hideUnrelatedNotes && noteInCollection) || !hideUnrelatedNotes
+                let showMarker = isolateInversion
+                    ? isHighlighted
+                    : (hideUnrelatedNotes && noteInCollection) || !hideUnrelatedNotes
                                 
                 // TODO: Adjust this so that the button wrapps the circle instead
                 Circle()
