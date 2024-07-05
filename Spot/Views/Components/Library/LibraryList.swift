@@ -90,8 +90,8 @@ struct LibraryListItem: View {
             .frame(width: 200, alignment: .leading) // TODO: Derive this from the longest name in item.name
             
             HStack {
-                Text("TODO: Rest of stuff here")
-                    .foregroundColor(foregroundColor)
+//                Text("TODO: Rest of stuff here")
+//                    .foregroundColor(foregroundColor)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 //            .background(Color(hue: 0.99, saturation: 0.55, brightness: 0.83, opacity: 1.00)) // TODO: Remove this

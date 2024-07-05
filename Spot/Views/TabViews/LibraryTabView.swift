@@ -11,8 +11,13 @@ struct LibraryTabView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var library: Library
     
-    @State private var selectedNoteCollectionMode: NoteCollectionMode = .Scale
     @State var chordSelection = ChordType.Maj
+    
+    @State private var selectedNoteCollectionMode: NoteCollectionMode = .Scale
+    @State private var treeMenuWidth: CGFloat = 200
+    
+    private let minWidth: CGFloat = 160
+    private let maxWidth: CGFloat = 400
     
     let geometryProxy: GeometryProxy
     let menuOptions: [NoteCollectionMode] = [.Scale, .Chord]
@@ -29,9 +34,28 @@ struct LibraryTabView: View {
             HStack(spacing: 0) {
                 if appState.displayLeftSidebar {
                     withAnimation {
-                        TreeMenuView()
-                            .frame(maxWidth: 200)
-                            .transition(.move(edge: .leading).combined(with: .opacity))
+                        HStack(spacing: 0) {
+                            TreeMenuView()
+                                .frame(maxWidth: treeMenuWidth)
+                                .transition(.move(edge: .leading).combined(with: .opacity))
+                            
+                            // Drag handle
+                            // TODO: Make this more general
+                            Rectangle()
+                                .fill(Color.clear)
+                                .frame(width: 5)
+                                .background(Color(hue: 0.64, saturation: 0.30, brightness: 0.24, opacity: 1.00))
+                                .gesture(
+                                    DragGesture()
+                                        .onChanged { value in
+                                            let newWidth = treeMenuWidth + value.translation.width
+                                            if newWidth >= minWidth && newWidth <= maxWidth {
+                                                treeMenuWidth = newWidth
+                                            }
+                                        }
+                                )
+                                .modifier(ResizeCursor())
+                        }
                     }
                 }
                 
@@ -67,5 +91,18 @@ struct LibraryTabView: View {
         if let chordType = item.chordType {
             appState.selectedChord = chordType
         }        
+    }
+}
+
+struct ResizeCursor: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .onHover { hovering in
+                if hovering {
+                    NSCursor.resizeLeftRight.push()
+                } else {
+                    NSCursor.pop()
+                }
+            }
     }
 }
