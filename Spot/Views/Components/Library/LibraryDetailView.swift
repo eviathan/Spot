@@ -20,7 +20,7 @@ struct LibraryDetailView: View {
                 .font(.title)
                 .frame(maxHeight: .infinity)
             
-            VStack {
+//            VStack {
 //                Text("Library Detail View")
                 
 //                Picker("Inversion", selection: $selectedInversion) {
@@ -33,9 +33,9 @@ struct LibraryDetailView: View {
 //                Dropdown()
 //                
 //                Text("TODO: Edit button link to edit screen")
-            }
-            .padding(24)
-            .frame(maxHeight: .infinity)
+//            }
+//            .padding(24)
+//            .frame(maxHeight: .infinity)
             
             IntervalBannerView(intervals: appState.getSelectedIntervals(), theme: appState.theme)
         }

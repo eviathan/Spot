@@ -94,7 +94,7 @@ struct LibraryListItem: View {
                     .foregroundColor(foregroundColor)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color(hue: 0.99, saturation: 0.55, brightness: 0.83, opacity: 1.00)) // TODO: Remove this
+//            .background(Color(hue: 0.99, saturation: 0.55, brightness: 0.83, opacity: 1.00)) // TODO: Remove this
         }
         .padding([.vertical, .horizontal], 12)
         .padding([.horizontal], 12)
