@@ -25,6 +25,18 @@ class AppState: ObservableObject {
     @Published var library: Library = Library()
     @Published var theme: Theme = Theme()
     
+    @Published private var _bpm: Int = 120
+     var bpm: Int {
+        get {
+            return _bpm
+        }
+        set {
+            if(newValue >= 1 && newValue <= 999) {
+                _bpm = newValue
+            }
+        }
+    }
+    
     @Published var isFullScreen: Bool = false
     
     func toggleHideUnrelatedNotes() {

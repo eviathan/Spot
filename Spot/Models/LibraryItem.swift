@@ -7,15 +7,15 @@
 
 import Foundation
 
-class LibraryItem : Identifiable, Hashable, Searchable {
-    let name: String
-    var type: NoteCollectionMode
-    var rating: Int = 0
-    var favourite: Bool = false
+class LibraryItem : ObservableObject, Identifiable, Hashable, Searchable {
+    @Published var name: String
+    @Published var type: NoteCollectionMode
+    @Published var rating: Int = 0
+    @Published var favourite: Bool = false
     
-    var chordType: ChordType? = nil
-    var scaleType: ScaleType? = nil
-    var interval: Interval? = nil
+    @Published var chordType: ChordType? = nil
+    @Published var scaleType: ScaleType? = nil
+    @Published var interval: Interval? = nil
     
     var properties: [FuseProp] {
         [name].map{ FuseProp($0) }

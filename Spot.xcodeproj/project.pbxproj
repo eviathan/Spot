@@ -26,6 +26,7 @@
 		D301A3352BCEFF89008BE4E8 /* Appendix.swift in Sources */ = {isa = PBXBuildFile; fileRef = D301A3332BCEFF89008BE4E8 /* Appendix.swift */; };
 		D301A3362BCEFF89008BE4E8 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = D301A3342BCEFF89008BE4E8 /* Constants.swift */; };
 		D301A3392BCEFFBC008BE4E8 /* CollectionExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D301A3382BCEFFBC008BE4E8 /* CollectionExtensions.swift */; };
+		D31BA8772C3891E5003F678B /* RangePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31BA8762C3891E5003F678B /* RangePicker.swift */; };
 		D32AC5882BD24EA400F40B5B /* FretLabelType.swift in Sources */ = {isa = PBXBuildFile; fileRef = D32AC5872BD24EA400F40B5B /* FretLabelType.swift */; };
 		D34355062C375C6700059737 /* TreeMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34355052C375C6700059737 /* TreeMenuView.swift */; };
 		D37E4C362C33FCBC00179A19 /* Transport.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C352C33FCBC00179A19 /* Transport.swift */; };
@@ -109,6 +110,7 @@
 		D301A3332BCEFF89008BE4E8 /* Appendix.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Appendix.swift; sourceTree = "<group>"; };
 		D301A3342BCEFF89008BE4E8 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		D301A3382BCEFFBC008BE4E8 /* CollectionExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CollectionExtensions.swift; sourceTree = "<group>"; };
+		D31BA8762C3891E5003F678B /* RangePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RangePicker.swift; sourceTree = "<group>"; };
 		D32AC5872BD24EA400F40B5B /* FretLabelType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FretLabelType.swift; sourceTree = "<group>"; };
 		D34355052C375C6700059737 /* TreeMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreeMenuView.swift; sourceTree = "<group>"; };
 		D37E4C352C33FCBC00179A19 /* Transport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transport.swift; sourceTree = "<group>"; };
@@ -412,6 +414,7 @@
 			children = (
 				D3F0DD2E2C3724AE00AFDA6A /* Dropdown.swift */,
 				D34355052C375C6700059737 /* TreeMenuView.swift */,
+				D31BA8762C3891E5003F678B /* RangePicker.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -592,6 +595,7 @@
 				D3E653E52C36238700401B60 /* Fuse+ArrStrings.swift in Sources */,
 				D3E1F5492BCDDB2600167D43 /* FretboardViewModel.swift in Sources */,
 				D3E653E72C36238700401B60 /* Levenstain.swift in Sources */,
+				D31BA8772C3891E5003F678B /* RangePicker.swift in Sources */,
 				D3F0DD2C2C37102E00AFDA6A /* IntervalBannerView.swift in Sources */,
 				D37E4C472C34BCA200179A19 /* LibraryMenu.swift in Sources */,
 				D3E1F5462BCDDACC00167D43 /* FretNote.swift in Sources */,

@@ -56,9 +56,7 @@ public enum Note: Int, CaseIterable, CustomStringConvertible {
         case .Ab: return "G♯/A♭"
         }
     }
-}
-
-extension Note {
+    
     func getMIDINumber(octave: Int = 0) -> Int {
         switch self {
         case .A:
@@ -99,10 +97,17 @@ extension Note {
             if currentNote == self {
                 return Interval(rawValue: i)!
             } else {
-               count+=1
+               count += 1
             }
         }
         
         return .I
     }
+    
+    func increment(_ amount: Int) -> Note {
+            let allCasesCount = Note.allCases.count
+            let rawValue = self.rawValue
+            let newRawValue = (rawValue + amount + allCasesCount) % allCasesCount
+            return Note(rawValue: newRawValue)!
+        }
 }

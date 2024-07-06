@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct LibraryList: View {
-    var library: Library
+    @ObservedObject var library: Library
     var onSelect: (_ item: LibraryItem) -> Void
     var currentSelectionMode: NoteCollectionMode
     var currentSelectionScale: ScaleType?
@@ -19,8 +19,8 @@ struct LibraryList: View {
         let withIndex = library.items.enumerated().map({ $0 })
         
         List(withIndex, id: \.element.id) { index, item in
-            LibraryListItem(index: index,
-                            item: item,
+            LibraryListItem(item: item,
+                            index: index,
                             currentSelectionMode: currentSelectionMode,
                             currentSelectionScale: currentSelectionScale,
                             currentSelectionChord: currentSelectionChord,
@@ -36,10 +36,9 @@ struct LibraryList: View {
 
 struct LibraryListItem: View {
     @State var isHovered: Bool = false
+    @ObservedObject var item: LibraryItem
     
     var index: Int
-    var item: LibraryItem
-    
     var currentSelectionMode: NoteCollectionMode
     var currentSelectionScale: ScaleType?
     var currentSelectionChord: ChordType?
@@ -94,7 +93,6 @@ struct LibraryListItem: View {
 //                    .foregroundColor(foregroundColor)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-//            .background(Color(hue: 0.99, saturation: 0.55, brightness: 0.83, opacity: 1.00)) // TODO: Remove this
         }
         .padding([.vertical, .horizontal], 12)
         .padding([.horizontal], 12)
@@ -110,5 +108,6 @@ struct LibraryListItem: View {
         }
         .animation(.easeInOut, value: isSelected)
         .animation(.easeInOut, value: isHovered)
+        .animation(.easeInOut, value: item.favourite)
     }
 }
