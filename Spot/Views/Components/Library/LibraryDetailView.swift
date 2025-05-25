@@ -15,7 +15,7 @@ struct LibraryDetailView: View {
     let inversions = ["Ionian", "Dorian", "Phrygian", "Lydian", "Mixolydian", "Aeolian", "Locrian"]
     
     var body: some View {
-        VStack {
+        VStack(spacing: 0) {
             Text(appState.getSelectedName())
                 .font(.title)
                 .frame(maxHeight: .infinity)
@@ -37,6 +37,7 @@ struct LibraryDetailView: View {
 //            .padding(24)
 //            .frame(maxHeight: .infinity)
             
+            IntervalMatrixView(key: appState.selectedNote, scale: appState.selectedScale, theme: appState.theme)
             IntervalBannerView(intervals: appState.getSelectedIntervals(), theme: appState.theme)
         }
     }

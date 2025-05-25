@@ -8,10 +8,10 @@
 
 import Foundation
 
-public enum ChordStyle {
-    case Triad
-    case Seventh
-    case Ninth
-    case Eleventh
-    case Thirteenth
+public enum ChordStyle: Int {
+    case Triad = 3
+    case Seventh = 4
+    case Ninth = 5
+    case Eleventh = 6
+    case Thirteenth = 7
 }

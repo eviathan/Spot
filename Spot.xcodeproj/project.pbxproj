@@ -29,6 +29,7 @@
 		D31BA8772C3891E5003F678B /* RangePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31BA8762C3891E5003F678B /* RangePicker.swift */; };
 		D32AC5882BD24EA400F40B5B /* FretLabelType.swift in Sources */ = {isa = PBXBuildFile; fileRef = D32AC5872BD24EA400F40B5B /* FretLabelType.swift */; };
 		D34355062C375C6700059737 /* TreeMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34355052C375C6700059737 /* TreeMenuView.swift */; };
+		D34C10DF2C40327A004C3E86 /* Library.json in Resources */ = {isa = PBXBuildFile; fileRef = D34C10DE2C40327A004C3E86 /* Library.json */; };
 		D37E4C362C33FCBC00179A19 /* Transport.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C352C33FCBC00179A19 /* Transport.swift */; };
 		D37E4C382C34610300179A19 /* ModeSwitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C372C34610300179A19 /* ModeSwitcher.swift */; };
 		D37E4C3B2C346E7E00179A19 /* SequenceTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C3A2C346E7E00179A19 /* SequenceTabView.swift */; };
@@ -53,6 +54,7 @@
 		D3AA9B7B2BCDA08300C78DF3 /* Header.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B7A2BCDA08300C78DF3 /* Header.swift */; };
 		D3AA9B7D2BCDA08C00C78DF3 /* Footer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B7C2BCDA08C00C78DF3 /* Footer.swift */; };
 		D3AA9B7F2BCEF8AB00C78DF3 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B7E2BCEF8AB00C78DF3 /* AppState.swift */; };
+		D3B899D02C3AC5B90090E6D6 /* IntervalMatrixView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B899CF2C3AC5B90090E6D6 /* IntervalMatrixView.swift */; };
 		D3E1F5462BCDDACC00167D43 /* FretNote.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E1F5452BCDDACC00167D43 /* FretNote.swift */; };
 		D3E1F5492BCDDB2600167D43 /* FretboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E1F5482BCDDB2600167D43 /* FretboardViewModel.swift */; };
 		D3E1F54C2BCDDC9600167D43 /* NoteService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E1F54B2BCDDC9600167D43 /* NoteService.swift */; };
@@ -113,6 +115,8 @@
 		D31BA8762C3891E5003F678B /* RangePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RangePicker.swift; sourceTree = "<group>"; };
 		D32AC5872BD24EA400F40B5B /* FretLabelType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FretLabelType.swift; sourceTree = "<group>"; };
 		D34355052C375C6700059737 /* TreeMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreeMenuView.swift; sourceTree = "<group>"; };
+		D34C10DE2C40327A004C3E86 /* Library.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Library.json; sourceTree = "<group>"; };
+		D34C10E02C403327004C3E86 /* Theme.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Theme.json; sourceTree = "<group>"; };
 		D37E4C352C33FCBC00179A19 /* Transport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transport.swift; sourceTree = "<group>"; };
 		D37E4C372C34610300179A19 /* ModeSwitcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModeSwitcher.swift; sourceTree = "<group>"; };
 		D37E4C3A2C346E7E00179A19 /* SequenceTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SequenceTabView.swift; sourceTree = "<group>"; };
@@ -140,6 +144,7 @@
 		D3AA9B7A2BCDA08300C78DF3 /* Header.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Header.swift; sourceTree = "<group>"; };
 		D3AA9B7C2BCDA08C00C78DF3 /* Footer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Footer.swift; sourceTree = "<group>"; };
 		D3AA9B7E2BCEF8AB00C78DF3 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		D3B899CF2C3AC5B90090E6D6 /* IntervalMatrixView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntervalMatrixView.swift; sourceTree = "<group>"; };
 		D3E1F5452BCDDACC00167D43 /* FretNote.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FretNote.swift; sourceTree = "<group>"; };
 		D3E1F5482BCDDB2600167D43 /* FretboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FretboardViewModel.swift; sourceTree = "<group>"; };
 		D3E1F54B2BCDDC9600167D43 /* NoteService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteService.swift; sourceTree = "<group>"; };
@@ -229,6 +234,15 @@
 			path = Extensions;
 			sourceTree = "<group>";
 		};
+		D34C10DD2C403225004C3E86 /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				D34C10DE2C40327A004C3E86 /* Library.json */,
+				D34C10E02C403327004C3E86 /* Theme.json */,
+			);
+			path = Data;
+			sourceTree = "<group>";
+		};
 		D37E4C392C346E5100179A19 /* TabViews */ = {
 			isa = PBXGroup;
 			children = (
@@ -286,6 +300,7 @@
 		D3AA9B592BCD982E00C78DF3 /* Spot */ = {
 			isa = PBXGroup;
 			children = (
+				D34C10DD2C403225004C3E86 /* Data */,
 				D37E4C502C360E6100179A19 /* Search */,
 				D3FBC9852BD79C0300A69646 /* Config */,
 				D3FBC9822BD57BE900A69646 /* DataAccess */,
@@ -401,6 +416,7 @@
 		D3F0DD2A2C370FE000AFDA6A /* Library */ = {
 			isa = PBXGroup;
 			children = (
+				D3B899CF2C3AC5B90090E6D6 /* IntervalMatrixView.swift */,
 				D37E4C462C34BCA200179A19 /* LibraryMenu.swift */,
 				D37E4C4A2C35944000179A19 /* LibraryDetailView.swift */,
 				D3F0DD272C36D2FE00AFDA6A /* LibraryList.swift */,
@@ -521,6 +537,7 @@
 				D3FBC98B2BD79C6F00A69646 /* FrettingPattern.json in Resources */,
 				D3E653EC2C36238700401B60 /* FuzzyFind in Resources */,
 				D3E653E92C36238700401B60 /* Classes in Resources */,
+				D34C10DF2C40327A004C3E86 /* Library.json in Resources */,
 				D3AA9B642BCD983000C78DF3 /* Preview Assets.xcassets in Resources */,
 				D3E653DE2C36238700401B60 /* Exts in Resources */,
 				D3E653EF2C36238700401B60 /* Fuse+ in Resources */,
@@ -577,6 +594,7 @@
 				D3E653F02C36238700401B60 /* String+Fuse.swift in Sources */,
 				D3E653DF2C36238700401B60 /* FuseUtilities.swift in Sources */,
 				D301A3232BCEFEA6008BE4E8 /* ChordStyle.swift in Sources */,
+				D3B899D02C3AC5B90090E6D6 /* IntervalMatrixView.swift in Sources */,
 				D301A3162BCEFE8B008BE4E8 /* Note.swift in Sources */,
 				D301A32D2BCEFECE008BE4E8 /* ScaleType.swift in Sources */,
 				D3E653E42C36238700401B60 /* Fuse+ArrObjects.swift in Sources */,
@@ -737,6 +755,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Spot/Spot.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -766,6 +785,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Spot/Spot.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
