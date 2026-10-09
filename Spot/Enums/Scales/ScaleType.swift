@@ -52,58 +52,39 @@ public enum ScaleType: String, CaseIterable, CustomStringConvertible, Hashable, 
         return self.rawValue
     }
     
-    var intervals: [Interval] {
+    /// The matching definition in SpotCore's built-in library, which now holds the formulas
+    var definitionId: String {
         switch self {
-        // Major Modes
-        case .Major: return [.I, .II, .III, .IV, .V, .VI, .VII]
-        case .Dorian: return [.I, .II, .bIII, .IV, .V, .VI, .bVII]
-        case .Phrygian: return [.I, .bII, .bIII, .IV, .V, .bVI, .bVII]
-        case .Lydian: return [.I, .II, .III, .TT, .V, .VI, .VII]
-        case .Mixolydian: return [.I, .II, .III, .IV, .V, .VI, .bVII]
-        case .Minor: return [.I, .II, .bIII, .IV, .V, .bVI, .bVII]
-        case .Locrian: return [.I, .bII, .bIII, .IV, .TT, .bVI, .bVII]
-            
-        // Harmonic Minor (w/Modes)
-        case .HarmonicMinor: return [.I, .II, .bIII, .IV, .V, .bVI, .VII]
-        case .Locrian13: return [.I, .bII, .bIII, .IV, .TT, .VI, .bVII]
-        case .IonianSharp5: return [.I, .II, .III, .IV, .bVI, .VI, .VII]
-        case .DorianSharp11: return [.I, .II, .bIII, .TT, .V, .VI, .bVII]
-        case .PhrygianDominant: return [.I, .bII, .III, .IV, .V, .bVI, .bVII]
-        case .LydianSharp2: return [.I, .bIII, .III, .TT, .V, .VI, .VII]
-        case .SuperLocrianbb7: return [.I, .bII, .bIII, .III, .TT, .bVI, .VI] // .VI = bb7
-            
-        // Meoldic Minor (w/Modes)
-        case .MelodicMinor: return [.I, .II, .bIII, .IV, .V, .VI, .VII]
-        case .Dorianb2: return [.I, .bII, .bIII, .IV, .V, .VI, .bVII]
-        case .LydianAugmented: return [.I, .II, .III, .TT, .bVI, .VI, .VII] // .bVI = #5
-        case .LydianDominant: return [.I, .II, .III, .TT, .V, .VI, .bVII]
-        case .Mixolydianb6: return [.I, .II, .III, .IV, .V, .bVI, .bVII]
-        case .Aeolianb5: return [.I, .II, .bIII, .IV, .TT, .bVI, .bVII]
-        case .AlteredScale: return [.I, .bII, .bIII, .III, .TT, .bVI, .bVII]
-            
-            
-        // Pentatonics
-        case .MajorPentatonic: return [.I, .II, .III, .V, .VI]
-        case .MinorPentatonic: return [.I, .bIII, .IV, .V, .bVII]
-            
-        // Blues
-        case .Blues: return [.I, .bIII, .IV, .TT, .V, .bVII]
-//            do {
-//            switch style {
-//            case .Pentatonic: return [.I, .II, .III, .V, .VI]
-//            case .Hexatonic: return [.I, .II, .III, .V, .VI]
-//            case .Heptatonic: return [.I, .II, .III, .V, .VI]
-//            case .Octatonic: return [.I, .II, .III, .V, .VI]
-//            case .Nonatonic: return [.I, .II, .III, .V, .VI]
-//            }
-//        }
-            
-        case .Chromatic: return [.I, .bII, .II, .bIII, .III, .IV, .TT, .V, .bVI, .VI, .bVII, .VII]
-            
-        // Eastern
-            
-        // Wholetone & Diminished
+        case .Major: return "builtin.scale.major"
+        case .Dorian: return "builtin.scale.dorian"
+        case .Phrygian: return "builtin.scale.phrygian"
+        case .Lydian: return "builtin.scale.lydian"
+        case .Mixolydian: return "builtin.scale.mixolydian"
+        case .Minor: return "builtin.scale.natural-minor"
+        case .Locrian: return "builtin.scale.locrian"
+        case .HarmonicMinor: return "builtin.scale.harmonic-minor"
+        case .Locrian13: return "builtin.scale.locrian-natural-6"
+        case .IonianSharp5: return "builtin.scale.ionian-sharp-5"
+        case .DorianSharp11: return "builtin.scale.dorian-sharp-4"
+        case .PhrygianDominant: return "builtin.scale.phrygian-dominant"
+        case .LydianSharp2: return "builtin.scale.lydian-sharp-2"
+        case .SuperLocrianbb7: return "builtin.scale.super-locrian-bb7"
+        case .MelodicMinor: return "builtin.scale.melodic-minor"
+        case .Dorianb2: return "builtin.scale.dorian-b2"
+        case .LydianAugmented: return "builtin.scale.lydian-augmented"
+        case .LydianDominant: return "builtin.scale.lydian-dominant"
+        case .Mixolydianb6: return "builtin.scale.mixolydian-b6"
+        case .Aeolianb5: return "builtin.scale.aeolian-b5"
+        case .AlteredScale: return "builtin.scale.altered"
+        case .MajorPentatonic: return "builtin.scale.major-pentatonic"
+        case .MinorPentatonic: return "builtin.scale.minor-pentatonic"
+        case .Blues: return "builtin.scale.blues"
+        case .Chromatic: return "builtin.scale.chromatic"
         }
+    }
+    
+    var intervals: [Interval] {
+        return Appendix.instance.scaleIntervals[self]!
     }
     
     func getNotes(_ key: Note, inversion: Inversion = .Root) -> [Note] {

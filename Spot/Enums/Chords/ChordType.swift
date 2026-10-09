@@ -8,7 +8,7 @@
 
 import Foundation
 
-// TODO: Figure out how to deal with optional notes
+// TODO: Replace with SpotCore.ChordDefinition (optional notes now live there)
 public enum ChordType: String, CaseIterable, CustomStringConvertible, Hashable, NoteCollection {
     
     // Major
@@ -72,66 +72,61 @@ public enum ChordType: String, CaseIterable, CustomStringConvertible, Hashable, 
         return self.rawValue
     }
     
-    var intervals: [Interval] {
+    /// The matching definition in SpotCore's built-in library, which now holds the formulas
+    var definitionId: String {
         switch self {
-            
-        // Major
-        case .Maj: return [.I, .III, .V]
-        case .Add4: return [.I, .III, .IV, .V]
-        case .Sixth: return [.I, .III, .V, .VI]
-        case .SixNine: return [.I, .III, .V, .VI, .IX]
-        case .Maj7: return [.I, .III, .V, .VII]
-        case .Maj9: return [.I, .III, .V, .VII, .IX]
-        case .Maj11: return [.I, .III, .V, .VII, .IX, .XI]
-        case .Maj13: return [.I, .III, .V, .VII, .IX, .XI, .XIII]
-        case .Maj7Sharp11: return [.I, .III, .V, .VII, .bXII]
-        case .Majb5: return [.I, .III, .TT]
-            
-        // Minor
-        case .Min: return [.I, .bIII, .V]
-        case .MinAdd4: return [.I, .bIII, .IV, .V]
-        case .Min6: return [.I, .bIII, .V, .VI]
-        case .Min7: return [.I, .bIII, .V, .bVII]
-        case .MinAdd9: return [.I, .bIII, .V, .IX]
-        case .Min6Add9: return [.I, .bIII, .V, .VI, .IX]
-        case .Min9: return [.I, .bIII, .V, .bVII, .IX]
-        case .Min11: return [.I, .bIII, .V, .bVII, .IX, .XI]
-        case .Min13: return [.I, .bIII, .V, .bVII, .IX, .XI, .XIII]
-        case .MinMaj7: return [.I, .bIII, .V, .VII]
-        case .MinMaj9: return [.I, .bIII, .V, .VII, .IX]
-        case .MinMaj11: return [.I, .bIII, .V, .VII, .IX, .XI]
-        case .MinMaj13: return [.I, .bIII, .V, .VII, .IX, .XI, .XIII]
-        case .Min7b5: return [.I, .bIII, .TT, .bVII]
-            
-        // Dominant
-        case .Dom7: return [.I, .III, .V, .bVII]
-        case .Dom9: return [.I, .III, .V, .bVII, .IX]
-        case .Dom11: return [.I, .III, .V, .bVII, .XI]
-        case .Dom13: return [.I, .III, .V, .bVII, .IX, .XI, .XIII]
-        case .Dom7Sharp5: return [.I, .III, .bVI, .bVII]
-        case .Dom7b5: return [.I, .III, .TT, .bVII]
-        case .Dom7Sharp9: return [.I, .III, .V, .bVII, .bX]
-        case .Dom7b9: return [.I, .III, .V, .bVII, .bIX]
-        case .Dom9Sharp5: return [.I, .III, .bVI, .bVII, .IX]
-        case .Dom9b5: return [.I, .III, .TT, .bVII, .IX]
-        case .Dom7Sharp5Sharp9: return [.I, .III, .bVI, .bVII, .bX]
-        case .Dom7Sharp5b9: return [.I, .III, .bVI, .bVII, .bIX]
-        case .Dom7b5Sharp9: return [.I, .III, .TT, .bVII, .bX]
-        case .Dom7b5b9: return [.I, .III, .TT, .bVII, .bIX]
-        case .Dom7Sharp11: return [.I, .III, .V, .bVII, .bXII]
-            
-        // Symmetrical
-        case .Aug: return [.I, .III, .bVI]
-        case .Dim: return [.I, .bIII, .TT]
-        case .Dim7: return [.I, .bIII, .TT, .VI] // .VI = bb7
-            
-        // Misc
-        case .Fifth: return [.I, .V]
-        case .FlatFifth: return [.I, .TT]
-        case .Sus4: return [.I, .IV, .V]
-        case .Sus2: return [.I, .II, .V]
-        case .Sharp11: return [.I, .V, .bXII]
+        case .Maj: return "builtin.chord.major"
+        case .Add4: return "builtin.chord.add4"
+        case .Sixth: return "builtin.chord.major-6"
+        case .SixNine: return "builtin.chord.six-nine"
+        case .Maj7: return "builtin.chord.major-7"
+        case .Maj9: return "builtin.chord.major-9"
+        case .Maj11: return "builtin.chord.major-11"
+        case .Maj13: return "builtin.chord.major-13"
+        case .Maj7Sharp11: return "builtin.chord.major-7-sharp-11"
+        case .Majb5: return "builtin.chord.major-flat-5"
+        case .Min: return "builtin.chord.minor"
+        case .MinAdd4: return "builtin.chord.minor-add4"
+        case .Min6: return "builtin.chord.minor-6"
+        case .Min7: return "builtin.chord.minor-7"
+        case .MinAdd9: return "builtin.chord.minor-add9"
+        case .Min6Add9: return "builtin.chord.minor-six-nine"
+        case .Min9: return "builtin.chord.minor-9"
+        case .Min11: return "builtin.chord.minor-11"
+        case .Min13: return "builtin.chord.minor-13"
+        case .MinMaj7: return "builtin.chord.minor-major-7"
+        case .MinMaj9: return "builtin.chord.minor-major-9"
+        case .MinMaj11: return "builtin.chord.minor-major-11"
+        case .MinMaj13: return "builtin.chord.minor-major-13"
+        case .Min7b5: return "builtin.chord.half-diminished-7"
+        case .Dom7: return "builtin.chord.dominant-7"
+        case .Dom9: return "builtin.chord.dominant-9"
+        case .Dom11: return "builtin.chord.dominant-11"
+        case .Dom13: return "builtin.chord.dominant-13"
+        case .Dom7Sharp5: return "builtin.chord.dominant-7-sharp-5"
+        case .Dom7b5: return "builtin.chord.dominant-7-flat-5"
+        case .Dom7Sharp9: return "builtin.chord.dominant-7-sharp-9"
+        case .Dom7b9: return "builtin.chord.dominant-7-flat-9"
+        case .Dom9Sharp5: return "builtin.chord.dominant-9-sharp-5"
+        case .Dom9b5: return "builtin.chord.dominant-9-flat-5"
+        case .Dom7Sharp5Sharp9: return "builtin.chord.dominant-7-sharp-5-sharp-9"
+        case .Dom7Sharp5b9: return "builtin.chord.dominant-7-sharp-5-flat-9"
+        case .Dom7b5Sharp9: return "builtin.chord.dominant-7-flat-5-sharp-9"
+        case .Dom7b5b9: return "builtin.chord.dominant-7-flat-5-flat-9"
+        case .Dom7Sharp11: return "builtin.chord.dominant-7-sharp-11"
+        case .Aug: return "builtin.chord.augmented"
+        case .Dim: return "builtin.chord.diminished"
+        case .Dim7: return "builtin.chord.diminished-7"
+        case .Fifth: return "builtin.chord.power"
+        case .FlatFifth: return "builtin.chord.flat-5-dyad"
+        case .Sus4: return "builtin.chord.sus4"
+        case .Sus2: return "builtin.chord.sus2"
+        case .Sharp11: return "builtin.chord.sharp-11-no-3"
         }
+    }
+    
+    var intervals: [Interval] {
+        return Appendix.instance.chordIntervals[self]!
     }
     
     func getNotes(_ key: Note, inversion: Inversion = .Root) -> [Note] {

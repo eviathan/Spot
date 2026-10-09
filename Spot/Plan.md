@@ -94,7 +94,7 @@ SpotCore/
 struct PitchClass { var value: Int }            // 0...11, C = 0 (switch from A = 0 to match MIDI)
 struct SpelledNote { var letter: Letter; var accidental: Int }  // F#, Gb, Cbb
 struct Degree { var number: Int; var accidental: Int }          // b3, #11, bb7 — semitones derived
-struct Formula { var degrees: [Degree]; var optional: Set<Degree> } // e.g. 5 optional in 9th chords
+struct Formula { var degrees: [Degree] }        // optional degrees (e.g. the 5 in 9th chords) live on ChordDefinition
 
 struct ScaleDefinition: Identifiable, Codable {
     var id: String              // stable, e.g. "builtin.scale.dorian" or UUID for user items
@@ -352,7 +352,7 @@ Suggestions, best first. I'd build **A + B** first and add **C** later.
 ## Suggested order of work
 
 1. ✅ **Hygiene and quick fixes:** gitignore `build/`, fix the formula bugs, the `% 7` crash and the per-marker recompute. Also fixed: favourites lost on search, and 9th/11th/13th chord tones not highlighting on the fretboard.
-2. **SpotCore + theory model + tests** (0.1, 0.2). Port built-ins to the JSON bundle. Keep the old enums as thin adapters until the views are moved over.
+2. ✅ **SpotCore + theory model + tests** (0.1, 0.2). Built-ins ported to `SpotCore/Sources/SpotCore/Resources/BuiltInLibrary.json`; `ScaleType`/`ChordType` now read their formulas from it via `Appendix` (thin adapters, removed in step 3). Chord symbol parser and key-aware spelling done. Run tests with `swift test --package-path SpotCore`. Note: the 11 chord now includes the 9th; optional degrees live on `ChordDefinition` rather than `Formula`.
 3. **State and persistence refactor** (0.4) + **instrument abstraction and `Marker` model** (0.3). Fretboard redraws from the precomputed markers. Keep the `InstrumentLayout` abstraction, but build the keyboard view later (see step 10).
 4. **Library v2:** shapes model, generators (3NPS/CAGED/voicings), detail panel, editors, import/export (Tab 1).
 5. **Audio engine core:** transport clock, MIDI out for audition, internal metronome (3.4 minus recording). Chord Practice needs audition.

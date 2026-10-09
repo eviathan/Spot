@@ -6,13 +6,29 @@
             "type": "shell",
             "command": "xcodebuild",
             "args": [
-                "-project", "Spot.xcodeproj",
-                "-scheme", "Spot",
-                "-configuration", "Debug",
-                "-derivedDataPath", "build",
+                "-project",
+                "Spot.xcodeproj",
+                "-scheme",
+                "Spot",
+                "-configuration",
+                "Debug",
+                "-derivedDataPath",
+                "build",
                 "build"
             ],
             "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Test SpotCore",
+            "type": "shell",
+            "command": "swift",
+            "args": [
+                "test",
+                "--package-path",
+                "SpotCore"
+            ],
+            "group": "test",
             "problemMatcher": []
         }
     ]
