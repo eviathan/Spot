@@ -1,0 +1,18 @@
+"/Users/brian/Dev/Audio/Spot/build/SourcePackages/checkouts/SQLite.swift/Sources/SQLite/Core/Value.swift":
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Value.o"
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Value.dia"
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Value.d"
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Value.swiftconstvalues"
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Value.swiftdeps"
+"/Users/brian/Dev/Audio/Spot/build/SourcePackages/checkouts/SQLite.swift/Sources/SQLite/Extensions/Cipher.swift":
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Cipher.dia"
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Cipher.swiftdeps"
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Cipher.d"
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Cipher.o"
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Cipher.swiftconstvalues"
+"/Users/brian/Dev/Audio/Spot/build/SourcePackages/checkouts/SQLite.swift/Sources/SQLite/Extensions/FTS4.swift":
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/FTS4.o"
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/FTS4.dia"
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/FTS4.d"
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/FTS4.swiftdeps"
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/FTS4.swiftconstvalues"

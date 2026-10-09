@@ -1,0 +1,18 @@
+"/Users/brian/Dev/Audio/Spot/build/SourcePackages/checkouts/SQLite.swift/Sources/SQLite/Core/Backup.swift":
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Backup.dia"
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Backup.swiftconstvalues"
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Backup.swiftdeps"
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Backup.o"
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Backup.d"
+"/Users/brian/Dev/Audio/Spot/build/SourcePackages/checkouts/SQLite.swift/Sources/SQLite/Core/Blob.swift":
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Blob.o"
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Blob.swiftdeps"
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Blob.dia"
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Blob.d"
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Blob.swiftconstvalues"
+"/Users/brian/Dev/Audio/Spot/build/SourcePackages/checkouts/SQLite.swift/Sources/SQLite/Core/Connection+Aggregation.swift":
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Connection+Aggregation.dia"
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Connection+Aggregation.d"
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Connection+Aggregation.o"
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Connection+Aggregation.swiftconstvalues"
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Connection+Aggregation.swiftdeps"

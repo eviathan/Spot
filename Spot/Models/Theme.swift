@@ -24,7 +24,7 @@ class Theme {
     
     let intervalColors: [Color] = [
         Color(hue: 0, saturation: 0.64, brightness: 0.00, opacity: 1.00),
-        Color(hue: 0.98, saturation: 0.62, brightness: 0.70, opacity: 1.00),
+        Color(hue: 0.08, saturation: 0.62, brightness: 0.98, opacity: 1.00),
         Color(hue: 0.98, saturation: 0.62, brightness: 0.89, opacity: 1.00),
         Color(hue: 0.04, saturation: 0.48, brightness: 0.95, opacity: 1.00),
         Color(hue: 0.10, saturation: 0.48, brightness: 0.95, opacity: 1.00),

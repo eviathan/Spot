@@ -1,0 +1,18 @@
+"/Users/brian/Dev/Audio/Spot/build/SourcePackages/checkouts/SQLite.swift/Sources/SQLite/Schema/SchemaDefinitions.swift":
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/SchemaDefinitions.d"
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/SchemaDefinitions.dia"
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/SchemaDefinitions.o"
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/SchemaDefinitions.swiftconstvalues"
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/SchemaDefinitions.swiftdeps"
+"/Users/brian/Dev/Audio/Spot/build/SourcePackages/checkouts/SQLite.swift/Sources/SQLite/Typed/AggregateFunctions.swift":
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/AggregateFunctions.d"
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/AggregateFunctions.swiftconstvalues"
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/AggregateFunctions.swiftdeps"
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/AggregateFunctions.dia"
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/AggregateFunctions.o"
+"/Users/brian/Dev/Audio/Spot/build/SourcePackages/checkouts/SQLite.swift/Sources/SQLite/Schema/SchemaReader.swift":
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/SchemaReader.swiftconstvalues"
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/SchemaReader.swiftdeps"
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/SchemaReader.dia"
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/SchemaReader.o"
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/SchemaReader.d"

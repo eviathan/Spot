@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>logFormatVersion</key>
+	<integer>10</integer>
+	<key>logs</key>
+	<dict>
+		<key>1C94663A-D729-4CE3-AD7D-A0CC04D3145B</key>
+		<dict>
+			<key>className</key>
+			<string>IDECommandLineBuildLog</string>
+			<key>documentTypeString</key>
+			<string>&lt;nil&gt;</string>
+			<key>domainType</key>
+			<string>Xcode.IDEActivityLogDomainType.BuildLog</string>
+			<key>fileName</key>
+			<string>1C94663A-D729-4CE3-AD7D-A0CC04D3145B.xcactivitylog</string>
+			<key>hasPrimaryLog</key>
+			<true/>
+			<key>primaryObservable</key>
+			<dict>
+				<key>highLevelStatus</key>
+				<string>S</string>
+				<key>totalNumberOfAnalyzerIssues</key>
+				<integer>0</integer>
+				<key>totalNumberOfErrors</key>
+				<integer>0</integer>
+				<key>totalNumberOfTestFailures</key>
+				<integer>0</integer>
+				<key>totalNumberOfWarnings</key>
+				<integer>0</integer>
+			</dict>
+			<key>schemeIdentifier-containerName</key>
+			<string>Spot project</string>
+			<key>schemeIdentifier-schemeName</key>
+			<string>Spot</string>
+			<key>schemeIdentifier-sharedScheme</key>
+			<integer>1</integer>
+			<key>signature</key>
+			<string>Building project Spot with scheme Spot and configuration Debug</string>
+			<key>timeStartedRecording</key>
+			<real>813262207.83380198</real>
+			<key>timeStoppedRecording</key>
+			<real>813262209.73959696</real>
+			<key>title</key>
+			<string>Building project Spot with scheme Spot and configuration Debug</string>
+			<key>uniqueIdentifier</key>
+			<string>1C94663A-D729-4CE3-AD7D-A0CC04D3145B</string>
+		</dict>
+		<key>AB5FC0FA-05E1-48DB-972A-109C00A08C9B</key>
+		<dict>
+			<key>className</key>
+			<string>IDECommandLineBuildLog</string>
+			<key>documentTypeString</key>
+			<string>&lt;nil&gt;</string>
+			<key>domainType</key>
+			<string>Xcode.IDEActivityLogDomainType.BuildLog</string>
+			<key>fileName</key>
+			<string>AB5FC0FA-05E1-48DB-972A-109C00A08C9B.xcactivitylog</string>
+			<key>hasPrimaryLog</key>
+			<true/>
+			<key>primaryObservable</key>
+			<dict>
+				<key>highLevelStatus</key>
+				<string>S</string>
+				<key>totalNumberOfAnalyzerIssues</key>
+				<integer>0</integer>
+				<key>totalNumberOfErrors</key>
+				<integer>0</integer>
+				<key>totalNumberOfTestFailures</key>
+				<integer>0</integer>
+				<key>totalNumberOfWarnings</key>
+				<integer>0</integer>
+			</dict>
+			<key>schemeIdentifier-containerName</key>
+			<string>Spot project</string>
+			<key>schemeIdentifier-schemeName</key>
+			<string>Spot</string>
+			<key>schemeIdentifier-sharedScheme</key>
+			<integer>1</integer>
+			<key>signature</key>
+			<string>Building project Spot with scheme Spot and configuration Debug</string>
+			<key>timeStartedRecording</key>
+			<real>813261765.92919505</real>
+			<key>timeStoppedRecording</key>
+			<real>813261766.92030501</real>
+			<key>title</key>
+			<string>Building project Spot with scheme Spot and configuration Debug</string>
+			<key>uniqueIdentifier</key>
+			<string>AB5FC0FA-05E1-48DB-972A-109C00A08C9B</string>
+		</dict>
+	</dict>
+</dict>
+</plist>

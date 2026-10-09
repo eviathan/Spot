@@ -1,0 +1,30 @@
+"/Users/brian/Dev/Audio/Spot/Spot/Views/FretboardView.swift":
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretboardView.o"
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretboardView.swiftdeps"
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretboardView.dia"
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretboardView.swiftconstvalues"
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretboardView.d"
+"/Users/brian/Dev/Audio/Spot/Spot/Models/FretNote.swift":
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretNote.swiftconstvalues"
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretNote.swiftdeps"
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretNote.dia"
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretNote.d"
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretNote.o"
+"/Users/brian/Dev/Audio/Spot/Spot/Enums/Chords/Inversion.swift":
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Inversion.dia"
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Inversion.swiftdeps"
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Inversion.d"
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Inversion.o"
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Inversion.swiftconstvalues"
+"/Users/brian/Dev/Audio/Spot/Spot/Search/Classes/Fuse+/Fuse+String.swift":
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+String.swiftconstvalues"
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+String.d"
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+String.swiftdeps"
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+String.dia"
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+String.o"
+"/Users/brian/Dev/Audio/Spot/Spot/Enums/Scales/Mode.swift":
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Mode.swiftdeps"
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Mode.dia"
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Mode.o"
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Mode.d"
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Mode.swiftconstvalues"

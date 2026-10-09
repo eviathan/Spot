@@ -1,0 +1,30 @@
+"/Users/brian/Dev/Audio/Spot/Spot/Search/Exts/String+Fuse.swift":
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/String+Fuse.swiftdeps"
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/String+Fuse.d"
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/String+Fuse.dia"
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/String+Fuse.o"
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/String+Fuse.swiftconstvalues"
+"/Users/brian/Dev/Audio/Spot/Spot/Enums/Chords/ChordStyle.swift":
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ChordStyle.d"
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ChordStyle.swiftconstvalues"
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ChordStyle.swiftdeps"
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ChordStyle.o"
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ChordStyle.dia"
+"/Users/brian/Dev/Audio/Spot/Spot/Views/Components/Library/IntervalMatrixView.swift":
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/IntervalMatrixView.swiftconstvalues"
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/IntervalMatrixView.swiftdeps"
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/IntervalMatrixView.dia"
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/IntervalMatrixView.o"
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/IntervalMatrixView.d"
+"/Users/brian/Dev/Audio/Spot/Spot/Enums/Note.swift":
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Note.o"
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Note.dia"
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Note.swiftdeps"
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Note.d"
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Note.swiftconstvalues"
+"/Users/brian/Dev/Audio/Spot/Spot/Search/Classes/FuseUtilities.swift":
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuseUtilities.swiftdeps"
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuseUtilities.d"
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuseUtilities.o"
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuseUtilities.swiftconstvalues"
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuseUtilities.dia"

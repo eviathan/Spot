@@ -187,6 +187,10 @@ struct FretboardView: View {
                 let hideUnrelatedNotes = viewModel.appState.hideUnrelatedNotes
                 let isolateInversion = viewModel.appState.isolateInversion
                 
+                let markerSizeModifier = mouseOverMarkerIndex == noteIndex * 100 + fretIndex ? 1.1 : 1.0
+                let noteLabel = fret.getLabel(viewModel.appState.displayIntervals ? nil : .note)
+//                let isRoot = noteLabel == "R"
+                
                 let markerColor = !isHighlighted
                     ? isOpenString
                         ? viewModel.openMarkerColor
@@ -196,8 +200,8 @@ struct FretboardView: View {
                         : isOpenString
                             ? viewModel.openMarkerColor
                             : viewModel.defaultMarkerColor
-                
-                let markerSizeModifier = mouseOverMarkerIndex == noteIndex * 100 + fretIndex ? 1.1 : 1.0
+
+                let noteFillColor = noteInCollection ? Color.black : markerColor
                 
                 // isolatedMode && !inScale/chord && notIn
                 let showMarker = isolateInversion
@@ -208,10 +212,10 @@ struct FretboardView: View {
                 Circle()
                     .stroke(lineWidth: 5)
                     .fill(markerColor)
-                    .background(Circle().fill(noteInCollection ? .black : markerColor))
+                    .background(Circle().fill(noteFillColor))
                     .frame(width: minSpacing * markerSize * markerSizeModifier, height: minSpacing * markerSize * markerSizeModifier)
                     .overlay(
-                        Text(fret.getLabel(viewModel.appState.displayIntervals ? nil : .note))
+                        Text(noteLabel)
                             .font(.caption)
                             .foregroundColor(
                                 noteInCollection || isOpenString

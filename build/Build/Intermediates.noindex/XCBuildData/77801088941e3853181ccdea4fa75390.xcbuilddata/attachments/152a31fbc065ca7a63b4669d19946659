@@ -1,0 +1,738 @@
+{
+  "" : {
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Spot-master.dia",
+    "emit-module-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Spot-master-emit-module.d",
+    "emit-module-diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Spot-master-emit-module.dia",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Spot-master.swiftdeps"
+  },
+  "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/GeneratedAssetSymbols.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/GeneratedAssetSymbols.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/GeneratedAssetSymbols.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/GeneratedAssetSymbols.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/GeneratedAssetSymbols~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Appendix.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Appendix.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Appendix.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Appendix.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/Appendix.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Appendix.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Appendix.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Appendix.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Appendix~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Constants.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Constants.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Constants.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Constants.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/Constants.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Constants.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Constants.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Constants.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Constants~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/DataAccess/DatabaseManager.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/DatabaseManager.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/DatabaseManager.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/DatabaseManager.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/DatabaseManager.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/DatabaseManager.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/DatabaseManager.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/DatabaseManager.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/DatabaseManager~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Enums/Chords/Add.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Add.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Add.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Add.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/Add.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Add.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Add.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Add.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Add~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Enums/Chords/Alter.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Alter.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Alter.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Alter.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/Alter.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Alter.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Alter.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Alter.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Alter~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Enums/Chords/ChordStyle.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ChordStyle.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ChordStyle.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ChordStyle.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/ChordStyle.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ChordStyle.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ChordStyle.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ChordStyle.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ChordStyle~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Enums/Chords/ChordType.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ChordType.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ChordType.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ChordType.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/ChordType.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ChordType.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ChordType.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ChordType.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ChordType~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Enums/Chords/Inversion.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Inversion.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Inversion.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Inversion.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/Inversion.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Inversion.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Inversion.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Inversion.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Inversion~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Enums/Chords/Secondary.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Secondary.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Secondary.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Secondary.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/Secondary.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Secondary.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Secondary.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Secondary.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Secondary~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Enums/Chords/Suspension.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Suspension.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Suspension.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Suspension.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/Suspension.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Suspension.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Suspension.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Suspension.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Suspension~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Enums/FretLabelType.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretLabelType.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretLabelType.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretLabelType.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretLabelType.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretLabelType.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretLabelType.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretLabelType.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretLabelType~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Enums/InstrumentType.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/InstrumentType.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/InstrumentType.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/InstrumentType.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/InstrumentType.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/InstrumentType.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/InstrumentType.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/InstrumentType.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/InstrumentType~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Enums/Interval.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Interval.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Interval.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Interval.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/Interval.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Interval.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Interval.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Interval.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Interval~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Enums/Note.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Note.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Note.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Note.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/Note.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Note.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Note.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Note.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Note~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Enums/NoteCollectionMode.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/NoteCollectionMode.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/NoteCollectionMode.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/NoteCollectionMode.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/NoteCollectionMode.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/NoteCollectionMode.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/NoteCollectionMode.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/NoteCollectionMode.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/NoteCollectionMode~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Enums/Scales/Mode.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Mode.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Mode.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Mode.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/Mode.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Mode.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Mode.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Mode.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Mode~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Enums/Scales/Modes/MajorModes.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/MajorModes.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/MajorModes.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/MajorModes.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/MajorModes.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/MajorModes.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/MajorModes.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/MajorModes.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/MajorModes~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Enums/Scales/ScaleStyle.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ScaleStyle.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ScaleStyle.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ScaleStyle.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/ScaleStyle.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ScaleStyle.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ScaleStyle.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ScaleStyle.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ScaleStyle~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Enums/Scales/ScaleType.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ScaleType.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ScaleType.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ScaleType.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/ScaleType.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ScaleType.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ScaleType.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ScaleType.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ScaleType~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Enums/TabViewType.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/TabViewType.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/TabViewType.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/TabViewType.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/TabViewType.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/TabViewType.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/TabViewType.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/TabViewType.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/TabViewType~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Extensions/CollectionExtensions.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/CollectionExtensions.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/CollectionExtensions.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/CollectionExtensions.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/CollectionExtensions.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/CollectionExtensions.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/CollectionExtensions.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/CollectionExtensions.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/CollectionExtensions~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Models/AppState.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/AppState.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/AppState.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/AppState.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/AppState.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/AppState.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/AppState.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/AppState.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/AppState~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Models/Chord.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Chord.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Chord.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Chord.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/Chord.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Chord.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Chord.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Chord.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Chord~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Models/FretNote.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretNote.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretNote.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretNote.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretNote.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretNote.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretNote.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretNote.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretNote~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Models/FrettingPattern/ThreeNotePerStringFrettingPattern.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ThreeNotePerStringFrettingPattern.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ThreeNotePerStringFrettingPattern.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ThreeNotePerStringFrettingPattern.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/ThreeNotePerStringFrettingPattern.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ThreeNotePerStringFrettingPattern.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ThreeNotePerStringFrettingPattern.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ThreeNotePerStringFrettingPattern.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ThreeNotePerStringFrettingPattern~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Models/Library.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Library.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Library.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Library.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/Library.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Library.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Library.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Library.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Library~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Models/LibraryItem.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryItem.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryItem.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryItem.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryItem.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryItem.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryItem.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryItem.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryItem~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Models/Scale.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Scale.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Scale.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Scale.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/Scale.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Scale.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Scale.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Scale.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Scale~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Models/Theme.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Theme.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Theme.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Theme.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/Theme.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Theme.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Theme.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Theme.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Theme~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Models/ViewModels/FretboardViewModel.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretboardViewModel.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretboardViewModel.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretboardViewModel.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretboardViewModel.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretboardViewModel.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretboardViewModel.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretboardViewModel.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretboardViewModel~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Protocols/FrettingPattern.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FrettingPattern.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FrettingPattern.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FrettingPattern.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/FrettingPattern.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FrettingPattern.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FrettingPattern.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FrettingPattern.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FrettingPattern~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Protocols/NoteCollection.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/NoteCollection.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/NoteCollection.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/NoteCollection.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/NoteCollection.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/NoteCollection.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/NoteCollection.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/NoteCollection.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/NoteCollection~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Search/Classes/Fuse.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Search/Classes/Fuse+/Fuse+ArrObjects.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+ArrObjects.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+ArrObjects.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+ArrObjects.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+ArrObjects.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+ArrObjects.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+ArrObjects.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+ArrObjects.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+ArrObjects~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Search/Classes/Fuse+/Fuse+ArrStrings.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+ArrStrings.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+ArrStrings.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+ArrStrings.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+ArrStrings.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+ArrStrings.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+ArrStrings.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+ArrStrings.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+ArrStrings~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Search/Classes/Fuse+/Fuse+String.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+String.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+String.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+String.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+String.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+String.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+String.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+String.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+String~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Search/Classes/FuseProp.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuseProp.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuseProp.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuseProp.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuseProp.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuseProp.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuseProp.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuseProp.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuseProp~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Search/Classes/FuseUtilities.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuseUtilities.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuseUtilities.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuseUtilities.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuseUtilities.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuseUtilities.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuseUtilities.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuseUtilities.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuseUtilities~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Search/Classes/Searchable.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Searchable.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Searchable.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Searchable.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/Searchable.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Searchable.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Searchable.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Searchable.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Searchable~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Search/Exts/Array+.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Array+.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Array+.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Array+.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/Array+.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Array+.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Array+.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Array+.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Array+~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Search/Exts/String+Fuse.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/String+Fuse.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/String+Fuse.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/String+Fuse.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/String+Fuse.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/String+Fuse.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/String+Fuse.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/String+Fuse.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/String+Fuse~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Search/Levenstain/FuzzyFind/Alignment.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Alignment.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Alignment.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Alignment.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/Alignment.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Alignment.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Alignment.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Alignment.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Alignment~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Search/Levenstain/FuzzyFind/Fuzzy.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuzzy.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuzzy.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuzzy.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuzzy.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuzzy.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuzzy.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuzzy.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuzzy~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Search/Levenstain/FuzzyFind/FuzzyResult.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuzzyResult.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuzzyResult.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuzzyResult.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuzzyResult.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuzzyResult.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuzzyResult.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuzzyResult.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuzzyResult~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Search/Levenstain/FuzzyFind/FuzzyResultSegment.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuzzyResultSegment.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuzzyResultSegment.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuzzyResultSegment.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuzzyResultSegment.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuzzyResultSegment.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuzzyResultSegment.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuzzyResultSegment.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuzzyResultSegment~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Search/Levenstain/FuzzyFind/Score.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Score.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Score.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Score.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/Score.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Score.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Score.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Score.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Score~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Search/Levenstain/Levenstain.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Levenstain.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Levenstain.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Levenstain.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/Levenstain.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Levenstain.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Levenstain.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Levenstain.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Levenstain~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Search/Levenstain/String+.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/String+.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/String+.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/String+.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/String+.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/String+.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/String+.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/String+.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/String+~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Services/ChordService.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ChordService.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ChordService.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ChordService.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/ChordService.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ChordService.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ChordService.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ChordService.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ChordService~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Services/NoteService.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/NoteService.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/NoteService.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/NoteService.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/NoteService.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/NoteService.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/NoteService.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/NoteService.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/NoteService~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/SpotApp.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/SpotApp.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/SpotApp.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/SpotApp.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/SpotApp.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/SpotApp.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/SpotApp.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/SpotApp.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/SpotApp~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/SpotDocument.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/SpotDocument.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/SpotDocument.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/SpotDocument.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/SpotDocument.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/SpotDocument.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/SpotDocument.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/SpotDocument.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/SpotDocument~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Views/Components/Library/IntervalBannerView.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/IntervalBannerView.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/IntervalBannerView.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/IntervalBannerView.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/IntervalBannerView.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/IntervalBannerView.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/IntervalBannerView.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/IntervalBannerView.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/IntervalBannerView~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Views/Components/Library/IntervalMatrixView.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/IntervalMatrixView.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/IntervalMatrixView.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/IntervalMatrixView.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/IntervalMatrixView.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/IntervalMatrixView.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/IntervalMatrixView.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/IntervalMatrixView.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/IntervalMatrixView~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Views/Components/Library/LibraryDetailView.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryDetailView.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryDetailView.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryDetailView.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryDetailView.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryDetailView.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryDetailView.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryDetailView.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryDetailView~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Views/Components/Library/LibraryList.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryList.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryList.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryList.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryList.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryList.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryList.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryList.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryList~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Views/Components/Library/LibraryMenu.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryMenu.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryMenu.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryMenu.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryMenu.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryMenu.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryMenu.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryMenu.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryMenu~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Views/Components/Shared/Dropdown.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Dropdown.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Dropdown.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Dropdown.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/Dropdown.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Dropdown.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Dropdown.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Dropdown.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Dropdown~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Views/Components/Shared/RangePicker.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/RangePicker.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/RangePicker.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/RangePicker.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/RangePicker.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/RangePicker.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/RangePicker.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/RangePicker.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/RangePicker~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Views/Components/Shared/TreeMenuView.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/TreeMenuView.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/TreeMenuView.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/TreeMenuView.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/TreeMenuView.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/TreeMenuView.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/TreeMenuView.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/TreeMenuView.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/TreeMenuView~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Views/FretboardView.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretboardView.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretboardView.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretboardView.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretboardView.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretboardView.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretboardView.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretboardView.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FretboardView~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Views/InstrumentView.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/InstrumentView.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/InstrumentView.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/InstrumentView.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/InstrumentView.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/InstrumentView.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/InstrumentView.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/InstrumentView.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/InstrumentView~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Views/Layout/Footer.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Footer.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Footer.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Footer.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/Footer.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Footer.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Footer.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Footer.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Footer~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Views/Layout/Header.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Header.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Header.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Header.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/Header.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Header.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Header.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Header.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Header~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Views/Layout/LayoutView.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LayoutView.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LayoutView.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LayoutView.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/LayoutView.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LayoutView.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LayoutView.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LayoutView.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LayoutView~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Views/Layout/TabView.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/TabView.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/TabView.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/TabView.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/TabView.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/TabView.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/TabView.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/TabView.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/TabView~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Views/LegacyTableView.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LegacyTableView.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LegacyTableView.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LegacyTableView.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/LegacyTableView.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LegacyTableView.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LegacyTableView.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LegacyTableView.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LegacyTableView~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Views/ModeSwitcher.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ModeSwitcher.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ModeSwitcher.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ModeSwitcher.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/ModeSwitcher.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ModeSwitcher.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ModeSwitcher.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ModeSwitcher.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ModeSwitcher~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Views/TabViews/EditorTabView.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/EditorTabView.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/EditorTabView.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/EditorTabView.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/EditorTabView.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/EditorTabView.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/EditorTabView.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/EditorTabView.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/EditorTabView~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Views/TabViews/LibraryTabView.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryTabView.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryTabView.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryTabView.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryTabView.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryTabView.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryTabView.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryTabView.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/LibraryTabView~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Views/TabViews/SequenceTabView.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/SequenceTabView.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/SequenceTabView.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/SequenceTabView.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/SequenceTabView.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/SequenceTabView.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/SequenceTabView.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/SequenceTabView.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/SequenceTabView~partial.swiftmodule"
+  },
+  "/Users/brian/Dev/Audio/Spot/Spot/Views/Transport.swift" : {
+    "const-values" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Transport.swiftconstvalues",
+    "dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Transport.d",
+    "diagnostics" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Transport.dia",
+    "index-unit-output-path" : "/Spot.build/Debug/Spot.build/Objects-normal/arm64/Transport.o",
+    "llvm-bc" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Transport.bc",
+    "object" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Transport.o",
+    "swift-dependencies" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Transport.swiftdeps",
+    "swiftmodule" : "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Transport~partial.swiftmodule"
+  }
+}

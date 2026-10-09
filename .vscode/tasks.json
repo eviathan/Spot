@@ -1,0 +1,19 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build Spot",
+            "type": "shell",
+            "command": "xcodebuild",
+            "args": [
+                "-project", "Spot.xcodeproj",
+                "-scheme", "Spot",
+                "-configuration", "Debug",
+                "-derivedDataPath", "build",
+                "build"
+            ],
+            "group": "build",
+            "problemMatcher": []
+        }
+    ]
+}

@@ -1,0 +1,56 @@
+{
+  "source": "/Users/brian/Dev/Audio/Spot/Spot/SpotApp.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Inversions"
+      },
+      {
+        "comment": "",
+        "key": "Root Inversion"
+      },
+      {
+        "comment": "",
+        "key": "1st Inversion"
+      },
+      {
+        "comment": "",
+        "key": "2nd Inversion"
+      },
+      {
+        "comment": "",
+        "key": "3rd Inversion"
+      },
+      {
+        "comment": "",
+        "key": "4th Inversion"
+      },
+      {
+        "comment": "",
+        "key": "5th Inversion"
+      },
+      {
+        "comment": "",
+        "key": "6th Inversion"
+      },
+      {
+        "comment": "",
+        "key": "Toggle Unrelated Notes"
+      },
+      {
+        "comment": "",
+        "key": "Toggle Inversion Isolation"
+      },
+      {
+        "comment": "",
+        "key": "Toggle Highlighted Mode"
+      },
+      {
+        "comment": "",
+        "key": "Toggle Label Mode"
+      }
+    ]
+  },
+  "version": 1
+}

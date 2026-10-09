@@ -1,0 +1,30 @@
+"/Users/brian/Dev/Audio/Spot/Spot/Views/Transport.swift":
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Transport.d"
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Transport.swiftconstvalues"
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Transport.swiftdeps"
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Transport.dia"
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Transport.o"
+"/Users/brian/Dev/Audio/Spot/Spot/Enums/Scales/ScaleType.swift":
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ScaleType.swiftconstvalues"
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ScaleType.dia"
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ScaleType.d"
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ScaleType.o"
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ScaleType.swiftdeps"
+"/Users/brian/Dev/Audio/Spot/Spot/Search/Classes/Fuse+/Fuse+ArrObjects.swift":
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+ArrObjects.swiftconstvalues"
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+ArrObjects.o"
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+ArrObjects.d"
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+ArrObjects.dia"
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Fuse+ArrObjects.swiftdeps"
+"/Users/brian/Dev/Audio/Spot/Spot/Extensions/CollectionExtensions.swift":
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/CollectionExtensions.swiftconstvalues"
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/CollectionExtensions.swiftdeps"
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/CollectionExtensions.dia"
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/CollectionExtensions.o"
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/CollectionExtensions.d"
+"/Users/brian/Dev/Audio/Spot/Spot/Search/Classes/FuseProp.swift":
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuseProp.o"
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuseProp.dia"
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuseProp.swiftdeps"
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuseProp.d"
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/FuseProp.swiftconstvalues"

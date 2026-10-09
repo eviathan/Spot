@@ -1,0 +1,18 @@
+"/Users/brian/Dev/Audio/Spot/build/SourcePackages/checkouts/SQLite.swift/Sources/SQLite/Core/Statement.swift":
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Statement.o"
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Statement.d"
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Statement.swiftconstvalues"
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Statement.dia"
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Statement.swiftdeps"
+"/Users/brian/Dev/Audio/Spot/build/SourcePackages/checkouts/SQLite.swift/Sources/SQLite/Core/URIQueryParameter.swift":
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/URIQueryParameter.swiftdeps"
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/URIQueryParameter.o"
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/URIQueryParameter.swiftconstvalues"
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/URIQueryParameter.d"
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/URIQueryParameter.dia"
+"/Users/brian/Dev/Audio/Spot/build/SourcePackages/checkouts/SQLite.swift/Sources/SQLite/Core/SQLiteVersion.swift":
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/SQLiteVersion.o"
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/SQLiteVersion.swiftconstvalues"
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/SQLiteVersion.d"
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/SQLiteVersion.swiftdeps"
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/SQLiteVersion.dia"

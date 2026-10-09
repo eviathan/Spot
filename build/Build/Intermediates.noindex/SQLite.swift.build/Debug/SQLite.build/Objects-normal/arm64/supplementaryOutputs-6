@@ -1,0 +1,18 @@
+"/Users/brian/Dev/Audio/Spot/build/SourcePackages/checkouts/SQLite.swift/Sources/SQLite/Extensions/RTree.swift":
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/RTree.swiftdeps"
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/RTree.swiftconstvalues"
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/RTree.dia"
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/RTree.o"
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/RTree.d"
+"/Users/brian/Dev/Audio/Spot/build/SourcePackages/checkouts/SQLite.swift/Sources/SQLite/Foundation.swift":
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Foundation.dia"
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Foundation.swiftconstvalues"
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Foundation.d"
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Foundation.swiftdeps"
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/Foundation.o"
+"/Users/brian/Dev/Audio/Spot/build/SourcePackages/checkouts/SQLite.swift/Sources/SQLite/Extensions/FTS5.swift":
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/FTS5.swiftdeps"
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/FTS5.dia"
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/FTS5.o"
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/FTS5.swiftconstvalues"
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/SQLite.swift.build/Debug/SQLite.build/Objects-normal/arm64/FTS5.d"

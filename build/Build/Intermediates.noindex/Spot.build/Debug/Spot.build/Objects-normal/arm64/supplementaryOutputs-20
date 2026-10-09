@@ -1,0 +1,30 @@
+"/Users/brian/Dev/Audio/Spot/Spot/Enums/InstrumentType.swift":
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/InstrumentType.swiftdeps"
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/InstrumentType.swiftconstvalues"
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/InstrumentType.dia"
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/InstrumentType.d"
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/InstrumentType.o"
+"/Users/brian/Dev/Audio/Spot/Spot/Constants.swift":
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Constants.swiftdeps"
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Constants.dia"
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Constants.o"
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Constants.swiftconstvalues"
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Constants.d"
+"/Users/brian/Dev/Audio/Spot/Spot/Views/ModeSwitcher.swift":
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ModeSwitcher.swiftdeps"
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ModeSwitcher.d"
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ModeSwitcher.dia"
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ModeSwitcher.swiftconstvalues"
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/ModeSwitcher.o"
+"/Users/brian/Dev/Audio/Spot/Spot/Search/Levenstain/FuzzyFind/Score.swift":
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Score.dia"
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Score.d"
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Score.swiftconstvalues"
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Score.o"
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/Score.swiftdeps"
+"/Users/brian/Dev/Audio/Spot/Spot/Views/TabViews/EditorTabView.swift":
+  const-values: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/EditorTabView.swiftconstvalues"
+  swift-dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/EditorTabView.swiftdeps"
+  diagnostics: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/EditorTabView.dia"
+  dependencies: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/EditorTabView.d"
+  object: "/Users/brian/Dev/Audio/Spot/build/Build/Intermediates.noindex/Spot.build/Debug/Spot.build/Objects-normal/arm64/EditorTabView.o"
