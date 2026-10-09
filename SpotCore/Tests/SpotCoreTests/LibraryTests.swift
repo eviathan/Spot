@@ -13,6 +13,7 @@ final class BuiltInLibraryTests: XCTestCase {
     }
 
     /// Pitch sets written as semitones, independently of the degree spellings in the JSON.
+    /// Entries marked "tonal" were taken from tonal's dictionaries (see Scripts/check_library.py).
     func testScalePitchSets() {
         let reference: [String: [Int]] = [
             "major": [0, 2, 4, 5, 7, 9, 11],
@@ -40,6 +41,39 @@ final class BuiltInLibraryTests: XCTestCase {
             "minor-pentatonic": [0, 3, 5, 7, 10],
             "blues": [0, 3, 5, 6, 7, 10],
             "chromatic": Array(0..<12),
+            "harmonic-major": [0, 2, 4, 5, 7, 8, 11],  // tonal
+            "dorian-b5": [0, 2, 3, 5, 6, 9, 10],  // spot (checked by mode rotation)
+            "phrygian-b4": [0, 1, 3, 4, 7, 8, 10],  // spot (checked by mode rotation)
+            "lydian-b3": [0, 2, 3, 6, 7, 9, 11],  // tonal
+            "mixolydian-b2": [0, 1, 4, 5, 7, 9, 10],  // spot (checked by mode rotation)
+            "lydian-augmented-sharp-2": [0, 3, 4, 6, 8, 9, 11],  // spot (checked by mode rotation)
+            "locrian-bb7": [0, 1, 3, 5, 6, 8, 9],  // spot (checked by mode rotation)
+            "egyptian": [0, 2, 5, 7, 10],  // tonal
+            "man-gong": [0, 3, 5, 8, 10],  // tonal
+            "ritusen": [0, 2, 5, 7, 9],  // tonal
+            "in-sen": [0, 1, 5, 7, 10],  // tonal
+            "hirajoshi": [0, 2, 3, 7, 8],  // tonal
+            "iwato": [0, 1, 5, 6, 10],  // tonal
+            "kumoi": [0, 2, 3, 7, 9],  // tonal
+            "major-blues": [0, 2, 3, 4, 7, 9],  // tonal
+            "bebop-dominant": [0, 2, 4, 5, 7, 9, 10, 11],  // tonal
+            "bebop-major": [0, 2, 4, 5, 7, 8, 9, 11],  // tonal
+            "bebop-dorian": [0, 2, 3, 4, 5, 7, 9, 10],  // tonal
+            "bebop-melodic-minor": [0, 2, 3, 5, 7, 8, 9, 11],  // tonal
+            "bebop-natural-minor": [0, 2, 3, 5, 7, 8, 10, 11],  // tonal
+            "whole-tone": [0, 2, 4, 6, 8, 10],  // tonal
+            "half-whole-diminished": [0, 1, 3, 4, 6, 7, 9, 10],  // tonal
+            "whole-half-diminished": [0, 2, 3, 5, 6, 8, 9, 11],  // tonal
+            "hungarian-minor": [0, 2, 3, 6, 7, 8, 11],  // tonal
+            "hungarian-major": [0, 3, 4, 6, 7, 9, 10],  // tonal
+            "double-harmonic-major": [0, 1, 4, 5, 7, 8, 11],  // tonal
+            "neapolitan-major": [0, 1, 3, 5, 7, 9, 11],  // tonal
+            "neapolitan-minor": [0, 1, 3, 5, 7, 8, 11],  // spot (checked by mode rotation)
+            "persian": [0, 1, 4, 5, 6, 8, 11],  // tonal
+            "enigmatic": [0, 1, 4, 6, 8, 10, 11],  // tonal
+            "prometheus": [0, 2, 4, 6, 9, 10],  // tonal
+            "locrian-major": [0, 2, 4, 5, 6, 8, 10],  // tonal
+            "augmented": [0, 3, 4, 7, 8, 11],  // tonal
         ]
 
         XCTAssertEqual(Set(library.scales.map(\.id)), Set(reference.keys.map { "builtin.scale." + $0 }))
@@ -92,6 +126,7 @@ final class BuiltInLibraryTests: XCTestCase {
             "dominant-7-flat-5-flat-9": [0, 4, 6, 10, 13],
             "dominant-7-sharp-11": [0, 4, 7, 10, 18],
             "augmented": [0, 4, 8],
+            "augmented-major-7": [0, 4, 8, 11],
             "diminished": [0, 3, 6],
             "diminished-7": [0, 3, 6, 9],
             "power": [0, 7],
@@ -99,6 +134,22 @@ final class BuiltInLibraryTests: XCTestCase {
             "sus4": [0, 5, 7],
             "sus2": [0, 2, 7],
             "sharp-11-no-3": [0, 7, 18],
+            "add9": [0, 4, 7, 14],  // tonal
+            "major-9-sharp-11": [0, 4, 7, 11, 14, 18],  // tonal
+            "major-9-sharp-5": [0, 4, 8, 11, 14],  // tonal
+            "major-7-flat-5": [0, 4, 6, 11],  // tonal
+            "minor-7-sharp-5": [0, 3, 8, 10],  // tonal
+            "dominant-9-sharp-11": [0, 4, 7, 10, 14, 18],  // tonal
+            "dominant-13-flat-9": [0, 4, 7, 10, 13, 21],  // tonal
+            "dominant-13-sharp-11": [0, 4, 7, 10, 14, 18, 21],  // tonal
+            "dominant-7-flat-13": [0, 4, 7, 10, 20],  // tonal
+            "dominant-7-flat-9-flat-13": [0, 4, 7, 10, 13, 20],  // tonal
+            "dominant-7-sharp-9-flat-13": [0, 4, 7, 10, 15, 20],  // tonal
+            "dominant-7-sus4": [0, 5, 7, 10],  // tonal
+            "dominant-9-sus4": [0, 5, 7, 10, 14],  // tonal
+            "dominant-13-sus4": [0, 5, 7, 10, 14, 21],  // tonal
+            "diminished-major-7": [0, 3, 6, 11],  // tonal
+            "quartal": [0, 5, 10, 15],  // tonal
         ]
 
         XCTAssertEqual(Set(library.chords.map(\.id)), Set(reference.keys.map { "builtin.chord." + $0 }))

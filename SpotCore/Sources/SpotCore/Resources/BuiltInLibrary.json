@@ -139,6 +139,9 @@
     {
       "id": "builtin.scale.lydian-sharp-2",
       "name": "Lydian ♯2",
+      "aliases": [
+        "Lydian ♯9"
+      ],
       "formula": "1 #2 3 #4 5 6 7",
       "family": "Harmonic minor modes",
       "parent": {
@@ -247,6 +250,82 @@
       }
     },
     {
+      "id": "builtin.scale.harmonic-major",
+      "name": "Harmonic Major",
+      "formula": "1 2 3 4 5 b6 7",
+      "family": "Harmonic major modes"
+    },
+    {
+      "id": "builtin.scale.dorian-b5",
+      "name": "Dorian ♭5",
+      "aliases": [
+        "Locrian ♮2 ♮6"
+      ],
+      "formula": "1 2 b3 4 b5 6 b7",
+      "family": "Harmonic major modes",
+      "parent": {
+        "id": "builtin.scale.harmonic-major",
+        "degree": 2
+      }
+    },
+    {
+      "id": "builtin.scale.phrygian-b4",
+      "name": "Phrygian ♭4",
+      "aliases": [
+        "Altered Dominant ♮5"
+      ],
+      "formula": "1 b2 b3 b4 5 b6 b7",
+      "family": "Harmonic major modes",
+      "parent": {
+        "id": "builtin.scale.harmonic-major",
+        "degree": 3
+      }
+    },
+    {
+      "id": "builtin.scale.lydian-b3",
+      "name": "Lydian ♭3",
+      "aliases": [
+        "Melodic Minor ♯4",
+        "Lydian Diminished"
+      ],
+      "formula": "1 2 b3 #4 5 6 7",
+      "family": "Harmonic major modes",
+      "parent": {
+        "id": "builtin.scale.harmonic-major",
+        "degree": 4
+      }
+    },
+    {
+      "id": "builtin.scale.mixolydian-b2",
+      "name": "Mixolydian ♭2",
+      "formula": "1 b2 3 4 5 6 b7",
+      "family": "Harmonic major modes",
+      "parent": {
+        "id": "builtin.scale.harmonic-major",
+        "degree": 5
+      }
+    },
+    {
+      "id": "builtin.scale.lydian-augmented-sharp-2",
+      "name": "Lydian Augmented ♯2",
+      "formula": "1 #2 3 #4 #5 6 7",
+      "family": "Harmonic major modes",
+      "parent": {
+        "id": "builtin.scale.harmonic-major",
+        "degree": 6
+      }
+    },
+    {
+      "id": "builtin.scale.locrian-bb7",
+      "name": "Locrian 𝄫7",
+      "formula": "1 b2 b3 4 b5 b6 bb7",
+      "family": "Harmonic major modes",
+      "parent": {
+        "id": "builtin.scale.harmonic-major",
+        "degree": 7
+      }
+    },
+    {
       "id": "builtin.scale.major-pentatonic",
       "name": "Major Pentatonic",
       "formula": "1 2 3 5 6",
@@ -263,6 +342,70 @@
       }
     },
     {
+      "id": "builtin.scale.egyptian",
+      "name": "Egyptian",
+      "aliases": [
+        "Suspended Pentatonic"
+      ],
+      "formula": "1 2 4 5 b7",
+      "family": "Pentatonic",
+      "parent": {
+        "id": "builtin.scale.major-pentatonic",
+        "degree": 2
+      }
+    },
+    {
+      "id": "builtin.scale.man-gong",
+      "name": "Man Gong",
+      "aliases": [
+        "Blues Major Pentatonic",
+        "Malkos Raga"
+      ],
+      "formula": "1 b3 4 b6 b7",
+      "family": "Pentatonic",
+      "parent": {
+        "id": "builtin.scale.major-pentatonic",
+        "degree": 3
+      }
+    },
+    {
+      "id": "builtin.scale.ritusen",
+      "name": "Ritusen",
+      "aliases": [
+        "Scottish Pentatonic"
+      ],
+      "formula": "1 2 4 5 6",
+      "family": "Pentatonic",
+      "parent": {
+        "id": "builtin.scale.major-pentatonic",
+        "degree": 4
+      }
+    },
+    {
+      "id": "builtin.scale.in-sen",
+      "name": "In-Sen",
+      "formula": "1 b2 4 5 b7",
+      "family": "Japanese pentatonic"
+    },
+    {
+      "id": "builtin.scale.hirajoshi",
+      "name": "Hirajoshi",
+      "formula": "1 2 b3 5 b6",
+      "family": "Japanese pentatonic"
+    },
+    {
+      "id": "builtin.scale.iwato",
+      "name": "Iwato",
+      "formula": "1 b2 4 b5 b7",
+      "family": "Japanese pentatonic"
+    },
+    {
+      "id": "builtin.scale.kumoi",
+      "name": "Kumoi",
+      "formula": "1 2 b3 5 6",
+      "family": "Japanese pentatonic"
+    },
+    {
       "id": "builtin.scale.blues",
       "name": "Blues",
       "aliases": [
@@ -272,10 +415,158 @@
       "family": "Blues"
     },
     {
+      "id": "builtin.scale.major-blues",
+      "name": "Major Blues",
+      "formula": "1 2 b3 3 5 6",
+      "family": "Blues"
+    },
+    {
+      "id": "builtin.scale.bebop-dominant",
+      "name": "Bebop Dominant",
+      "aliases": [
+        "Bebop"
+      ],
+      "formula": "1 2 3 4 5 6 b7 7",
+      "family": "Bebop"
+    },
+    {
+      "id": "builtin.scale.bebop-major",
+      "name": "Bebop Major",
+      "formula": "1 2 3 4 5 #5 6 7",
+      "family": "Bebop"
+    },
+    {
+      "id": "builtin.scale.bebop-dorian",
+      "name": "Bebop Dorian",
+      "aliases": [
+        "Bebop Minor"
+      ],
+      "formula": "1 2 b3 3 4 5 6 b7",
+      "family": "Bebop"
+    },
+    {
+      "id": "builtin.scale.bebop-melodic-minor",
+      "name": "Bebop Melodic Minor",
+      "aliases": [
+        "Minor Six Diminished"
+      ],
+      "formula": "1 2 b3 4 5 #5 6 7",
+      "family": "Bebop"
+    },
+    {
+      "id": "builtin.scale.bebop-natural-minor",
+      "name": "Bebop Natural Minor",
+      "aliases": [
+        "Minor Bebop"
+      ],
+      "formula": "1 2 b3 4 5 b6 b7 7",
+      "family": "Bebop"
+    },
+    {
+      "id": "builtin.scale.whole-tone",
+      "name": "Whole Tone",
+      "formula": "1 2 3 #4 #5 b7",
+      "family": "Symmetric"
+    },
+    {
+      "id": "builtin.scale.half-whole-diminished",
+      "name": "Half-Whole Diminished",
+      "aliases": [
+        "Dominant Diminished",
+        "Octatonic (half-whole)"
+      ],
+      "formula": "1 b2 #2 3 #4 5 6 b7",
+      "family": "Symmetric"
+    },
+    {
+      "id": "builtin.scale.whole-half-diminished",
+      "name": "Whole-Half Diminished",
+      "aliases": [
+        "Diminished",
+        "Octatonic (whole-half)"
+      ],
+      "formula": "1 2 b3 4 b5 #5 6 7",
+      "family": "Symmetric"
+    },
+    {
+      "id": "builtin.scale.augmented",
+      "name": "Augmented",
+      "aliases": [
+        "Hexatonic augmented"
+      ],
+      "formula": "1 #2 3 5 #5 7",
+      "family": "Symmetric"
+    },
+    {
       "id": "builtin.scale.chromatic",
       "name": "Chromatic",
       "formula": "1 b2 2 b3 3 4 #4 5 b6 6 b7 7",
       "family": "Symmetric"
+    },
+    {
+      "id": "builtin.scale.hungarian-minor",
+      "name": "Hungarian Minor",
+      "aliases": [
+        "Gypsy Minor",
+        "Double Harmonic Minor"
+      ],
+      "formula": "1 2 b3 #4 5 b6 7",
+      "family": "Other"
+    },
+    {
+      "id": "builtin.scale.hungarian-major",
+      "name": "Hungarian Major",
+      "formula": "1 #2 3 #4 5 6 b7",
+      "family": "Other"
+    },
+    {
+      "id": "builtin.scale.double-harmonic-major",
+      "name": "Double Harmonic Major",
+      "aliases": [
+        "Byzantine",
+        "Arabic"
+      ],
+      "formula": "1 b2 3 4 5 b6 7",
+      "family": "Other"
+    },
+    {
+      "id": "builtin.scale.neapolitan-major",
+      "name": "Neapolitan Major",
+      "formula": "1 b2 b3 4 5 6 7",
+      "family": "Other"
+    },
+    {
+      "id": "builtin.scale.neapolitan-minor",
+      "name": "Neapolitan Minor",
+      "formula": "1 b2 b3 4 5 b6 7",
+      "family": "Other"
+    },
+    {
+      "id": "builtin.scale.persian",
+      "name": "Persian",
+      "formula": "1 b2 3 4 b5 b6 7",
+      "family": "Other"
+    },
+    {
+      "id": "builtin.scale.enigmatic",
+      "name": "Enigmatic",
+      "formula": "1 b2 3 #4 #5 #6 7",
+      "family": "Other"
+    },
+    {
+      "id": "builtin.scale.prometheus",
+      "name": "Prometheus",
+      "formula": "1 2 3 #4 6 b7",
+      "family": "Other"
+    },
+    {
+      "id": "builtin.scale.locrian-major",
+      "name": "Locrian Major",
+      "aliases": [
+        "Arabian"
+      ],
+      "formula": "1 2 3 4 b5 b6 b7",
+      "family": "Other"
     }
   ],
   "chords": [
@@ -297,6 +588,16 @@
         "add11"
       ],
       "formula": "1 3 4 5"
+    },
+    {
+      "id": "builtin.chord.add9",
+      "name": "Added ninth",
+      "symbols": [
+        "add9",
+        "add2",
+        "(add9)"
+      ],
+      "formula": "1 3 5 9"
     },
     {
       "id": "builtin.chord.major-6",
@@ -396,6 +697,42 @@
       ]
     },
     {
+      "id": "builtin.chord.major-9-sharp-11",
+      "name": "Major ninth sharp eleven",
+      "symbols": [
+        "maj9#11",
+        "Maj9#11",
+        "M9#11",
+        "Δ9#11"
+      ],
+      "formula": "1 3 5 7 9 #11",
+      "optional": [
+        "5"
+      ]
+    },
+    {
+      "id": "builtin.chord.major-9-sharp-5",
+      "name": "Major ninth sharp five",
+      "symbols": [
+        "maj9#5",
+        "Maj9#5",
+        "M9#5",
+        "Δ9#5"
+      ],
+      "formula": "1 3 #5 7 9"
+    },
+    {
+      "id": "builtin.chord.major-7-flat-5",
+      "name": "Major seventh flat five",
+      "symbols": [
+        "maj7b5",
+        "Maj7b5",
+        "M7b5",
+        "Δ7b5"
+      ],
+      "formula": "1 3 b5 7"
+    },
+    {
       "id": "builtin.chord.major-flat-5",
       "name": "Major flat five",
       "symbols": [
@@ -444,6 +781,16 @@
         "-7"
       ],
       "formula": "1 b3 5 b7"
+    },
+    {
+      "id": "builtin.chord.minor-7-sharp-5",
+      "name": "Minor seventh sharp five",
+      "symbols": [
+        "m7#5",
+        "m7+5",
+        "-7#5"
+      ],
+      "formula": "1 b3 #5 b7"
     },
     {
       "id": "builtin.chord.minor-add9",
@@ -733,6 +1080,110 @@
       ]
     },
     {
+      "id": "builtin.chord.dominant-9-sharp-11",
+      "name": "Ninth sharp eleven",
+      "symbols": [
+        "9#11"
+      ],
+      "formula": "1 3 5 b7 9 #11",
+      "optional": [
+        "5"
+      ]
+    },
+    {
+      "id": "builtin.chord.dominant-13-flat-9",
+      "name": "Thirteenth flat nine",
+      "symbols": [
+        "13b9"
+      ],
+      "formula": "1 3 5 b7 b9 13",
+      "optional": [
+        "5"
+      ]
+    },
+    {
+      "id": "builtin.chord.dominant-13-sharp-11",
+      "name": "Thirteenth sharp eleven",
+      "symbols": [
+        "13#11"
+      ],
+      "formula": "1 3 5 b7 9 #11 13",
+      "optional": [
+        "5",
+        "9"
+      ]
+    },
+    {
+      "id": "builtin.chord.dominant-7-flat-13",
+      "name": "Seventh flat thirteen",
+      "symbols": [
+        "7b13"
+      ],
+      "formula": "1 3 5 b7 b13",
+      "optional": [
+        "5"
+      ]
+    },
+    {
+      "id": "builtin.chord.dominant-7-flat-9-flat-13",
+      "name": "Seventh flat nine flat thirteen",
+      "symbols": [
+        "7b9b13"
+      ],
+      "formula": "1 3 5 b7 b9 b13",
+      "optional": [
+        "5"
+      ]
+    },
+    {
+      "id": "builtin.chord.dominant-7-sharp-9-flat-13",
+      "name": "Seventh sharp nine flat thirteen",
+      "symbols": [
+        "7#9b13"
+      ],
+      "formula": "1 3 5 b7 #9 b13",
+      "optional": [
+        "5"
+      ]
+    },
+    {
+      "id": "builtin.chord.dominant-7-sus4",
+      "name": "Seventh suspended fourth",
+      "symbols": [
+        "7sus4",
+        "7sus"
+      ],
+      "formula": "1 4 5 b7",
+      "optional": [
+        "5"
+      ]
+    },
+    {
+      "id": "builtin.chord.dominant-9-sus4",
+      "name": "Ninth suspended fourth",
+      "symbols": [
+        "9sus4",
+        "9sus"
+      ],
+      "formula": "1 4 5 b7 9",
+      "optional": [
+        "5"
+      ]
+    },
+    {
+      "id": "builtin.chord.dominant-13-sus4",
+      "name": "Thirteenth suspended fourth",
+      "symbols": [
+        "13sus4",
+        "13sus"
+      ],
+      "formula": "1 4 5 b7 9 13",
+      "optional": [
+        "5",
+        "9"
+      ]
+    },
+    {
       "id": "builtin.chord.augmented",
       "name": "Augmented",
       "symbols": [
@@ -740,6 +1191,17 @@
         "+"
       ],
       "formula": "1 3 #5"
+    },
+    {
+      "id": "builtin.chord.augmented-major-7",
+      "name": "Augmented major seventh",
+      "symbols": [
+        "maj7#5",
+        "+maj7",
+        "Δ7#5",
+        "M7#5"
+      ],
+      "formula": "1 3 #5 7"
     },
     {
       "id": "builtin.chord.diminished",
@@ -760,6 +1222,16 @@
         "o7"
       ],
       "formula": "1 b3 b5 bb7"
+    },
+    {
+      "id": "builtin.chord.diminished-major-7",
+      "name": "Diminished major seventh",
+      "symbols": [
+        "dim(maj7)",
+        "°maj7",
+        "oM7"
+      ],
+      "formula": "1 b3 b5 7"
     },
     {
       "id": "builtin.chord.power",
@@ -802,6 +1274,18 @@
         "#11"
       ],
       "formula": "1 5 #11"
+    },
+    {
+      "id": "builtin.chord.quartal",
+      "name": "Quartal",
+      "symbols": [
+        "quartal",
+        "4ths"
+      ],
+      "formula": "1 4 b7 b10",
+      "optional": [
+        "b10"
+      ]
     }
   ]
 }

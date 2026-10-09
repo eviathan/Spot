@@ -30,41 +30,21 @@ class TreeItem: Identifiable {
     var name: String
     var type: TreeItemType
     var children: [TreeItem] = []
+    var isSelected: Bool
+    var action: (() -> Void)?
     
-    init(name: String, type: TreeItemType, children: [TreeItem] = []) {
+    init(name: String, type: TreeItemType, children: [TreeItem] = [], isSelected: Bool = false, action: (() -> Void)? = nil) {
         self.name = name
         self.type = type
         self.children = children
+        self.isSelected = isSelected
+        self.action = action
     }
 }
 
 struct TreeMenuView: View {
     
-    @State var data: [TreeItem] = [
-        TreeItem(name: "Sort", type: .folder, children: [
-            TreeItem(name: "Name", type: .item),
-            TreeItem(name: "Type", type: .item),
-        ]),
-        
-        TreeItem(name: "Types", type: .folder, children: [
-            TreeItem(name: "Scales", type: .item),
-            TreeItem(name: "Chords", type: .item),
-            TreeItem(name: "Intervals", type: .item),
-        ]),
-        
-        TreeItem(name: "Tags", type: .folder, children: [
-            TreeItem(name: "Looooooooooooooong", type: .item),
-            TreeItem(name: "Fave", type: .item),
-            TreeItem(name: "Sad", type: .item),
-            TreeItem(name: "Practice", type: .item),
-            TreeItem(name: "Song 1", type: .item),
-            TreeItem(name: "Arps", type: .item),
-            TreeItem(name: "Test 1", type: .item),
-            TreeItem(name: "Test 2", type: .item),
-            TreeItem(name: "Test 3", type: .item),
-            TreeItem(name: "Test 4", type: .item),
-        ])
-    ]
+    var data: [TreeItem]
     
     var body: some View {
         ZStack {
@@ -104,6 +84,10 @@ struct TreeMenuSection: View {
                         isLastSection(index) &&
                         item.children.count - 1 == childIndex
                     })
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        child.action?()
+                    }
                 }
             }
         }
@@ -130,7 +114,7 @@ struct TreeMenuItem: View {
             case .folder:
                 return "folder.fill"
             case .item:
-                return "doc.fill"
+                return item.isSelected ? "checkmark.circle.fill" : "circle"
         }
     }
     
@@ -155,6 +139,7 @@ struct TreeMenuItem: View {
             
             Text(item.name)
                 .foregroundColor(.white)
+                .fontWeight(item.isSelected ? .semibold : .regular)
                 .lineLimit(1)
                 .truncationMode(.tail)
         }

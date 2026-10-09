@@ -10,13 +10,82 @@ public enum ShapeGenerator {
 
     // MARK: - Scales
 
-    /// The default positions for a scale: 3 notes per string for 7+ note scales,
-    /// 2 notes per string (the pentatonic boxes) for 5 and 6 note scales.
+    /// The positions for a scale: 3 notes per string for 7+ note scales, 2 notes per string
+    /// (the pentatonic boxes) for 5 and 6 note scales, then the CAGED positions.
     public static func scalePositions(_ scale: ScaleDefinition, fretboard: Fretboard) -> [Shape] {
+        let perString: [Shape]
         switch scale.formula.pitchClassOffsets.count {
-        case 5...6: return notesPerString(2, formula: scale.formula, definitionId: scale.id, fretboard: fretboard)
-        case 7...8: return notesPerString(3, formula: scale.formula, definitionId: scale.id, fretboard: fretboard)
+        case 5...6: perString = notesPerString(2, formula: scale.formula, definitionId: scale.id, fretboard: fretboard)
+        case 7...8: perString = notesPerString(3, formula: scale.formula, definitionId: scale.id, fretboard: fretboard)
         default: return []
+        }
+        return perString + caged(scale.formula, definitionId: scale.id, system: "CAGED", fretboard: fretboard)
+    }
+
+    /// The five CAGED boxes, each anchored on a movable major chord form. Frets are relative
+    /// to the root on the low E string: the root sits at fret 7 on the A string and 2 on the D string.
+    /// Each box is the chord form's frets widened to four, e.g. the E shape spans one fret below
+    /// the root to two above.
+    static let cagedWindows: [(name: String, low: Int, high: Int)] = [
+        ("E shape", -1, 2),
+        ("D shape", 2, 5),
+        ("C shape", 4, 7),
+        ("A shape", 6, 9),
+        ("G shape", 9, 12),
+    ]
+
+    /// Every note of `formula` inside each CAGED box, plus a one-or-two-fret stretch wherever the box
+    /// would otherwise skip a note between strings. Standard tuning only, since CAGED is built on it.
+    public static func caged(_ formula: Formula, definitionId: String, system: String, fretboard: Fretboard) -> [Shape] {
+        guard fretboard.tuning.strings == Tuning.standard.strings else {
+            return []
+        }
+
+        let degreesByOffset = Dictionary(uniqueDegrees(formula).map { ($0.pitchClassOffset, $0) }, uniquingKeysWith: { first, _ in first })
+        let openStrings = fretboard.tuning.strings
+        let rootPitch = openStrings[0]
+
+        func offset(_ pitch: Int) -> Int {
+            PitchClass(pitch - rootPitch).value
+        }
+
+        return cagedWindows.map { window in
+            var notes: [FretPosition] = []
+            for string in openStrings.indices {
+                for fret in window.low...window.high where degreesByOffset[offset(openStrings[string] + fret)] != nil {
+                    notes.append(FretPosition(string: string, fret: fret))
+                }
+            }
+
+            // Fill any note of the formula skipped between adjacent box notes, reaching outside the box
+            // by as little as possible (preferring the higher string, i.e. an index-finger stretch)
+            func pitch(_ position: FretPosition) -> Int {
+                openStrings[position.string] + position.fret
+            }
+            let sorted = notes.sorted { pitch($0) < pitch($1) }
+            for (lower, upper) in zip(sorted, sorted.dropFirst()) where pitch(upper) - pitch(lower) > 1 {
+                for missing in (pitch(lower) + 1)..<pitch(upper) where degreesByOffset[offset(missing)] != nil {
+                    let candidates = (lower.string...upper.string).reversed()
+                        .map { FretPosition(string: $0, fret: missing - openStrings[$0]) }
+                        .filter { $0.fret >= window.low - 2 && $0.fret <= window.high + 2 }
+                    let distance = { (p: FretPosition) in max(window.low - p.fret, p.fret - window.high, 0) }
+                    if let best = candidates.min(by: { distance($0) < distance($1) }) {
+                        notes.append(best)
+                    }
+                }
+            }
+
+            let shapeNotes = notes
+                .sorted { ($0.string, $0.fret) < ($1.string, $1.fret) }
+                .map { ShapeNote(string: $0.string, fret: $0.fret, degree: degreesByOffset[offset(pitch($0))]!) }
+
+            return Shape(id: "generated:\(definitionId):caged:\(window.name)",
+                         definitionId: definitionId,
+                         kind: .scale,
+                         system: system,
+                         name: window.name,
+                         tuningId: fretboard.tuning.id,
+                         notes: shapeNotes)
         }
     }
 
@@ -60,6 +129,12 @@ public enum ShapeGenerator {
     }
 
     // MARK: - Chords
+
+    /// Voicings for the chord followed by its CAGED arpeggio shapes.
+    public static func chordShapes(_ chord: ChordDefinition, root: PitchClass, fretboard: Fretboard) -> [Shape] {
+        chordVoicings(chord, root: root, fretboard: fretboard)
+            + caged(chord.formula, definitionId: chord.id, system: "CAGED arpeggio", fretboard: fretboard)
+    }
 
     /// Playable chord voicings with one note per string within `maxSpan` frets,
     /// for the given root, ordered up the neck.

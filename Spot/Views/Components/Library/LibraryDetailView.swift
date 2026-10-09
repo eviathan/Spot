@@ -14,6 +14,11 @@ struct LibraryDetailView: View {
     
     let inversions = ["Ionian", "Dorian", "Phrygian", "Lydian", "Mixolydian", "Aeolian", "Locrian"]
     
+    private var shapeSystemBinding: Binding<String> {
+        Binding(get: { selection.shapeSystem ?? "" },
+                set: { selection.shapeSystem = $0.isEmpty ? nil : $0 })
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             VStack(spacing: 12) {
@@ -42,6 +47,17 @@ struct LibraryDetailView: View {
                         .buttonStyle(.plain)
                         .help("Next shape (⌘])")
                     }
+                }
+
+                if selection.shapeSystems.count > 1 {
+                    Picker("Shapes", selection: shapeSystemBinding) {
+                        Text("All shapes").tag("")
+                        ForEach(selection.shapeSystems, id: \.self) { system in
+                            Text(system).tag(system)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .frame(maxWidth: 260)
                 }
             }
             .frame(maxHeight: .infinity)

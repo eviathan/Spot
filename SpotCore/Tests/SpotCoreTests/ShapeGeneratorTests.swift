@@ -33,7 +33,7 @@ final class ScaleShapeTests: XCTestCase {
 
     func testThreeNotePerStringMatchesOriginalPatterns() {
         let shapes = ShapeGenerator.scalePositions(scale("major"), fretboard: fretboard)
-        XCTAssertEqual(shapes.count, 7)
+        XCTAssertEqual(shapes.count, 12)
         XCTAssertEqual(shapes.first?.system, "3 notes per string")
 
         for (index, rows) in originalThreeNotePerString.enumerated() {
@@ -50,7 +50,7 @@ final class ScaleShapeTests: XCTestCase {
 
     func testWorksForEveryHeptatonicScale() {
         for scale in library.scales where scale.formula.degrees.count == 7 {
-            let shapes = ShapeGenerator.scalePositions(scale, fretboard: fretboard)
+            let shapes = ShapeGenerator.scalePositions(scale, fretboard: fretboard).filter { $0.system == "3 notes per string" }
             XCTAssertEqual(shapes.count, 7, scale.id)
             for shape in shapes {
                 XCTAssertEqual(shape.notes.count, 18, "\(scale.id) \(shape.name)")
@@ -62,6 +62,7 @@ final class ScaleShapeTests: XCTestCase {
 
     func testMinorPentatonicBoxes() {
         let shapes = ShapeGenerator.scalePositions(scale("minor-pentatonic"), fretboard: fretboard)
+            .filter { $0.system == "2 notes per string" }
         XCTAssertEqual(shapes.count, 5)
         XCTAssertEqual(shapes[0].system, "2 notes per string")
 
@@ -92,6 +93,63 @@ final class ScaleShapeTests: XCTestCase {
         // E major position 1 spans frets 0-5, so it fits at 0 and 12
         XCTAssertEqual(shape.placements(root: PitchClass(4), on: fretboard).count, 2)
         XCTAssertEqual(shape.positions(root: PitchClass(4), on: fretboard).count, 36)
+    }
+
+    private func caged(_ id: String, _ name: String) -> Shape {
+        ShapeGenerator.scalePositions(scale(id), fretboard: fretboard).first { $0.system == "CAGED" && $0.name == name }!
+    }
+
+    func testKnownCagedBoxes() {
+        // G major, E shape: the standard box at frets 2-5
+        XCTAssertEqual(frets(caged("major", "E shape"), root: 7),
+                       [6: [2, 3, 5], 5: [2, 3, 5], 4: [2, 4, 5], 3: [2, 4, 5], 2: [3, 5], 1: [2, 3, 5]])
+        // C major, C shape: the open position
+        XCTAssertEqual(frets(caged("major", "C shape"), root: 0),
+                       [6: [0, 1, 3], 5: [0, 2, 3], 4: [0, 2, 3], 3: [0, 2], 2: [0, 1, 3], 1: [0, 1, 3]])
+        // G major, D shape: frets 4-8 with F# stretched to the D string's 4th fret
+        XCTAssertEqual(frets(caged("major", "D shape"), root: 7)[4], [4, 5, 7])
+    }
+
+    func testCagedBoxesAreContinuousAndContainTheirChordForm() {
+        // Movable major chord forms, frets relative to the box's root on its root string
+        let chordForms: [String: [Int?]] = [
+            "C shape": [nil, 3, 2, 0, 1, 0],   // C on the A string, 3rd fret
+            "A shape": [nil, 0, 2, 2, 2, 0],   // A on the A string, open
+            "G shape": [3, 2, 0, 0, 0, 3],     // G on the low E, 3rd fret
+            "E shape": [0, 2, 2, 1, 0, 0],     // E on the low E, open
+            "D shape": [nil, nil, 0, 2, 3, 2], // D on the D string, open
+        ]
+        let formRoots = ["C shape": 0, "A shape": 9, "G shape": 7, "E shape": 4, "D shape": 2]
+
+        for (name, form) in chordForms {
+            let placement = caged("major", name).positions(root: PitchClass(formRoots[name]!), on: fretboard)
+            for (string, fret) in form.enumerated() {
+                guard let fret else { continue }
+                XCTAssertTrue(placement.keys.contains { $0.string == string && $0.fret % 12 == fret % 12 }, "\(name) string \(string) fret \(fret)")
+            }
+        }
+
+        let scales = library.scales.filter { (5...7).contains($0.formula.degrees.count) }
+        for scale in scales {
+            let offsets = scale.formula.pitchClassOffsets
+            for shape in ShapeGenerator.scalePositions(scale, fretboard: fretboard) where shape.system == "CAGED" {
+                let placement = shape.placements(root: PitchClass(0), on: fretboard)[0]
+                let pitches = placement.keys.map { fretboard.midiNote(at: $0) }.sorted()
+                let label = "\(scale.id) \(shape.name)"
+
+                XCTAssertEqual(Set(pitches.map { PitchClass($0).value }), offsets, label)
+                for (low, high) in zip(pitches, pitches.dropFirst()) {
+                    let skipped = (low + 1..<high).filter { offsets.contains(PitchClass($0).value) }
+                    XCTAssertEqual(skipped, [], "\(label) skips a note between \(low) and \(high)")
+                }
+                let fretted = placement.keys.map(\.fret)
+                XCTAssertLessThanOrEqual(fretted.max()! - fretted.min()!, 6, label)
+            }
+        }
+    }
+
+    func testCagedOnlyInStandardTuning() {
+        XCTAssertTrue(ShapeGenerator.scalePositions(scale("major"), fretboard: Fretboard(tuning: .dropD)).allSatisfy { $0.system != "CAGED" })
     }
 
     func testOtherTunings() {
@@ -194,6 +252,22 @@ final class ChordVoicingTests: XCTestCase {
                     XCTAssertTrue(fingers(voicing, root: root).allSatisfy { ($0 ?? 9) <= 4 }, voicing.name)
                     XCTAssertFalse(voicing.placements(root: PitchClass(root), on: fretboard).isEmpty, voicing.name)
                 }
+            }
+        }
+    }
+
+    func testCagedArpeggios() {
+        let shapes = ShapeGenerator.chordShapes(chord("major-7"), root: PitchClass(0), fretboard: fretboard)
+        let arpeggios = shapes.filter { $0.system == "CAGED arpeggio" }
+        XCTAssertEqual(arpeggios.map(\.name), ["E shape", "D shape", "C shape", "A shape", "G shape"])
+
+        let offsets = chord("major-7").formula.pitchClassOffsets
+        for arpeggio in arpeggios {
+            XCTAssertEqual(arpeggio.kind, .scale)
+            let pitches = arpeggio.placements(root: PitchClass(0), on: fretboard)[0].keys.map { fretboard.midiNote(at: $0) }.sorted()
+            XCTAssertEqual(Set(pitches.map { PitchClass($0).value }), offsets, arpeggio.name)
+            for (low, high) in zip(pitches, pitches.dropFirst()) {
+                XCTAssertEqual((low + 1..<high).filter { offsets.contains(PitchClass($0).value) }, [], arpeggio.name)
             }
         }
     }

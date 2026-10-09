@@ -30,6 +30,16 @@
             ],
             "group": "test",
             "problemMatcher": []
+        },
+        {
+            "label": "Check library against tonal",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "-I",
+                "SpotCore/Scripts/check_library.py"
+            ],
+            "problemMatcher": []
         }
     ]
 }

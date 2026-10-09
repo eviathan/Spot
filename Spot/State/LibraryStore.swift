@@ -22,12 +22,19 @@ enum LibraryEntryKind: CustomStringConvertible {
     }
 }
 
+enum LibrarySortOrder {
+    /// Scales, chords and intervals in the order they are defined (related items together).
+    case library
+    case name
+}
+
 /// A row in the library list.
 struct LibraryEntry: Identifiable, Hashable, Searchable {
     let id: String
     let name: String
     let kind: LibraryEntryKind
     let detail: String
+    let family: String?
     let searchTerms: [String]
 
     var properties: [FuseProp] {
@@ -41,7 +48,19 @@ final class LibraryStore {
     let entries: [LibraryEntry]
 
     var query: String = "" {
-        didSet { results = search(query) }
+        didSet { refresh() }
+    }
+    var kindFilter: LibraryEntryKind? {
+        didSet { refresh() }
+    }
+    var familyFilter: String? {
+        didSet { refresh() }
+    }
+    var favouritesOnly = false {
+        didSet { refresh() }
+    }
+    var sortOrder: LibrarySortOrder = .library {
+        didSet { refresh() }
     }
 
     private(set) var results: [LibraryEntry]
@@ -70,16 +89,19 @@ final class LibraryStore {
         let scaleEntries = bundle.scales.map { scale in
             LibraryEntry(id: scale.id, name: scale.name, kind: .scale,
                          detail: scale.family ?? "",
+                         family: scale.family,
                          searchTerms: [scale.name] + scale.aliases)
         }
         let chordEntries = bundle.chords.map { chord in
             LibraryEntry(id: chord.id, name: chord.name, kind: .chord,
                          detail: chord.symbols.first(where: { !$0.isEmpty }) ?? "",
+                         family: nil,
                          searchTerms: [chord.name] + chord.symbols.filter { !$0.isEmpty })
         }
         let intervalEntries = LibraryStore.intervals.map { interval in
             LibraryEntry(id: LibraryStore.intervalId(interval.degree), name: interval.name, kind: .interval,
                          detail: interval.degree.intervalName,
+                         family: nil,
                          searchTerms: [interval.name, interval.degree.intervalName])
         }
 
@@ -88,6 +110,19 @@ final class LibraryStore {
 
         let states = (try? context.fetch(FetchDescriptor<LibraryItemState>())) ?? []
         favourites = Set(states.filter(\.favourite).map(\.definitionId))
+    }
+
+    /// Scale families in library order, for the sidebar.
+    var scaleFamilies: [String] {
+        var seen = Set<String>()
+        return bundle.scales.compactMap(\.family).filter { seen.insert($0).inserted }
+    }
+
+    /// Shows everything again.
+    func clearFilters() {
+        kindFilter = nil
+        familyFilter = nil
+        favouritesOnly = false
     }
 
     static func intervalId(_ degree: Degree) -> String {
@@ -120,6 +155,10 @@ final class LibraryStore {
         } else {
             favourites.remove(id)
         }
+
+        if favouritesOnly {
+            refresh()
+        }
     }
 
     private func itemState(_ id: String) -> LibraryItemState {
@@ -133,12 +172,22 @@ final class LibraryStore {
         return state
     }
 
-    private func search(_ query: String) -> [LibraryEntry] {
-        guard !query.isEmpty else {
-            return entries
+    private func refresh() {
+        var filtered = entries.filter { entry in
+            (kindFilter == nil || entry.kind == kindFilter)
+                && (familyFilter == nil || entry.family == familyFilter)
+                && (!favouritesOnly || favourites.contains(entry.id))
         }
 
-        let results = fuse.searchSync(query, in: entries, by: \LibraryEntry.properties)
-        return results.map { entries[$0.index] }
+        if sortOrder == .name {
+            filtered.sort { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+        }
+
+        // Search results are ordered by match quality instead
+        if !query.isEmpty {
+            filtered = fuse.searchSync(query, in: filtered, by: \LibraryEntry.properties).map { filtered[$0.index] }
+        }
+
+        results = filtered
     }
 }
