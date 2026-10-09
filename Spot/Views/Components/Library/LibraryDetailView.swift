@@ -12,6 +12,8 @@ struct LibraryDetailView: View {
     @Environment(SelectionState.self) private var selection
     @Environment(LibraryStore.self) private var library
     @Environment(UIState.self) private var ui
+    @Environment(PlaybackController.self) private var playback
+    @Environment(TransportState.self) private var transport
 
     private var shapeSystemBinding: Binding<String> {
         Binding(get: { selection.shapeSystem ?? "" },
@@ -94,6 +96,18 @@ struct LibraryDetailView: View {
                 }
                 .buttonStyle(.plain)
                 .help("Next shape (⌘])")
+                
+                Button {
+                    if let placement = shape.placements(root: selection.root, on: selection.fretboard).first {
+                        playback.preview(Audition.events(for: shape, placement: placement,
+                                                         on: selection.fretboard, clock: transport.clock))
+                    }
+                } label: {
+                    Image(systemName: "play.circle")
+                        .imageScale(.large)
+                }
+                .buttonStyle(.plain)
+                .help("Hear this shape over MIDI (⌘↩). ⌥-click a note on the fretboard to hear just that note.")
             }
         }
 

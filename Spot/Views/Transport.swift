@@ -10,13 +10,22 @@ import SwiftUI
 struct Transport: View {
     
     @Environment(TransportState.self) private var transport
+    @Environment(PlaybackController.self) private var playback
    
     func onClickTransport() -> Void {
         
     }
     
+    /// Back to the start (with the count-in again) if playing.
+    func onClickTransportRestart() -> Void {
+        if transport.isPlaying {
+            playback.stop()
+            playback.play()
+        }
+    }
+    
     func onClickTransportPlay() -> Void {
-        transport.isPlaying.toggle()
+        playback.togglePlay()
     }
     
     func onClickTransportRecord() -> Void {
@@ -51,7 +60,7 @@ struct Transport: View {
         .buttonStyle(PlainButtonStyle())
         .frame(width: 30, height: 30)
         
-        Button(action: onClickTransport)
+        Button(action: onClickTransportRestart)
         {
             Image(systemName: "backward.end.fill")
                 .imageScale(.large)
@@ -85,10 +94,29 @@ struct Transport: View {
         }
         .buttonStyle(PlainButtonStyle())
         .frame(width: 30, height: 30)
+        
+        PositionDisplay()
+    }
+}
+
+/// Bar and beat, e.g. "3.2". Shows the count-in as bar 0.
+private struct PositionDisplay: View {
+    @Environment(TransportState.self) private var transport
+    
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1 / 30, paused: !transport.isPlaying)) { context in
+            let position = transport.clock.barAndBeat(transport.position())
+            Text(transport.isPlaying ? "\(position.bar).\(position.beat)" : "1.1")
+                .font(.system(size: 16, design: .monospaced))
+                .foregroundColor(transport.isPlaying && position.bar < 1 ? .orange : .white)
+                .frame(width: 56)
+        }
     }
 }
 
 #Preview {
-    Transport()
-        .environment(TransportState())
+    let transport = TransportState()
+    return Transport()
+        .environment(transport)
+        .environment(PlaybackController(transport: transport, settings: AudioSettings()))
 }

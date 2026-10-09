@@ -26,7 +26,7 @@ struct TabView: View {
                         SequenceTabView()
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     case .Settings:
-                        Text("Settings")
+                        SettingsTabView()
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }

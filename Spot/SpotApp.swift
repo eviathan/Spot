@@ -17,7 +17,9 @@ struct SpotApp: App {
     @State private var selection: SelectionState
     @State private var display = DisplaySettings()
     @State private var ui = UIState()
-    @State private var transport = TransportState()
+    @State private var transport: TransportState
+    @State private var audioSettings: AudioSettings
+    @State private var playback: PlaybackController
 
     init() {
         NSWindow.allowsAutomaticWindowTabbing = false
@@ -34,6 +36,12 @@ struct SpotApp: App {
         let library = LibraryStore(bundle: builtIn, context: container.mainContext)
         _library = State(initialValue: library)
         _selection = State(initialValue: SelectionState(scale: builtIn.scales[0], chord: builtIn.chords[0], library: library))
+        
+        let transport = TransportState()
+        let audioSettings = AudioSettings()
+        _transport = State(initialValue: transport)
+        _audioSettings = State(initialValue: audioSettings)
+        _playback = State(initialValue: PlaybackController(transport: transport, settings: audioSettings))
     }
 
     var body: some Scene {
@@ -45,6 +53,8 @@ struct SpotApp: App {
                 .environment(display)
                 .environment(ui)
                 .environment(transport)
+                .environment(audioSettings)
+                .environment(playback)
                 .toolbar {
                     Color.clear
                 }
@@ -65,6 +75,17 @@ struct SpotApp: App {
                     .keyboardShortcut("i", modifiers: [.command, .shift])
                 Button("Export Library…") { ui.isChoosingExport = true }
                     .keyboardShortcut("e", modifiers: [.command, .shift])
+            }
+            
+            CommandMenu("Playback") {
+                Button(transport.isPlaying ? "Stop" : "Play") { playback.togglePlay() }
+                    .keyboardShortcut("p", modifiers: [.command])
+                Button(transport.isMetronomeOn ? "Metronome Off" : "Metronome On") { transport.isMetronomeOn.toggle() }
+                    .keyboardShortcut("m", modifiers: [.command, .shift])
+                Divider()
+                Button("Preview Shape") { previewCurrentShape() }
+                    .keyboardShortcut(.return, modifiers: [.command])
+                    .disabled(selection.currentShape == nil)
             }
             
             CommandMenu("Shape") {
@@ -98,5 +119,11 @@ struct SpotApp: App {
                 .keyboardShortcut("L", modifiers: [.command])
             }
        }
+    }
+    
+    private func previewCurrentShape() {
+        guard let shape = selection.currentShape,
+              let placement = shape.placements(root: selection.root, on: selection.fretboard).first else { return }
+        playback.preview(Audition.events(for: shape, placement: placement, on: selection.fretboard, clock: transport.clock))
     }
 }

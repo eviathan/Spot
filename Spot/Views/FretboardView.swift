@@ -11,6 +11,7 @@ struct FretboardView: View {
     @Environment(SelectionState.self) private var selection
     @Environment(DisplaySettings.self) private var display
     @Environment(\.theme) private var theme
+    @Environment(PlaybackController.self) private var playback
 
     @State private var guitarOpacity: CGFloat = 0.3
 
@@ -177,7 +178,9 @@ struct FretboardView: View {
                            isHighlighted: isHighlighted,
                            size: size,
                            onSelect: {
-                               if isDrawing {
+                               if NSEvent.modifierFlags.contains(.option) {
+                                   playback.previewNote(fretboard.midiNote(at: marker.position))
+                               } else if isDrawing {
                                    selection.toggleDraftNote(at: marker.position)
                                } else {
                                    selection.root = marker.pitchClass

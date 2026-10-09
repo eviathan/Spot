@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		96BE6CB8EBD54E759D6B1EBD /* SettingsTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 955085C7AF104F578507B6C0 /* SettingsTabView.swift */; };
+		D7D3CDF91DAF42FB85B64025 /* PlaybackController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36EB5C8FA9EE42CA9F4EE49B /* PlaybackController.swift */; };
+		9276EFEB0FA94025A926CFD9 /* AudioSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 503CAFC0C11E4AF493A4F4D9 /* AudioSettings.swift */; };
 		054F99A4C9EC411F84F9649A /* DisplaySettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995EF25E08304A528A305829 /* DisplaySettings.swift */; };
 		0C596FC218E64E5589C9C7E9 /* UserLibraryItems.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA721EEBFC0B4C9AB6DB8125 /* UserLibraryItems.swift */; };
 		1B9870198ACC4C92B1BCBFBA /* SelectionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5D238723844955A634D844 /* SelectionState.swift */; };
@@ -68,6 +71,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		955085C7AF104F578507B6C0 /* SettingsTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTabView.swift; sourceTree = "<group>"; };
+		36EB5C8FA9EE42CA9F4EE49B /* PlaybackController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackController.swift; sourceTree = "<group>"; };
+		503CAFC0C11E4AF493A4F4D9 /* AudioSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSettings.swift; sourceTree = "<group>"; };
 		1A0D22CCFF4342079D042040 /* LibraryFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryFile.swift; sourceTree = "<group>"; };
 		5A3EDB932F974851A8CE3EF7 /* TransportState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransportState.swift; sourceTree = "<group>"; };
 		5BDF124A685A410191CC55E6 /* UIState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIState.swift; sourceTree = "<group>"; };
@@ -154,6 +160,7 @@
 		D37E4C392C346E5100179A19 /* TabViews */ = {
 			isa = PBXGroup;
 			children = (
+				955085C7AF104F578507B6C0 /* SettingsTabView.swift */,
 				D37E4C3A2C346E7E00179A19 /* SequenceTabView.swift */,
 				D37E4C3C2C346EA600179A19 /* LibraryTabView.swift */,
 				D37E4C422C34777700179A19 /* EditorTabView.swift */,
@@ -318,6 +325,8 @@
 		DB080E70AAD94BBE9BF02139 /* State */ = {
 			isa = PBXGroup;
 			children = (
+				36EB5C8FA9EE42CA9F4EE49B /* PlaybackController.swift */,
+				503CAFC0C11E4AF493A4F4D9 /* AudioSettings.swift */,
 				1A0D22CCFF4342079D042040 /* LibraryFile.swift */,
 				EA721EEBFC0B4C9AB6DB8125 /* UserLibraryItems.swift */,
 				E3DCAEAE2F6F4C71AD12B854 /* LibraryItemState.swift */,
@@ -412,6 +421,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				96BE6CB8EBD54E759D6B1EBD /* SettingsTabView.swift in Sources */,
+				D7D3CDF91DAF42FB85B64025 /* PlaybackController.swift in Sources */,
+				9276EFEB0FA94025A926CFD9 /* AudioSettings.swift in Sources */,
 				BA66B59E677041048AEA070C /* LibraryTransferViews.swift in Sources */,
 				C12411FECC0E4950BA10C864 /* DefinitionEditorView.swift in Sources */,
 				C90B0AF11432427DB26CB05E /* LibraryFile.swift in Sources */,
