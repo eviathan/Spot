@@ -15,6 +15,8 @@ public struct FretMarker: Identifiable, Hashable, Sendable {
     public var degree: Degree?
     /// Whether the note is inside the selected position/shape. True everywhere when no shape applies.
     public var isInPosition: Bool
+    /// Suggested finger from the selected shape: 1–4, 0 for open, nil if not in the shape.
+    public var finger: Int?
     public var noteName: SpelledNote
     public var intervalName: String
 
@@ -33,9 +35,9 @@ public struct FretMarker: Identifiable, Hashable, Sendable {
     /// Builds a marker for every position on the fretboard.
     /// - Parameters:
     ///   - key: spells notes outside the formula.
-    ///   - positionFilter: positions in the selected shape, or nil if no shape applies.
+    ///   - shape: the selected shape's notes by position, or nil if no shape applies.
     public static func build(fretboard: Fretboard, root: SpelledNote, formula: Formula,
-                             key: Key, positionFilter: Set<FretPosition>?) -> [FretMarker] {
+                             key: Key, shape: [FretPosition: ShapeNote]?) -> [FretMarker] {
         let rootPitchClass = root.pitchClass
 
         // First degree wins if two degrees share a pitch class
@@ -54,7 +56,8 @@ public struct FretMarker: Identifiable, Hashable, Sendable {
                 pitchClass: pitchClass,
                 semitonesAboveRoot: offset,
                 degree: degree,
-                isInPosition: positionFilter?.contains(position) ?? true,
+                isInPosition: shape.map { $0[position] != nil } ?? true,
+                finger: shape?[position]?.finger,
                 noteName: degree.map(root.spelling) ?? key.spell(pitchClass),
                 intervalName: degree?.intervalName ?? Degree.chromaticIntervalName(offset)
             )

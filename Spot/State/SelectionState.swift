@@ -7,7 +7,7 @@ import Foundation
 import Observation
 import SpotCore
 
-/// What is shown on the instrument: root, the selected scale/chord/interval and its position.
+/// What is shown on the instrument: root, the selected scale/chord/interval and its shape.
 @Observable
 final class SelectionState {
     var root: PitchClass = PitchClass(9) // A
@@ -15,8 +15,12 @@ final class SelectionState {
     var scale: ScaleDefinition
     var chord: ChordDefinition
     var interval: Degree = Degree(5)
-    /// Index of the selected scale position (3-notes-per-string shape for now).
-    var position: Int = 0
+    var fretboard = Fretboard()
+    /// Index into `shapes`; wraps, so it survives switching to a scale with fewer positions.
+    var shapeIndex: Int = 0
+    
+    // Generated shapes, keyed by what they depend on. Chord voicings depend on the root.
+    @ObservationIgnored private var shapeCache: [String: [Shape]] = [:]
 
     init(scale: ScaleDefinition, chord: ChordDefinition) {
         self.scale = scale
@@ -75,5 +79,42 @@ final class SelectionState {
 
     func transposeRoot(by semitones: Int) {
         root = root.transposed(by: semitones)
+    }
+    
+    /// Positions for the selected scale, or voicings for the selected chord.
+    var shapes: [Shape] {
+        let key: String
+        switch kind {
+        case .scale: key = "\(fretboard.tuning.id):\(scale.id)"
+        case .chord: key = "\(fretboard.tuning.id):\(chord.id):\(root.value)"
+        case .interval: return []
+        }
+        
+        if let cached = shapeCache[key] {
+            return cached
+        }
+        
+        let shapes = kind == .scale
+            ? ShapeGenerator.scalePositions(scale, fretboard: fretboard)
+            : ShapeGenerator.chordVoicings(chord, root: root, fretboard: fretboard)
+        shapeCache[key] = shapes
+        return shapes
+    }
+    
+    var currentShapeIndex: Int? {
+        let count = shapes.count
+        return count == 0 ? nil : ((shapeIndex % count) + count) % count
+    }
+    
+    var currentShape: Shape? {
+        currentShapeIndex.map { shapes[$0] }
+    }
+    
+    func nextShape() {
+        shapeIndex = (currentShapeIndex ?? -1) + 1
+    }
+    
+    func previousShape() {
+        shapeIndex = (currentShapeIndex ?? 1) - 1
     }
 }

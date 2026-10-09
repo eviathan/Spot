@@ -16,10 +16,36 @@ struct LibraryDetailView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            Text(selection.title)
-                .font(.title)
-                .frame(maxHeight: .infinity)
-            
+            VStack(spacing: 12) {
+                Text(selection.title)
+                    .font(.title)
+
+                if let shape = selection.currentShape, let index = selection.currentShapeIndex {
+                    HStack(spacing: 12) {
+                        Button(action: selection.previousShape) {
+                            Image(systemName: "chevron.left")
+                        }
+                        .buttonStyle(.plain)
+                        .help("Previous shape (⌘[)")
+
+                        VStack(spacing: 2) {
+                            Text(shape.name)
+                            Text("\(shape.system) · \(index + 1) of \(selection.shapes.count)")
+                                .font(.caption)
+                                .opacity(0.6)
+                        }
+                        .frame(minWidth: 260)
+
+                        Button(action: selection.nextShape) {
+                            Image(systemName: "chevron.right")
+                        }
+                        .buttonStyle(.plain)
+                        .help("Next shape (⌘])")
+                    }
+                }
+            }
+            .frame(maxHeight: .infinity)
+
 //            VStack {
 //                Text("Library Detail View")
                 

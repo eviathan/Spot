@@ -52,12 +52,11 @@ struct SpotApp: App {
         .windowStyle(.hiddenTitleBar)
         .windowToolbarStyle(UnifiedWindowToolbarStyle(showsTitle: false))
         .commands {
-            // TODO: Replace with previous/next shape once shapes exist (Plan.md, Library v2)
-            CommandMenu("Position") {
-                ForEach(0..<ThreeNotePerString.positionCount, id: \.self) { position in
-                    Button("Position \(position + 1)") { selection.position = position }
-                        .keyboardShortcut(KeyEquivalent(Character(String(position + 1))))
-                }
+            CommandMenu("Shape") {
+                Button("Next Shape") { selection.nextShape() }
+                    .keyboardShortcut("]", modifiers: [.command])
+                Button("Previous Shape") { selection.previousShape() }
+                    .keyboardShortcut("[", modifiers: [.command])
             }
 
             CommandGroup(before: .toolbar) {
@@ -65,16 +64,16 @@ struct SpotApp: App {
                     display.hideUnrelatedNotes.toggle()
                 }
                 .keyboardShortcut("U", modifiers: [.command])
-                Button("Toggle Position Isolation") {
+                Button("Toggle Shape Isolation") {
                     display.isolatePosition.toggle()
                 }
                 .keyboardShortcut("I", modifiers: [.command])
-                Button("Toggle Highlight All Positions") {
+                Button("Toggle Highlight All Shapes") {
                     display.highlightAllPositions.toggle()
                 }
                 .keyboardShortcut("O", modifiers: [.command])
-                Button("Toggle Label Mode") {
-                    display.showIntervalLabels.toggle()
+                Button("Cycle Labels (Interval / Note / Finger)") {
+                    display.markerLabel = display.markerLabel.next
                 }
                 .keyboardShortcut("L", modifiers: [.command])
             }

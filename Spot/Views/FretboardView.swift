@@ -14,7 +14,9 @@ struct FretboardView: View {
 
     @State private var guitarOpacity: CGFloat = 0.3
 
-    var fretboard = Fretboard()
+    private var fretboard: Fretboard {
+        selection.fretboard
+    }
 
     let markerSize: CGFloat = 0.7 // TODO: Calculate this
 
@@ -154,16 +156,11 @@ struct FretboardView: View {
     func drawMarkers(width: CGFloat, height: CGFloat, fretSpacing: CGFloat, stringSpacing: CGFloat) -> some View {
         let size = min(fretSpacing, stringSpacing) * markerSize
 
-        let positionFilter = selection.kind == .scale
-            ? ThreeNotePerString.positions(scale: selection.scale, root: selection.root,
-                                           position: selection.position, fretboard: fretboard)
-            : nil
-
         let markers = FretMarker.build(fretboard: fretboard,
                                        root: selection.spelledRoot,
                                        formula: selection.formula,
                                        key: selection.key,
-                                       positionFilter: positionFilter)
+                                       shape: selection.currentShape?.positions(root: selection.root, on: fretboard))
 
         return ForEach(markers) { marker in
             let isHighlighted = display.highlightAllPositions || marker.isInPosition
@@ -172,13 +169,21 @@ struct FretboardView: View {
                 : !display.hideUnrelatedNotes || marker.isInCollection
 
             FretMarkerView(marker: marker,
-                           label: display.showIntervalLabels ? marker.intervalName : marker.noteName.description,
+                           label: label(for: marker),
                            isHighlighted: isHighlighted,
                            size: size,
                            onSelect: { selection.root = marker.pitchClass })
                 .position(x: (CGFloat(marker.position.fret) * fretSpacing - fretSpacing / 2) + fretSpacing,
                           y: y(forString: marker.position.string, stringSpacing: stringSpacing))
                 .opacity(isVisible ? 1 : 0)
+        }
+    }
+
+    private func label(for marker: FretMarker) -> String {
+        switch display.markerLabel {
+        case .interval: return marker.intervalName
+        case .note: return marker.noteName.description
+        case .finger: return marker.finger.map(String.init) ?? marker.intervalName
         }
     }
 

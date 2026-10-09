@@ -44,71 +44,11 @@ final class FretboardTests: XCTestCase {
         XCTAssertEqual(fretboard.positions(of: PitchClass(4)).count, 14)                           // every E
     }
 
-    func testThreeNotePerStringMatchesOriginalPattern() throws {
-        let library = try LibraryBundle.builtIn()
-        let major = try XCTUnwrap(library.scales.first { $0.id == "builtin.scale.major" })
-        let dorian = try XCTUnwrap(library.scales.first { $0.id == "builtin.scale.dorian" })
-        let fretboard = Fretboard()
-
-        // E major, position 1: low E string plays frets 0 2 4 (and 12 14 16, 24)
-        let positions = try XCTUnwrap(ThreeNotePerString.positions(scale: major, root: PitchClass(4), position: 0, fretboard: fretboard))
-        let lowString = Set(positions.filter { $0.string == 0 }.map(\.fret))
-        XCTAssertEqual(lowString, [0, 2, 4, 12, 14, 16, 24])
-        let highString = Set(positions.filter { $0.string == 5 }.map(\.fret))
-        XCTAssertEqual(highString, [2, 4, 5, 14, 16, 17])
-
-        // F# Dorian position 1 is the same frets as E major position 2
-        XCTAssertEqual(
-            ThreeNotePerString.positions(scale: dorian, root: PitchClass(6), position: 0, fretboard: fretboard),
-            ThreeNotePerString.positions(scale: major, root: PitchClass(4), position: 1, fretboard: fretboard)
-        )
-
-        // Wraps past the 7th position instead of crashing
-        XCTAssertNotNil(ThreeNotePerString.positions(scale: dorian, root: PitchClass(0), position: 6, fretboard: fretboard))
-    }
-
-    /// Every highlighted note is in the scale, for every major mode, root and position.
-    /// (The original app shifted mode shapes from the mode's root, so A Dorian showed A major's notes.)
-    func testThreeNotePerStringOnlyHighlightsScaleNotes() throws {
-        let library = try LibraryBundle.builtIn()
-        let fretboard = Fretboard()
-        let modes = library.scales.filter { ThreeNotePerString.majorModeDegree(of: $0) != nil }
-        XCTAssertEqual(modes.count, 7)
-
-        for scale in modes {
-            for root in 0..<12 {
-                for position in 0..<ThreeNotePerString.positionCount {
-                    let positions = try XCTUnwrap(ThreeNotePerString.positions(scale: scale, root: PitchClass(root), position: position, fretboard: fretboard))
-                    XCTAssertEqual(positions.filter { $0.fret < 12 }.count, 18, "\(scale.name) root \(root) position \(position)")
-                    for fretPosition in positions {
-                        let offset = fretboard.pitchClass(at: fretPosition).semitones(above: PitchClass(root))
-                        XCTAssertTrue(scale.formula.pitchClassOffsets.contains(offset),
-                                      "\(scale.name) root \(root) position \(position): \(fretPosition)")
-                    }
-                }
-            }
-        }
-
-        // A Dorian, position 1 starts on A (low E string, 5th fret)
-        let dorian = try XCTUnwrap(modes.first { $0.id == "builtin.scale.dorian" })
-        let aDorian = try XCTUnwrap(ThreeNotePerString.positions(scale: dorian, root: PitchClass(9), position: 0, fretboard: fretboard))
-        XCTAssertEqual(Set(aDorian.filter { $0.string == 0 && $0.fret < 12 }.map(\.fret)), [5, 7, 8])
-    }
-
-    func testNoPatternForOtherScalesOrTunings() throws {
-        let library = try LibraryBundle.builtIn()
-        let major = try XCTUnwrap(library.scales.first { $0.id == "builtin.scale.major" })
-        let blues = try XCTUnwrap(library.scales.first { $0.id == "builtin.scale.blues" })
-
-        XCTAssertNil(ThreeNotePerString.positions(scale: blues, root: PitchClass(0), position: 0, fretboard: Fretboard()))
-        XCTAssertNil(ThreeNotePerString.positions(scale: major, root: PitchClass(0), position: 0, fretboard: Fretboard(tuning: .dropD)))
-    }
-
     func testMarkers() throws {
         let fretboard = Fretboard()
         let root = SpelledNote("D")!
         let markers = FretMarker.build(fretboard: fretboard, root: root, formula: Formula("1 2 3 4 5 6 7")!,
-                                       key: Key(root, .major), positionFilter: nil)
+                                       key: Key(root, .major), shape: nil)
 
         XCTAssertEqual(markers.count, fretboard.allPositions.count)
 
@@ -130,7 +70,7 @@ final class FretboardTests: XCTestCase {
     func testChordMarkersUseCompoundDegrees() throws {
         let root = SpelledNote("C")!
         let markers = FretMarker.build(fretboard: Fretboard(), root: root, formula: Formula("1 3 5 b7 #9")!,
-                                       key: Key(root, .major), positionFilter: [])
+                                       key: Key(root, .major), shape: [:])
 
         // Low E string, 3rd fret: G, the 5th;
         // A string, 6th fret: D#, the #9 (spelled from the chord, not the key)
