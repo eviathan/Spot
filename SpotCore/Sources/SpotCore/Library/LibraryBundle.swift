@@ -12,7 +12,6 @@ public enum LibraryBundleError: Error, Equatable {
 }
 
 /// The import/export format (`.spotlib`), also used for the built-in library.
-/// Tunings and shapes are added in a later format version.
 public struct LibraryBundle: Hashable, Codable, Sendable {
     public static let formatIdentifier = "spot.library"
     public static let currentVersion = 1
@@ -34,13 +33,50 @@ public struct LibraryBundle: Hashable, Codable, Sendable {
     public var bundle: Info
     public var scales: [ScaleDefinition]
     public var chords: [ChordDefinition]
+    /// Shapes for definitions in this bundle or in the built-in library.
+    public var shapes: [Shape]
+    public var tunings: [Tuning]
 
-    public init(bundle: Info, scales: [ScaleDefinition] = [], chords: [ChordDefinition] = []) {
+    public init(bundle: Info, scales: [ScaleDefinition] = [], chords: [ChordDefinition] = [],
+                shapes: [Shape] = [], tunings: [Tuning] = []) {
         self.format = LibraryBundle.formatIdentifier
         self.version = LibraryBundle.currentVersion
         self.bundle = bundle
         self.scales = scales
         self.chords = chords
+        self.shapes = shapes
+        self.tunings = tunings
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case format, version, bundle, scales, chords, shapes, tunings
+    }
+
+    // Every list is optional in files, so a bundle can hold just chords, or just shapes
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        format = try container.decode(String.self, forKey: .format)
+        version = try container.decode(Int.self, forKey: .version)
+        bundle = try container.decode(Info.self, forKey: .bundle)
+        scales = try container.decodeIfPresent([ScaleDefinition].self, forKey: .scales) ?? []
+        chords = try container.decodeIfPresent([ChordDefinition].self, forKey: .chords) ?? []
+        shapes = try container.decodeIfPresent([Shape].self, forKey: .shapes) ?? []
+        tunings = try container.decodeIfPresent([Tuning].self, forKey: .tunings) ?? []
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(format, forKey: .format)
+        try container.encode(version, forKey: .version)
+        try container.encode(bundle, forKey: .bundle)
+        try container.encode(scales, forKey: .scales)
+        try container.encode(chords, forKey: .chords)
+        if !shapes.isEmpty {
+            try container.encode(shapes, forKey: .shapes)
+        }
+        if !tunings.isEmpty {
+            try container.encode(tunings, forKey: .tunings)
+        }
     }
 
     public static func decode(from data: Data) throws -> LibraryBundle {
@@ -80,7 +116,7 @@ public struct LibraryBundle: Hashable, Codable, Sendable {
     public func validate() -> [String] {
         var issues: [String] = []
 
-        let ids = scales.map(\.id) + chords.map(\.id)
+        let ids = scales.map(\.id) + chords.map(\.id) + shapes.map(\.id)
         for (id, count) in Dictionary(grouping: ids, by: { $0 }).mapValues(\.count) where count > 1 {
             issues.append("Duplicate id \(id)")
         }
@@ -118,6 +154,24 @@ public struct LibraryBundle: Hashable, Codable, Sendable {
             }
             for degree in chord.optional where !chord.formula.degrees.contains(degree) {
                 issues.append("\(chord.id): optional degree \(degree) is not in the formula")
+            }
+        }
+
+        // Shapes may belong to definitions elsewhere (e.g. built-in ones); check those in this bundle
+        let formulas = Dictionary(scales.map { ($0.id, $0.formula) } + chords.map { ($0.id, $0.formula) },
+                                  uniquingKeysWith: { first, _ in first })
+        for shape in shapes {
+            if shape.notes.isEmpty {
+                issues.append("\(shape.id): shape has no notes")
+            }
+            if shape.notes.contains(where: { $0.string < 0 }) {
+                issues.append("\(shape.id): negative string number")
+            }
+            if let formula = formulas[shape.definitionId] {
+                let offsets = formula.pitchClassOffsets
+                if shape.notes.contains(where: { !offsets.contains($0.degree.pitchClassOffset) }) {
+                    issues.append("\(shape.id): has notes outside \(shape.definitionId)")
+                }
             }
         }
 

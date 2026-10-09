@@ -74,6 +74,7 @@ struct LibraryTabView: View {
     /// Filter and sort options for the left sidebar.
     var sidebarItems: [TreeItem] {
         let showAll = library.kindFilter == nil && library.familyFilter == nil && !library.favouritesOnly
+            && library.tagFilter == nil && library.sourceFilter == nil
         
         let show = TreeItem(name: "Show", type: .folder, children: [
             TreeItem(name: "Everything", type: .item, isSelected: showAll) { library.clearFilters() },
@@ -104,8 +105,24 @@ struct LibraryTabView: View {
             TreeItem(name: "Name", type: .item, isSelected: library.sortOrder == .name) { library.sortOrder = .name },
         ])
         
-        // TODO: Tags section once tags can be added (Plan.md, step 4d)
-        return [show, families, sort]
+        let sources = TreeItem(name: "Source", type: .folder, children: library.sources.map { source in
+            TreeItem(name: source.description, type: .item, isSelected: library.sourceFilter == source) {
+                library.sourceFilter = library.sourceFilter == source ? nil : source
+            }
+        })
+        
+        var sections = [show, families]
+        if !library.allTags.isEmpty {
+            sections.append(TreeItem(name: "Tags", type: .folder, children: library.allTags.map { tag in
+                TreeItem(name: tag, type: .item, isSelected: library.tagFilter == tag) {
+                    library.tagFilter = library.tagFilter == tag ? nil : tag
+                }
+            }))
+        }
+        if library.sources.count > 1 {
+            sections.append(sources)
+        }
+        return sections + [sort]
     }
     
     func onSelect(_ entry: LibraryEntry) {

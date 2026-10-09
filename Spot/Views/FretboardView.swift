@@ -156,23 +156,36 @@ struct FretboardView: View {
     func drawMarkers(width: CGFloat, height: CGFloat, fretSpacing: CGFloat, stringSpacing: CGFloat) -> some View {
         let size = min(fretSpacing, stringSpacing) * markerSize
 
+        // While drawing a shape, show the draft and let clicks add or remove notes
+        let isDrawing = selection.shapeDraft != nil
+        let shape = isDrawing ? selection.draftPositions : selection.currentShape?.positions(root: selection.root, on: fretboard)
+        
         let markers = FretMarker.build(fretboard: fretboard,
                                        root: selection.spelledRoot,
                                        formula: selection.formula,
                                        key: selection.key,
-                                       shape: selection.currentShape?.positions(root: selection.root, on: fretboard))
-
+                                       shape: shape)
+        
         return ForEach(markers) { marker in
-            let isHighlighted = display.highlightAllPositions || marker.isInPosition
-            let isVisible = display.isolatePosition
+            let isHighlighted = (display.highlightAllPositions && !isDrawing) || marker.isInPosition
+            let isVisible = display.isolatePosition && !isDrawing
                 ? isHighlighted
                 : !display.hideUnrelatedNotes || marker.isInCollection
-
+            
             FretMarkerView(marker: marker,
                            label: label(for: marker),
                            isHighlighted: isHighlighted,
                            size: size,
-                           onSelect: { selection.root = marker.pitchClass })
+                           onSelect: {
+                               if isDrawing {
+                                   selection.toggleDraftNote(at: marker.position)
+                               } else {
+                                   selection.root = marker.pitchClass
+                               }
+                           },
+                           onSetFinger: isDrawing && marker.isInPosition
+                               ? { selection.setDraftFinger($0, at: marker.position) }
+                               : nil)
                 .position(x: (CGFloat(marker.position.fret) * fretSpacing - fretSpacing / 2) + fretSpacing,
                           y: y(forString: marker.position.string, stringSpacing: stringSpacing))
                 .opacity(isVisible ? 1 : 0)
@@ -203,6 +216,8 @@ private struct FretMarkerView: View {
     let isHighlighted: Bool
     let size: CGFloat
     let onSelect: () -> Void
+    /// Set while drawing a shape: right-click to choose a finger (nil = suggest).
+    var onSetFinger: ((Int?) -> Void)? = nil
 
     var body: some View {
         let baseColor = marker.isOpenString ? theme.openMarkerColor : theme.defaultMarkerColor
@@ -227,6 +242,16 @@ private struct FretMarkerView: View {
             .onHover { hovering in
                 withAnimation(.easeInOut(duration: 0.2)) {
                     isHovered = hovering
+                }
+            }
+            .contextMenu {
+                if let onSetFinger {
+                    Button("Suggest finger") { onSetFinger(nil) }
+                    Divider()
+                    Button("Open string (0)") { onSetFinger(0) }
+                    ForEach(1...4, id: \.self) { finger in
+                        Button("Finger \(finger)") { onSetFinger(finger) }
+                    }
                 }
             }
     }

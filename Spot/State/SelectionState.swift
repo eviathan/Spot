@@ -20,6 +20,16 @@ final class SelectionState {
         }
     }
     
+    /// A shape being drawn on the fretboard (see `startNewShape`).
+    struct ShapeDraft {
+        var editingId: String?
+        var name: String
+        var system: String
+        var kind: ShapeKind
+        /// Positions in the shape, with a finger if one was set by hand (nil means suggest one).
+        var notes: [FretPosition: Int?]
+    }
+    
     var root: PitchClass = PitchClass(9) { // A
         didSet { scaleContext = nil }
     }
@@ -34,12 +44,17 @@ final class SelectionState {
     /// Show only one kind of shape ("CAGED", "Drop 2"...), remembered separately for scales and chords.
     var shapeSystemFilter: [LibraryEntryKind: String] = [:]
     
+    var shapeDraft: ShapeDraft?
+    
+    let library: LibraryStore
+    
     // Generated shapes, keyed by what they depend on. Chord voicings depend on the root.
     @ObservationIgnored private var shapeCache: [String: [Shape]] = [:]
 
-    init(scale: ScaleDefinition, chord: ChordDefinition) {
+    init(scale: ScaleDefinition, chord: ChordDefinition, library: LibraryStore) {
         self.scale = scale
         self.chord = chord
+        self.library = library
     }
 
     var formula: Formula {
@@ -86,6 +101,12 @@ final class SelectionState {
         }
     }
 
+    /// Re-reads the selected definitions after they were edited, or falls back if one was deleted.
+    func refreshDefinitions() {
+        if let updated = library.scale(scale.id) { scale = updated } else { scale = library.scales[0] }
+        if let updated = library.chord(chord.id) { chord = updated } else { chord = library.chords[0] }
+    }
+    
     func select(_ entry: LibraryEntry, in library: LibraryStore) {
         switch entry.kind {
         case .scale:
@@ -100,6 +121,7 @@ final class SelectionState {
         }
         kind = entry.kind
         scaleContext = nil
+        shapeDraft = nil
     }
 
     /// Selects one of the chords built on the current scale, rooted on its scale degree.
@@ -109,6 +131,7 @@ final class SelectionState {
         self.chord = chord
         kind = .chord
         scaleContext = context
+        shapeDraft = nil
     }
     
     func isSelected(_ diatonic: DiatonicChord) -> Bool {
@@ -152,11 +175,18 @@ final class SelectionState {
         }
     }
     
+    /// Your shapes first, then generated ones.
     private var allShapes: [Shape] {
+        guard kind != .interval else { return [] }
+        return library.userShapes(for: selectedId, tuningId: fretboard.tuning.id) + generatedShapes
+    }
+    
+    private var generatedShapes: [Shape] {
+        // The formula is part of the key so editing a definition regenerates its shapes
         let key: String
         switch kind {
-        case .scale: key = "\(fretboard.tuning.id):\(scale.id)"
-        case .chord: key = "\(fretboard.tuning.id):\(chord.id):\(root.value)"
+        case .scale: key = "\(fretboard.tuning.id):\(scale.id):\(scale.formula)"
+        case .chord: key = "\(fretboard.tuning.id):\(chord.id):\(chord.formula):\(chord.optional.sorted()):\(root.value)"
         case .interval: return []
         }
         
@@ -186,5 +216,102 @@ final class SelectionState {
     
     func previousShape() {
         shapeIndex = (currentShapeIndex ?? 1) - 1
+    }
+    
+    // MARK: - Drawing shapes
+    
+    /// Starts drawing a shape on the fretboard, empty or as a copy of the current shape.
+    func startNewShape(copyingCurrent: Bool) {
+        var notes: [FretPosition: Int?] = [:]
+        if copyingCurrent, let placement = currentShape?.placements(root: root, on: fretboard).first {
+            for (position, note) in placement {
+                notes[position] = .some(nil)
+                // Keep fingers that were set by hand on the original
+                if currentShape.map({ library.isUserShape($0.id) }) == true {
+                    notes[position] = .some(note.finger)
+                }
+            }
+        }
+        let name = copyingCurrent ? (currentShape?.name ?? "My shape") : "My shape"
+        shapeDraft = ShapeDraft(editingId: nil, name: name, system: "Mine",
+                                kind: kind == .chord ? .chord : .scale, notes: notes)
+    }
+    
+    /// Edits the current shape, if it's one of yours.
+    func editCurrentShape() {
+        guard let shape = currentShape, library.isUserShape(shape.id),
+              let placement = shape.placements(root: root, on: fretboard).first else { return }
+        var notes: [FretPosition: Int?] = [:]
+        let base = placement.keys.map(\.fret).min()! - shape.notes.map(\.fret).min()!
+        for note in shape.notes {
+            notes[FretPosition(string: note.string, fret: note.fret + base)] = .some(note.finger)
+        }
+        shapeDraft = ShapeDraft(editingId: shape.id, name: shape.name, system: shape.system, kind: shape.kind, notes: notes)
+    }
+    
+    func cancelShapeDraft() {
+        shapeDraft = nil
+    }
+    
+    /// Adds or removes a note. Only notes of the selected scale or chord can be added.
+    func toggleDraftNote(at position: FretPosition) {
+        guard shapeDraft != nil else { return }
+        if shapeDraft!.notes[position] != nil {
+            shapeDraft!.notes[position] = nil
+        } else if degree(at: position) != nil {
+            shapeDraft!.notes[position] = .some(nil)
+        }
+    }
+    
+    /// Sets the finger for a note in the draft; nil goes back to a suggested finger.
+    func setDraftFinger(_ finger: Int?, at position: FretPosition) {
+        guard shapeDraft?.notes[position] != nil else { return }
+        shapeDraft!.notes[position] = .some(finger)
+    }
+    
+    /// The draft as a shape, with frets relative to the root like any other shape.
+    var draftShape: Shape? {
+        guard let draft = shapeDraft, !draft.notes.isEmpty else { return nil }
+        let rootFret = Shape.rootFret(root, on: fretboard)
+        let notes = draft.notes.compactMap { position, finger -> ShapeNote? in
+            guard let degree = degree(at: position) else { return nil }
+            return ShapeNote(string: position.string, fret: position.fret - rootFret, degree: degree, finger: finger)
+        }
+        .sorted { ($0.string, $0.fret) < ($1.string, $1.fret) }
+        
+        return Shape(id: draft.editingId ?? LibraryStore.newUserId(),
+                     definitionId: selectedId,
+                     kind: draft.kind,
+                     system: draft.system.trimmingCharacters(in: .whitespaces).isEmpty ? "Mine" : draft.system,
+                     name: draft.name,
+                     tuningId: fretboard.tuning.id,
+                     notes: notes)
+    }
+    
+    /// The draft's notes where they sit on the fretboard, with suggested fingers filled in.
+    var draftPositions: [FretPosition: ShapeNote]? {
+        guard let draft = shapeDraft else { return nil }
+        guard let shape = draftShape else { return [:] }
+        let wanted = Set(draft.notes.keys)
+        return shape.placements(root: root, on: fretboard).first { Set($0.keys) == wanted } ?? [:]
+    }
+    
+    /// Saves the draft and shows it.
+    func saveShapeDraft() {
+        guard let shape = draftShape else { return }
+        library.save(shape)
+        shapeDraft = nil
+        shapeSystemFilter[kind] = nil
+        shapeIndex = shapes.firstIndex { $0.id == shape.id } ?? 0
+    }
+    
+    func deleteCurrentShape() {
+        guard let shape = currentShape, library.isUserShape(shape.id) else { return }
+        library.deleteShape(shape.id)
+    }
+    
+    private func degree(at position: FretPosition) -> Degree? {
+        let offset = fretboard.pitchClass(at: position).semitones(above: root)
+        return formula.degrees.first { $0.pitchClassOffset == offset }
     }
 }

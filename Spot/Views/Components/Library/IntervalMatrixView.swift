@@ -19,7 +19,7 @@ struct IntervalMatrixView: View {
 
     private var chords: [DiatonicChord] {
         guard let source = selection.chordSourceScale else { return [] }
-        return DiatonicChords.build(scale: source.scale.formula, size: useSevenths ? 4 : 3, chords: library.bundle.chords)
+        return DiatonicChords.build(scale: source.scale.formula, size: useSevenths ? 4 : 3, chords: library.chords)
     }
 
     func drawMarker(_ label: String, markerColor: Color) -> some View {

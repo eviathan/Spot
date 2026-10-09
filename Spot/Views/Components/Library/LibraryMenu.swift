@@ -69,6 +69,22 @@ struct LibraryMenu: View {
             
             Spacer()
             
+            Menu {
+                Button("New Scale…") { ui.definitionEditor = .new(.scale) }
+                Button("New Chord…") { ui.definitionEditor = .new(.chord) }
+                Divider()
+                Button("Import Library…") { ui.isImporting = true }
+                Button("Export Library…") { ui.isChoosingExport = true }
+            } label: {
+                Image(systemName: "plus")
+                    .imageScale(.large)
+                    .foregroundColor(.white)
+            }
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .frame(width: 30)
+            .help("New scale or chord, import or export")
+
             Button(action: {ui.displayRightSidebar.toggle()}) {
                 Image(systemName: "sidebar.right")
                     .imageScale(.large)

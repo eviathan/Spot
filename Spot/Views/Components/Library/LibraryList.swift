@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct LibraryList: View {
+    @Environment(UIState.self) private var ui
+    @Environment(SelectionState.self) private var selection
+    
     var library: LibraryStore
     var selectedId: String
     var onSelect: (_ entry: LibraryEntry) -> Void
@@ -22,6 +25,7 @@ struct LibraryList: View {
                             isFavourite: library.isFavourite(entry.id),
                             onToggleFavourite: { library.toggleFavourite(entry.id) },
                             onSelect: onSelect)
+                .contextMenu { menu(for: entry) }
         }
         .padding(0)
         .scrollIndicators(.never)
@@ -29,7 +33,34 @@ struct LibraryList: View {
         .listRowSeparator(.hidden)
         .frame(maxWidth: .infinity)
     }
+    
+    @ViewBuilder
+    private func menu(for entry: LibraryEntry) -> some View {
+        Button(library.isFavourite(entry.id) ? "Remove from Favourites" : "Add to Favourites") {
+            library.toggleFavourite(entry.id)
+        }
+        
+        if entry.kind != .interval {
+            Divider()
+            if entry.isEditable {
+                Button("Edit…") { ui.definitionEditor = .edit(entry.id) }
+            }
+            Button(entry.isEditable ? "Duplicate" : "Duplicate to Edit…") {
+                if let copy = library.duplicate(entry.id) {
+                    ui.definitionEditor = .edit(copy)
+                }
+            }
+            if entry.isEditable {
+                Divider()
+                Button("Delete", role: .destructive) {
+                    library.deleteDefinition(entry.id)
+                    selection.refreshDefinitions()
+                }
+            }
+        }
+    }
 }
+
 
 struct LibraryListItem: View {
     @State var isHovered: Bool = false
