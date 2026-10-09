@@ -79,11 +79,11 @@ public enum ChordType: String, CaseIterable, CustomStringConvertible, Hashable, 
         case .Maj: return [.I, .III, .V]
         case .Add4: return [.I, .III, .IV, .V]
         case .Sixth: return [.I, .III, .V, .VI]
-        case .SixNine: return [.I, .III, .V, .IX]
+        case .SixNine: return [.I, .III, .V, .VI, .IX]
         case .Maj7: return [.I, .III, .V, .VII]
         case .Maj9: return [.I, .III, .V, .VII, .IX]
         case .Maj11: return [.I, .III, .V, .VII, .IX, .XI]
-        case .Maj13: return [.I, .III, .V, .VI, .IX, .XI, .XIII]
+        case .Maj13: return [.I, .III, .V, .VII, .IX, .XI, .XIII]
         case .Maj7Sharp11: return [.I, .III, .V, .VII, .bXII]
         case .Majb5: return [.I, .III, .TT]
             
@@ -110,8 +110,8 @@ public enum ChordType: String, CaseIterable, CustomStringConvertible, Hashable, 
         case .Dom13: return [.I, .III, .V, .bVII, .IX, .XI, .XIII]
         case .Dom7Sharp5: return [.I, .III, .bVI, .bVII]
         case .Dom7b5: return [.I, .III, .TT, .bVII]
-        case .Dom7Sharp9: return [.I, .III, .V, .bVII, .bIX]
-        case .Dom7b9: return [.I, .III, .V, .bX]
+        case .Dom7Sharp9: return [.I, .III, .V, .bVII, .bX]
+        case .Dom7b9: return [.I, .III, .V, .bVII, .bIX]
         case .Dom9Sharp5: return [.I, .III, .bVI, .bVII, .IX]
         case .Dom9b5: return [.I, .III, .TT, .bVII, .IX]
         case .Dom7Sharp5Sharp9: return [.I, .III, .bVI, .bVII, .bX]
@@ -122,8 +122,8 @@ public enum ChordType: String, CaseIterable, CustomStringConvertible, Hashable, 
             
         // Symmetrical
         case .Aug: return [.I, .III, .bVI]
-        case .Dim: return [.I, .bIII, .bVI]
-        case .Dim7: return [.I, .bIII, .bVI, .bVII]
+        case .Dim: return [.I, .bIII, .TT]
+        case .Dim7: return [.I, .bIII, .TT, .VI] // .VI = bb7
             
         // Misc
         case .Fifth: return [.I, .V]

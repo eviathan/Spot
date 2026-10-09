@@ -13,7 +13,11 @@ class Library: ObservableObject {
     
     let fuse: Fuse = Fuse()
     
+    // Built once so per-item state (favourite, rating) survives searching
+    private let allItems: [LibraryItem]
+    
     init() {
+        allItems = Library.buildItems()
         refresh()
     }
     
@@ -22,7 +26,16 @@ class Library: ObservableObject {
     }
     
     func getItems() -> [LibraryItem] {
-         var output: [LibraryItem] = []
+        guard let query = query, !query.isEmpty else {
+            return allItems
+        }
+        
+        let results = fuse.searchSync(query, in: allItems, by: \LibraryItem.properties)
+        return results.map { result in allItems[result.index] }
+    }
+    
+    private static func buildItems() -> [LibraryItem] {
+        var output: [LibraryItem] = []
         
         for scale in ScaleType.allCases {
             let item = LibraryItem(name: scale.description, type: .Scale)
@@ -38,19 +51,10 @@ class Library: ObservableObject {
         
         output.append(contentsOf: getIntervals())
         
-        if(query == nil || query!.isEmpty) {
-            return output
-        }
-        
-        if let query = query, !query.isEmpty {
-            let results = fuse.searchSync(query, in: output, by: \LibraryItem.properties)
-            return results.map { result in output[result.index] }
-        }
-        
-        return []
+        return output
     }
     
-    private func getIntervals() -> [LibraryItem] {
+    private static func getIntervals() -> [LibraryItem] {
         return [
             LibraryItem(name: Interval.I.prettyName, type: .Interval),
             LibraryItem(name: Interval.bII.prettyName, type: .Interval),

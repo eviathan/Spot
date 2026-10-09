@@ -70,12 +70,12 @@ public enum ScaleType: String, CaseIterable, CustomStringConvertible, Hashable, 
         case .DorianSharp11: return [.I, .II, .bIII, .TT, .V, .VI, .bVII]
         case .PhrygianDominant: return [.I, .bII, .III, .IV, .V, .bVI, .bVII]
         case .LydianSharp2: return [.I, .bIII, .III, .TT, .V, .VI, .VII]
-        case .SuperLocrianbb7: return [.I, .bII, .bIII, .III, .TT, .bVI, .bVII]
+        case .SuperLocrianbb7: return [.I, .bII, .bIII, .III, .TT, .bVI, .VI] // .VI = bb7
             
         // Meoldic Minor (w/Modes)
         case .MelodicMinor: return [.I, .II, .bIII, .IV, .V, .VI, .VII]
         case .Dorianb2: return [.I, .bII, .bIII, .IV, .V, .VI, .bVII]
-        case .LydianAugmented: return [.I, .bII, .bIII, .TT, .bVI, .VI, .bVII]
+        case .LydianAugmented: return [.I, .II, .III, .TT, .bVI, .VI, .VII] // .bVI = #5
         case .LydianDominant: return [.I, .II, .III, .TT, .V, .VI, .bVII]
         case .Mixolydianb6: return [.I, .II, .III, .IV, .V, .bVI, .bVII]
         case .Aeolianb5: return [.I, .II, .bIII, .IV, .TT, .bVI, .bVII]
@@ -87,7 +87,7 @@ public enum ScaleType: String, CaseIterable, CustomStringConvertible, Hashable, 
         case .MinorPentatonic: return [.I, .bIII, .IV, .V, .bVII]
             
         // Blues
-        case .Blues: return [.I, .II, .III, .V, .VI]
+        case .Blues: return [.I, .bIII, .IV, .TT, .V, .bVII]
 //            do {
 //            switch style {
 //            case .Pentatonic: return [.I, .II, .III, .V, .VI]

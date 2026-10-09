@@ -146,7 +146,16 @@ struct FretboardView: View {
     
     func drawMarkers(viewModel: FretboardViewModel, width: CGFloat, height: CGFloat, fretSpacing: CGFloat, stringSpacing: CGFloat) -> some View {
         let minSpacing = min(fretSpacing, stringSpacing)
-        
+
+        let highlightedNotes = NoteService.getHighlightedNotesforScale(
+                pattern: 4,
+                variation: 0,
+                tuning: viewModel.tuning,
+                scale: viewModel.appState.selectedScale,
+                inversion: viewModel.appState.inversion,
+                selectedNote: viewModel.appState.selectedNote
+        )
+
         return ForEach(0..<viewModel.notes.count, id: \.self) { noteIndex in
             let note = viewModel.notes[noteIndex]
             
@@ -154,28 +163,18 @@ struct FretboardView: View {
                 let fret = note[fretIndex]
                 // TODO: Move this into the note service
                 
-                let noteInCollection: Bool = viewModel.appState.noteCollectionMode == .Chord
-                        ? viewModel.appState.selectedChord.intervals.contains(
-                            fret.getInterval(rootNote: viewModel.appState.selectedNote)
-                        )
-                        : viewModel.appState.selectedScale.intervals.contains(
-                            fret.getInterval(rootNote: viewModel.appState.selectedNote)
-                        )
-                
-                let isOpenString = fretIndex == 0
                 let noteInterval = fret.getInterval(rootNote: viewModel.appState.selectedNote)
+
+                // Compare by pitch class so compound intervals (9ths, 11ths, 13ths) match frets within the octave
+                let collectionIntervals = viewModel.appState.noteCollectionMode == .Chord
+                        ? viewModel.appState.selectedChord.intervals
+                        : viewModel.appState.selectedScale.intervals
+                let noteInCollection: Bool = collectionIntervals.contains { $0.noteIndex == noteInterval.noteIndex }
+
+                let isOpenString = fretIndex == 0
                 let x = (CGFloat(fretIndex) * fretSpacing - fretSpacing / 2) + fretSpacing
                 let y = CGFloat(noteIndex + 1) * stringSpacing
-                
-                let highlightedNotes = NoteService.getHighlightedNotesforScale(
-                        pattern: 4,
-                        variation: 0,
-                        tuning: viewModel.tuning,
-                        scale: viewModel.appState.selectedScale,
-                        inversion: viewModel.appState.inversion,
-                        selectedNote: viewModel.appState.selectedNote
-                )
-                
+
                 let isHighlighted = viewModel.appState.highlightedMode ||
                                     (highlightedNotes.isEmpty ||
                                      highlightedNotes[noteIndex]
