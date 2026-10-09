@@ -6,66 +6,75 @@
 //
 
 import SwiftUI
+import SwiftData
+import SpotCore
 
 @main
 struct SpotApp: App {
-    var appState = AppState()
-    
+    private let container: ModelContainer
+
+    @State private var library: LibraryStore
+    @State private var selection: SelectionState
+    @State private var display = DisplaySettings()
+    @State private var ui = UIState()
+    @State private var transport = TransportState()
+
     init() {
         NSWindow.allowsAutomaticWindowTabbing = false
+
+        let builtIn: LibraryBundle
+        do {
+            builtIn = try LibraryBundle.builtIn()
+            container = try ModelContainer(for: LibraryItemState.self, configurations: ModelConfiguration("Spot"))
+        } catch {
+            fatalError("Failed to start: \(error)")
+        }
+
+        let library = LibraryStore(bundle: builtIn, context: container.mainContext)
+        _library = State(initialValue: library)
+        _selection = State(initialValue: SelectionState(scale: builtIn.scales[0], chord: builtIn.chords[0]))
     }
 
     var body: some Scene {
         WindowGroup() {
             LayoutView()
                 .frame(minWidth: 1280, minHeight: 800)
-                .environmentObject(appState)
+                .environment(library)
+                .environment(selection)
+                .environment(display)
+                .environment(ui)
+                .environment(transport)
                 .toolbar {
                     Color.clear
                 }
         }
+        .modelContainer(container)
         .windowStyle(.hiddenTitleBar)
         .windowToolbarStyle(UnifiedWindowToolbarStyle(showsTitle: false))
         .commands {
-            // TODO: Move these state changes into a method on appState and call that instead
-             CommandMenu("Inversions") {
-                Button("Root Inversion") { appState.inversion = .Root }
-                 .keyboardShortcut("1")
-                 
-                Button("1st Inversion") { appState.inversion = .First }
-                 .keyboardShortcut("2")
-                 
-                Button("2nd Inversion") { appState.inversion = .Second }
-                 .keyboardShortcut("3")
-                 
-                Button("3rd Inversion") { appState.inversion = .Third }
-                 .keyboardShortcut("4")
-                 
-                Button("4th Inversion") {  appState.inversion = .Fourth }
-                 .keyboardShortcut("5")
-                 
-                Button("5th Inversion") {  appState.inversion = .Fifth }
-                 .keyboardShortcut("6")
-                 
-                Button("6th Inversion") {  appState.inversion = .Sixth }
-                 .keyboardShortcut("7")
-             }
-            
+            // TODO: Replace with previous/next shape once shapes exist (Plan.md, Library v2)
+            CommandMenu("Position") {
+                ForEach(0..<ThreeNotePerString.positionCount, id: \.self) { position in
+                    Button("Position \(position + 1)") { selection.position = position }
+                        .keyboardShortcut(KeyEquivalent(Character(String(position + 1))))
+                }
+            }
+
             CommandGroup(before: .toolbar) {
                 Button("Toggle Unrelated Notes") {
-                    appState.toggleHideUnrelatedNotes()
+                    display.hideUnrelatedNotes.toggle()
                 }
                 .keyboardShortcut("U", modifiers: [.command])
-                Button("Toggle Inversion Isolation") {
-                    appState.toggleIsolatedInversion()
+                Button("Toggle Position Isolation") {
+                    display.isolatePosition.toggle()
                 }
                 .keyboardShortcut("I", modifiers: [.command])
-                Button("Toggle Highlighted Mode") {
-                    appState.toggleHighlightedMode()
+                Button("Toggle Highlight All Positions") {
+                    display.highlightAllPositions.toggle()
                 }
                 .keyboardShortcut("O", modifiers: [.command])
                 Button("Toggle Label Mode") {
-                    appState.toggleShowIntervalMode()
+                    display.showIntervalLabels.toggle()
                 }
                 .keyboardShortcut("L", modifiers: [.command])
             }

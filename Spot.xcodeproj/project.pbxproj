@@ -7,57 +7,34 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		D301A30B2BCEFE38008BE4E8 /* ChordService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D301A3082BCEFE38008BE4E8 /* ChordService.swift */; };
-		D301A30F2BCEFE43008BE4E8 /* Chord.swift in Sources */ = {isa = PBXBuildFile; fileRef = D301A30C2BCEFE43008BE4E8 /* Chord.swift */; };
-		D301A3102BCEFE43008BE4E8 /* Scale.swift in Sources */ = {isa = PBXBuildFile; fileRef = D301A30D2BCEFE43008BE4E8 /* Scale.swift */; };
-		D301A3162BCEFE8B008BE4E8 /* Note.swift in Sources */ = {isa = PBXBuildFile; fileRef = D301A3122BCEFE8B008BE4E8 /* Note.swift */; };
-		D301A3172BCEFE8B008BE4E8 /* Interval.swift in Sources */ = {isa = PBXBuildFile; fileRef = D301A3132BCEFE8B008BE4E8 /* Interval.swift */; };
-		D301A3222BCEFEA6008BE4E8 /* Suspension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D301A31B2BCEFEA6008BE4E8 /* Suspension.swift */; };
-		D301A3232BCEFEA6008BE4E8 /* ChordStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D301A31C2BCEFEA6008BE4E8 /* ChordStyle.swift */; };
-		D301A3242BCEFEA6008BE4E8 /* Add.swift in Sources */ = {isa = PBXBuildFile; fileRef = D301A31D2BCEFEA6008BE4E8 /* Add.swift */; };
-		D301A3252BCEFEA6008BE4E8 /* Alter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D301A31E2BCEFEA6008BE4E8 /* Alter.swift */; };
-		D301A3262BCEFEA6008BE4E8 /* ChordType.swift in Sources */ = {isa = PBXBuildFile; fileRef = D301A31F2BCEFEA6008BE4E8 /* ChordType.swift */; };
-		D301A3272BCEFEA6008BE4E8 /* Secondary.swift in Sources */ = {isa = PBXBuildFile; fileRef = D301A3202BCEFEA6008BE4E8 /* Secondary.swift */; };
-		D301A3282BCEFEA6008BE4E8 /* Inversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = D301A3212BCEFEA6008BE4E8 /* Inversion.swift */; };
-		D301A32D2BCEFECE008BE4E8 /* ScaleType.swift in Sources */ = {isa = PBXBuildFile; fileRef = D301A32A2BCEFECE008BE4E8 /* ScaleType.swift */; };
-		D301A32E2BCEFECE008BE4E8 /* ScaleStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = D301A32B2BCEFECE008BE4E8 /* ScaleStyle.swift */; };
-		D301A32F2BCEFECE008BE4E8 /* Mode.swift in Sources */ = {isa = PBXBuildFile; fileRef = D301A32C2BCEFECE008BE4E8 /* Mode.swift */; };
-		D301A3322BCEFEDF008BE4E8 /* MajorModes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D301A3312BCEFEDF008BE4E8 /* MajorModes.swift */; };
-		D301A3352BCEFF89008BE4E8 /* Appendix.swift in Sources */ = {isa = PBXBuildFile; fileRef = D301A3332BCEFF89008BE4E8 /* Appendix.swift */; };
-		D301A3362BCEFF89008BE4E8 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = D301A3342BCEFF89008BE4E8 /* Constants.swift */; };
-		D301A3392BCEFFBC008BE4E8 /* CollectionExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D301A3382BCEFFBC008BE4E8 /* CollectionExtensions.swift */; };
+		762F3659F6BE4357846DB5EA /* TransportState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A3EDB932F974851A8CE3EF7 /* TransportState.swift */; };
+		7F90C76500B54948B61E19FB /* UIState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDF124A685A410191CC55E6 /* UIState.swift */; };
+		054F99A4C9EC411F84F9649A /* DisplaySettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995EF25E08304A528A305829 /* DisplaySettings.swift */; };
+		1B9870198ACC4C92B1BCBFBA /* SelectionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5D238723844955A634D844 /* SelectionState.swift */; };
+		F5926709CDBE4CBB9990692A /* LibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B448B4CAE39F456B9C5FBB61 /* LibraryStore.swift */; };
+		2A20822B6C8B4FF48800038A /* LibraryItemState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3DCAEAE2F6F4C71AD12B854 /* LibraryItemState.swift */; };
 		D31BA8772C3891E5003F678B /* RangePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31BA8762C3891E5003F678B /* RangePicker.swift */; };
-		D32AC5882BD24EA400F40B5B /* FretLabelType.swift in Sources */ = {isa = PBXBuildFile; fileRef = D32AC5872BD24EA400F40B5B /* FretLabelType.swift */; };
 		D34355062C375C6700059737 /* TreeMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34355052C375C6700059737 /* TreeMenuView.swift */; };
-		D34C10DF2C40327A004C3E86 /* Library.json in Resources */ = {isa = PBXBuildFile; fileRef = D34C10DE2C40327A004C3E86 /* Library.json */; };
 		D37E4C362C33FCBC00179A19 /* Transport.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C352C33FCBC00179A19 /* Transport.swift */; };
 		D37E4C382C34610300179A19 /* ModeSwitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C372C34610300179A19 /* ModeSwitcher.swift */; };
 		D37E4C3B2C346E7E00179A19 /* SequenceTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C3A2C346E7E00179A19 /* SequenceTabView.swift */; };
 		D37E4C3D2C346EA600179A19 /* LibraryTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C3C2C346EA600179A19 /* LibraryTabView.swift */; };
 		D37E4C412C34716D00179A19 /* TabViewType.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C402C34716D00179A19 /* TabViewType.swift */; };
 		D37E4C432C34777700179A19 /* EditorTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C422C34777700179A19 /* EditorTabView.swift */; };
-		D37E4C452C347D4400179A19 /* LibraryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C442C347D4400179A19 /* LibraryItem.swift */; };
 		D37E4C472C34BCA200179A19 /* LibraryMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C462C34BCA200179A19 /* LibraryMenu.swift */; };
-		D37E4C492C35517A00179A19 /* LegacyTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C482C35517A00179A19 /* LegacyTableView.swift */; };
 		D37E4C4B2C35944000179A19 /* LibraryDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C4A2C35944000179A19 /* LibraryDetailView.swift */; };
 		D37E4C4D2C359A5100179A19 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C4C2C359A5100179A19 /* Theme.swift */; };
-		D37E4C4F2C35A66E00179A19 /* Library.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C4E2C35A66E00179A19 /* Library.swift */; };
 		D3AA9B5B2BCD982E00C78DF3 /* SpotApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B5A2BCD982E00C78DF3 /* SpotApp.swift */; };
 		D3AA9B5D2BCD982E00C78DF3 /* SpotDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B5C2BCD982E00C78DF3 /* SpotDocument.swift */; };
 		D3AA9B612BCD983000C78DF3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D3AA9B602BCD983000C78DF3 /* Assets.xcassets */; };
 		D3AA9B642BCD983000C78DF3 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D3AA9B632BCD983000C78DF3 /* Preview Assets.xcassets */; };
 		D3AA9B6F2BCD9AAA00C78DF3 /* LayoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B6E2BCD9AAA00C78DF3 /* LayoutView.swift */; };
 		D3AA9B712BCD9D6F00C78DF3 /* FretboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B702BCD9D6F00C78DF3 /* FretboardView.swift */; };
-		D3AA9B732BCD9FBD00C78DF3 /* InstrumentType.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B722BCD9FBD00C78DF3 /* InstrumentType.swift */; };
 		D3AA9B772BCDA01B00C78DF3 /* InstrumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B762BCDA01B00C78DF3 /* InstrumentView.swift */; };
 		D3AA9B792BCDA06B00C78DF3 /* TabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B782BCDA06B00C78DF3 /* TabView.swift */; };
 		D3AA9B7B2BCDA08300C78DF3 /* Header.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B7A2BCDA08300C78DF3 /* Header.swift */; };
 		D3AA9B7D2BCDA08C00C78DF3 /* Footer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B7C2BCDA08C00C78DF3 /* Footer.swift */; };
-		D3AA9B7F2BCEF8AB00C78DF3 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B7E2BCEF8AB00C78DF3 /* AppState.swift */; };
 		D3B899D02C3AC5B90090E6D6 /* IntervalMatrixView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B899CF2C3AC5B90090E6D6 /* IntervalMatrixView.swift */; };
-		D3E1F5462BCDDACC00167D43 /* FretNote.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E1F5452BCDDACC00167D43 /* FretNote.swift */; };
-		D3E1F5492BCDDB2600167D43 /* FretboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E1F5482BCDDB2600167D43 /* FretboardViewModel.swift */; };
-		D3E1F54C2BCDDC9600167D43 /* NoteService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E1F54B2BCDDC9600167D43 /* NoteService.swift */; };
 		D3E653DE2C36238700401B60 /* Exts in Resources */ = {isa = PBXBuildFile; fileRef = D3E653C92C36238600401B60 /* Exts */; };
 		D3E653DF2C36238700401B60 /* FuseUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E653CA2C36238600401B60 /* FuseUtilities.swift */; };
 		D3E653E02C36238700401B60 /* Levenstain in Resources */ = {isa = PBXBuildFile; fileRef = D3E653CB2C36238600401B60 /* Levenstain */; };
@@ -82,40 +59,19 @@
 		D3F0DD282C36D2FE00AFDA6A /* LibraryList.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F0DD272C36D2FE00AFDA6A /* LibraryList.swift */; };
 		D3F0DD2C2C37102E00AFDA6A /* IntervalBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F0DD2B2C37102E00AFDA6A /* IntervalBannerView.swift */; };
 		D3F0DD2F2C3724AE00AFDA6A /* Dropdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3F0DD2E2C3724AE00AFDA6A /* Dropdown.swift */; };
-		D3FBC9742BD441F000A69646 /* NoteCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FBC9732BD441F000A69646 /* NoteCollection.swift */; };
-		D3FBC9772BD4493700A69646 /* ThreeNotePerStringFrettingPattern.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FBC9762BD4493700A69646 /* ThreeNotePerStringFrettingPattern.swift */; };
-		D3FBC9792BD45C5C00A69646 /* FrettingPattern.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FBC9782BD45C5C00A69646 /* FrettingPattern.swift */; };
-		D3FBC97B2BD5535B00A69646 /* NoteCollectionMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FBC97A2BD5535B00A69646 /* NoteCollectionMode.swift */; };
 		D3FBC9812BD57BCD00A69646 /* SpotCore in Frameworks */ = {isa = PBXBuildFile; productRef = D3FBC9802BD57BCD00A69646 /* SpotCore */; };
-		D3FBC9842BD57BF800A69646 /* DatabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3FBC9832BD57BF800A69646 /* DatabaseManager.swift */; };
 		D3FBC9872BD79C2B00A69646 /* Theme.json in Resources */ = {isa = PBXBuildFile; fileRef = D3FBC9862BD79C2B00A69646 /* Theme.json */; };
-		D3FBC98B2BD79C6F00A69646 /* FrettingPattern.json in Resources */ = {isa = PBXBuildFile; fileRef = D3FBC98A2BD79C6E00A69646 /* FrettingPattern.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		D301A3082BCEFE38008BE4E8 /* ChordService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChordService.swift; sourceTree = "<group>"; };
-		D301A30C2BCEFE43008BE4E8 /* Chord.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Chord.swift; sourceTree = "<group>"; };
-		D301A30D2BCEFE43008BE4E8 /* Scale.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Scale.swift; sourceTree = "<group>"; };
-		D301A3122BCEFE8B008BE4E8 /* Note.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Note.swift; sourceTree = "<group>"; };
-		D301A3132BCEFE8B008BE4E8 /* Interval.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Interval.swift; sourceTree = "<group>"; };
-		D301A31B2BCEFEA6008BE4E8 /* Suspension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Suspension.swift; sourceTree = "<group>"; };
-		D301A31C2BCEFEA6008BE4E8 /* ChordStyle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChordStyle.swift; sourceTree = "<group>"; };
-		D301A31D2BCEFEA6008BE4E8 /* Add.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Add.swift; sourceTree = "<group>"; };
-		D301A31E2BCEFEA6008BE4E8 /* Alter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Alter.swift; sourceTree = "<group>"; };
-		D301A31F2BCEFEA6008BE4E8 /* ChordType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChordType.swift; sourceTree = "<group>"; };
-		D301A3202BCEFEA6008BE4E8 /* Secondary.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Secondary.swift; sourceTree = "<group>"; };
-		D301A3212BCEFEA6008BE4E8 /* Inversion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Inversion.swift; sourceTree = "<group>"; };
-		D301A32A2BCEFECE008BE4E8 /* ScaleType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScaleType.swift; sourceTree = "<group>"; };
-		D301A32B2BCEFECE008BE4E8 /* ScaleStyle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScaleStyle.swift; sourceTree = "<group>"; };
-		D301A32C2BCEFECE008BE4E8 /* Mode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Mode.swift; sourceTree = "<group>"; };
-		D301A3312BCEFEDF008BE4E8 /* MajorModes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MajorModes.swift; sourceTree = "<group>"; };
-		D301A3332BCEFF89008BE4E8 /* Appendix.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Appendix.swift; sourceTree = "<group>"; };
-		D301A3342BCEFF89008BE4E8 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
-		D301A3382BCEFFBC008BE4E8 /* CollectionExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CollectionExtensions.swift; sourceTree = "<group>"; };
+		5A3EDB932F974851A8CE3EF7 /* TransportState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransportState.swift; sourceTree = "<group>"; };
+		5BDF124A685A410191CC55E6 /* UIState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIState.swift; sourceTree = "<group>"; };
+		995EF25E08304A528A305829 /* DisplaySettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplaySettings.swift; sourceTree = "<group>"; };
+		6A5D238723844955A634D844 /* SelectionState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionState.swift; sourceTree = "<group>"; };
+		B448B4CAE39F456B9C5FBB61 /* LibraryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryStore.swift; sourceTree = "<group>"; };
+		E3DCAEAE2F6F4C71AD12B854 /* LibraryItemState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryItemState.swift; sourceTree = "<group>"; };
 		D31BA8762C3891E5003F678B /* RangePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RangePicker.swift; sourceTree = "<group>"; };
-		D32AC5872BD24EA400F40B5B /* FretLabelType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FretLabelType.swift; sourceTree = "<group>"; };
 		D34355052C375C6700059737 /* TreeMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreeMenuView.swift; sourceTree = "<group>"; };
-		D34C10DE2C40327A004C3E86 /* Library.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Library.json; sourceTree = "<group>"; };
 		D34C10E02C403327004C3E86 /* Theme.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Theme.json; sourceTree = "<group>"; };
 		D37E4C352C33FCBC00179A19 /* Transport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transport.swift; sourceTree = "<group>"; };
 		D37E4C372C34610300179A19 /* ModeSwitcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModeSwitcher.swift; sourceTree = "<group>"; };
@@ -123,12 +79,9 @@
 		D37E4C3C2C346EA600179A19 /* LibraryTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryTabView.swift; sourceTree = "<group>"; };
 		D37E4C402C34716D00179A19 /* TabViewType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabViewType.swift; sourceTree = "<group>"; };
 		D37E4C422C34777700179A19 /* EditorTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorTabView.swift; sourceTree = "<group>"; };
-		D37E4C442C347D4400179A19 /* LibraryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryItem.swift; sourceTree = "<group>"; };
 		D37E4C462C34BCA200179A19 /* LibraryMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryMenu.swift; sourceTree = "<group>"; };
-		D37E4C482C35517A00179A19 /* LegacyTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyTableView.swift; sourceTree = "<group>"; };
 		D37E4C4A2C35944000179A19 /* LibraryDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryDetailView.swift; sourceTree = "<group>"; };
 		D37E4C4C2C359A5100179A19 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
-		D37E4C4E2C35A66E00179A19 /* Library.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Library.swift; sourceTree = "<group>"; };
 		D3AA9B572BCD982E00C78DF3 /* Spot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Spot.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D3AA9B5A2BCD982E00C78DF3 /* SpotApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotApp.swift; sourceTree = "<group>"; };
 		D3AA9B5C2BCD982E00C78DF3 /* SpotDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotDocument.swift; sourceTree = "<group>"; };
@@ -138,16 +91,11 @@
 		D3AA9B662BCD983000C78DF3 /* Spot.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Spot.entitlements; sourceTree = "<group>"; };
 		D3AA9B6E2BCD9AAA00C78DF3 /* LayoutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutView.swift; sourceTree = "<group>"; };
 		D3AA9B702BCD9D6F00C78DF3 /* FretboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FretboardView.swift; sourceTree = "<group>"; };
-		D3AA9B722BCD9FBD00C78DF3 /* InstrumentType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstrumentType.swift; sourceTree = "<group>"; };
 		D3AA9B762BCDA01B00C78DF3 /* InstrumentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstrumentView.swift; sourceTree = "<group>"; };
 		D3AA9B782BCDA06B00C78DF3 /* TabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabView.swift; sourceTree = "<group>"; };
 		D3AA9B7A2BCDA08300C78DF3 /* Header.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Header.swift; sourceTree = "<group>"; };
 		D3AA9B7C2BCDA08C00C78DF3 /* Footer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Footer.swift; sourceTree = "<group>"; };
-		D3AA9B7E2BCEF8AB00C78DF3 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		D3B899CF2C3AC5B90090E6D6 /* IntervalMatrixView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntervalMatrixView.swift; sourceTree = "<group>"; };
-		D3E1F5452BCDDACC00167D43 /* FretNote.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FretNote.swift; sourceTree = "<group>"; };
-		D3E1F5482BCDDB2600167D43 /* FretboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FretboardViewModel.swift; sourceTree = "<group>"; };
-		D3E1F54B2BCDDC9600167D43 /* NoteService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteService.swift; sourceTree = "<group>"; };
 		D3E653C92C36238600401B60 /* Exts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Exts; sourceTree = "<group>"; };
 		D3E653CA2C36238600401B60 /* FuseUtilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = FuseUtilities.swift; path = Classes/FuseUtilities.swift; sourceTree = "<group>"; };
 		D3E653CB2C36238600401B60 /* Levenstain */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Levenstain; sourceTree = "<group>"; };
@@ -172,13 +120,7 @@
 		D3F0DD272C36D2FE00AFDA6A /* LibraryList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryList.swift; sourceTree = "<group>"; };
 		D3F0DD2B2C37102E00AFDA6A /* IntervalBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntervalBannerView.swift; sourceTree = "<group>"; };
 		D3F0DD2E2C3724AE00AFDA6A /* Dropdown.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dropdown.swift; sourceTree = "<group>"; };
-		D3FBC9732BD441F000A69646 /* NoteCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteCollection.swift; sourceTree = "<group>"; };
-		D3FBC9762BD4493700A69646 /* ThreeNotePerStringFrettingPattern.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreeNotePerStringFrettingPattern.swift; sourceTree = "<group>"; };
-		D3FBC9782BD45C5C00A69646 /* FrettingPattern.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrettingPattern.swift; sourceTree = "<group>"; };
-		D3FBC97A2BD5535B00A69646 /* NoteCollectionMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteCollectionMode.swift; sourceTree = "<group>"; };
-		D3FBC9832BD57BF800A69646 /* DatabaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseManager.swift; sourceTree = "<group>"; };
 		D3FBC9862BD79C2B00A69646 /* Theme.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Theme.json; sourceTree = "<group>"; };
-		D3FBC98A2BD79C6E00A69646 /* FrettingPattern.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = FrettingPattern.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -193,51 +135,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		D301A31A2BCEFE93008BE4E8 /* Chords */ = {
+		DB080E70AAD94BBE9BF02139 /* State */ = {
 			isa = PBXGroup;
 			children = (
-				D301A31D2BCEFEA6008BE4E8 /* Add.swift */,
-				D301A31E2BCEFEA6008BE4E8 /* Alter.swift */,
-				D301A31C2BCEFEA6008BE4E8 /* ChordStyle.swift */,
-				D301A31F2BCEFEA6008BE4E8 /* ChordType.swift */,
-				D301A3212BCEFEA6008BE4E8 /* Inversion.swift */,
-				D301A3202BCEFEA6008BE4E8 /* Secondary.swift */,
-				D301A31B2BCEFEA6008BE4E8 /* Suspension.swift */,
+				E3DCAEAE2F6F4C71AD12B854 /* LibraryItemState.swift */,
+				B448B4CAE39F456B9C5FBB61 /* LibraryStore.swift */,
+				6A5D238723844955A634D844 /* SelectionState.swift */,
+				995EF25E08304A528A305829 /* DisplaySettings.swift */,
+				5BDF124A685A410191CC55E6 /* UIState.swift */,
+				5A3EDB932F974851A8CE3EF7 /* TransportState.swift */,
 			);
-			path = Chords;
-			sourceTree = "<group>";
-		};
-		D301A3292BCEFEC2008BE4E8 /* Scales */ = {
-			isa = PBXGroup;
-			children = (
-				D301A3302BCEFED7008BE4E8 /* Modes */,
-				D301A32C2BCEFECE008BE4E8 /* Mode.swift */,
-				D301A32B2BCEFECE008BE4E8 /* ScaleStyle.swift */,
-				D301A32A2BCEFECE008BE4E8 /* ScaleType.swift */,
-			);
-			path = Scales;
-			sourceTree = "<group>";
-		};
-		D301A3302BCEFED7008BE4E8 /* Modes */ = {
-			isa = PBXGroup;
-			children = (
-				D301A3312BCEFEDF008BE4E8 /* MajorModes.swift */,
-			);
-			path = Modes;
-			sourceTree = "<group>";
-		};
-		D301A3372BCEFF9A008BE4E8 /* Extensions */ = {
-			isa = PBXGroup;
-			children = (
-				D301A3382BCEFFBC008BE4E8 /* CollectionExtensions.swift */,
-			);
-			path = Extensions;
+			path = State;
 			sourceTree = "<group>";
 		};
 		D34C10DD2C403225004C3E86 /* Data */ = {
 			isa = PBXGroup;
 			children = (
-				D34C10DE2C40327A004C3E86 /* Library.json */,
 				D34C10E02C403327004C3E86 /* Theme.json */,
 			);
 			path = Data;
@@ -300,20 +213,15 @@
 		D3AA9B592BCD982E00C78DF3 /* Spot */ = {
 			isa = PBXGroup;
 			children = (
+				DB080E70AAD94BBE9BF02139 /* State */,
 				D34C10DD2C403225004C3E86 /* Data */,
 				D37E4C502C360E6100179A19 /* Search */,
 				D3FBC9852BD79C0300A69646 /* Config */,
-				D3FBC9822BD57BE900A69646 /* DataAccess */,
-				D3FBC9722BD441D700A69646 /* Protocols */,
-				D301A3372BCEFF9A008BE4E8 /* Extensions */,
 				D3AA9B742BCD9FDF00C78DF3 /* Enums */,
 				D3E1F5442BCDDA7F00167D43 /* Models */,
 				D3AA9B6D2BCD9A9300C78DF3 /* Views */,
-				D3E1F54A2BCDDC8000167D43 /* Services */,
 				D3AA9B5A2BCD982E00C78DF3 /* SpotApp.swift */,
 				D3AA9B5C2BCD982E00C78DF3 /* SpotDocument.swift */,
-				D301A3332BCEFF89008BE4E8 /* Appendix.swift */,
-				D301A3342BCEFF89008BE4E8 /* Constants.swift */,
 				D3AA9B602BCD983000C78DF3 /* Assets.xcassets */,
 				D3AA9B652BCD983000C78DF3 /* Info.plist */,
 				D3AA9B662BCD983000C78DF3 /* Spot.entitlements */,
@@ -340,7 +248,6 @@
 				D3AA9B762BCDA01B00C78DF3 /* InstrumentView.swift */,
 				D37E4C352C33FCBC00179A19 /* Transport.swift */,
 				D37E4C372C34610300179A19 /* ModeSwitcher.swift */,
-				D37E4C482C35517A00179A19 /* LegacyTableView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -348,13 +255,6 @@
 		D3AA9B742BCD9FDF00C78DF3 /* Enums */ = {
 			isa = PBXGroup;
 			children = (
-				D301A3292BCEFEC2008BE4E8 /* Scales */,
-				D301A31A2BCEFE93008BE4E8 /* Chords */,
-				D301A3132BCEFE8B008BE4E8 /* Interval.swift */,
-				D301A3122BCEFE8B008BE4E8 /* Note.swift */,
-				D3AA9B722BCD9FBD00C78DF3 /* InstrumentType.swift */,
-				D32AC5872BD24EA400F40B5B /* FretLabelType.swift */,
-				D3FBC97A2BD5535B00A69646 /* NoteCollectionMode.swift */,
 				D37E4C402C34716D00179A19 /* TabViewType.swift */,
 			);
 			path = Enums;
@@ -374,34 +274,9 @@
 		D3E1F5442BCDDA7F00167D43 /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				D3FBC9752BD448FB00A69646 /* FrettingPattern */,
-				D3E1F5472BCDDB1400167D43 /* ViewModels */,
-				D301A30C2BCEFE43008BE4E8 /* Chord.swift */,
-				D301A30D2BCEFE43008BE4E8 /* Scale.swift */,
-				D3E1F5452BCDDACC00167D43 /* FretNote.swift */,
-				D3AA9B7E2BCEF8AB00C78DF3 /* AppState.swift */,
-				D37E4C442C347D4400179A19 /* LibraryItem.swift */,
 				D37E4C4C2C359A5100179A19 /* Theme.swift */,
-				D37E4C4E2C35A66E00179A19 /* Library.swift */,
 			);
 			path = Models;
-			sourceTree = "<group>";
-		};
-		D3E1F5472BCDDB1400167D43 /* ViewModels */ = {
-			isa = PBXGroup;
-			children = (
-				D3E1F5482BCDDB2600167D43 /* FretboardViewModel.swift */,
-			);
-			path = ViewModels;
-			sourceTree = "<group>";
-		};
-		D3E1F54A2BCDDC8000167D43 /* Services */ = {
-			isa = PBXGroup;
-			children = (
-				D301A3082BCEFE38008BE4E8 /* ChordService.swift */,
-				D3E1F54B2BCDDC9600167D43 /* NoteService.swift */,
-			);
-			path = Services;
 			sourceTree = "<group>";
 		};
 		D3F0DD292C370FDB00AFDA6A /* Components */ = {
@@ -435,35 +310,9 @@
 			path = Shared;
 			sourceTree = "<group>";
 		};
-		D3FBC9722BD441D700A69646 /* Protocols */ = {
-			isa = PBXGroup;
-			children = (
-				D3FBC9732BD441F000A69646 /* NoteCollection.swift */,
-				D3FBC9782BD45C5C00A69646 /* FrettingPattern.swift */,
-			);
-			path = Protocols;
-			sourceTree = "<group>";
-		};
-		D3FBC9752BD448FB00A69646 /* FrettingPattern */ = {
-			isa = PBXGroup;
-			children = (
-				D3FBC9762BD4493700A69646 /* ThreeNotePerStringFrettingPattern.swift */,
-			);
-			path = FrettingPattern;
-			sourceTree = "<group>";
-		};
-		D3FBC9822BD57BE900A69646 /* DataAccess */ = {
-			isa = PBXGroup;
-			children = (
-				D3FBC9832BD57BF800A69646 /* DatabaseManager.swift */,
-			);
-			path = DataAccess;
-			sourceTree = "<group>";
-		};
 		D3FBC9852BD79C0300A69646 /* Config */ = {
 			isa = PBXGroup;
 			children = (
-				D3FBC98A2BD79C6E00A69646 /* FrettingPattern.json */,
 				D3FBC9862BD79C2B00A69646 /* Theme.json */,
 			);
 			path = Config;
@@ -534,10 +383,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				D3FBC9872BD79C2B00A69646 /* Theme.json in Resources */,
-				D3FBC98B2BD79C6F00A69646 /* FrettingPattern.json in Resources */,
 				D3E653EC2C36238700401B60 /* FuzzyFind in Resources */,
 				D3E653E92C36238700401B60 /* Classes in Resources */,
-				D34C10DF2C40327A004C3E86 /* Library.json in Resources */,
 				D3AA9B642BCD983000C78DF3 /* Preview Assets.xcassets in Resources */,
 				D3E653DE2C36238700401B60 /* Exts in Resources */,
 				D3E653EF2C36238700401B60 /* Fuse+ in Resources */,
@@ -553,55 +400,37 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D301A3242BCEFEA6008BE4E8 /* Add.swift in Sources */,
+				762F3659F6BE4357846DB5EA /* TransportState.swift in Sources */,
+				7F90C76500B54948B61E19FB /* UIState.swift in Sources */,
+				054F99A4C9EC411F84F9649A /* DisplaySettings.swift in Sources */,
+				1B9870198ACC4C92B1BCBFBA /* SelectionState.swift in Sources */,
+				F5926709CDBE4CBB9990692A /* LibraryStore.swift in Sources */,
+				2A20822B6C8B4FF48800038A /* LibraryItemState.swift in Sources */,
 				D3F0DD2F2C3724AE00AFDA6A /* Dropdown.swift in Sources */,
 				D3E653F22C36238700401B60 /* Array+.swift in Sources */,
-				D301A30F2BCEFE43008BE4E8 /* Chord.swift in Sources */,
 				D3E653ED2C36238700401B60 /* Fuzzy.swift in Sources */,
-				D3FBC9742BD441F000A69646 /* NoteCollection.swift in Sources */,
-				D3FBC9792BD45C5C00A69646 /* FrettingPattern.swift in Sources */,
 				D3AA9B772BCDA01B00C78DF3 /* InstrumentView.swift in Sources */,
 				D3F0DD282C36D2FE00AFDA6A /* LibraryList.swift in Sources */,
 				D3AA9B7B2BCDA08300C78DF3 /* Header.swift in Sources */,
-				D301A3272BCEFEA6008BE4E8 /* Secondary.swift in Sources */,
-				D301A3352BCEFF89008BE4E8 /* Appendix.swift in Sources */,
-				D37E4C492C35517A00179A19 /* LegacyTableView.swift in Sources */,
 				D37E4C3B2C346E7E00179A19 /* SequenceTabView.swift in Sources */,
 				D3E653EE2C36238700401B60 /* FuzzyResult.swift in Sources */,
 				D3E653F12C36238700401B60 /* FuzzyResultSegment.swift in Sources */,
 				D3E653E22C36238700401B60 /* Searchable.swift in Sources */,
-				D301A30B2BCEFE38008BE4E8 /* ChordService.swift in Sources */,
-				D301A3362BCEFF89008BE4E8 /* Constants.swift in Sources */,
 				D37E4C432C34777700179A19 /* EditorTabView.swift in Sources */,
 				D3E653E82C36238700401B60 /* Score.swift in Sources */,
-				D3AA9B732BCD9FBD00C78DF3 /* InstrumentType.swift in Sources */,
 				D37E4C382C34610300179A19 /* ModeSwitcher.swift in Sources */,
-				D301A3322BCEFEDF008BE4E8 /* MajorModes.swift in Sources */,
-				D37E4C452C347D4400179A19 /* LibraryItem.swift in Sources */,
-				D3FBC9772BD4493700A69646 /* ThreeNotePerStringFrettingPattern.swift in Sources */,
-				D301A3262BCEFEA6008BE4E8 /* ChordType.swift in Sources */,
-				D3FBC9842BD57BF800A69646 /* DatabaseManager.swift in Sources */,
 				D37E4C4D2C359A5100179A19 /* Theme.swift in Sources */,
 				D3E653E12C36238700401B60 /* Alignment.swift in Sources */,
-				D301A3252BCEFEA6008BE4E8 /* Alter.swift in Sources */,
 				D3AA9B792BCDA06B00C78DF3 /* TabView.swift in Sources */,
 				D3AA9B7D2BCDA08C00C78DF3 /* Footer.swift in Sources */,
 				D37E4C3D2C346EA600179A19 /* LibraryTabView.swift in Sources */,
-				D301A3222BCEFEA6008BE4E8 /* Suspension.swift in Sources */,
 				D34355062C375C6700059737 /* TreeMenuView.swift in Sources */,
-				D3AA9B7F2BCEF8AB00C78DF3 /* AppState.swift in Sources */,
-				D3FBC97B2BD5535B00A69646 /* NoteCollectionMode.swift in Sources */,
 				D3E653F02C36238700401B60 /* String+Fuse.swift in Sources */,
 				D3E653DF2C36238700401B60 /* FuseUtilities.swift in Sources */,
-				D301A3232BCEFEA6008BE4E8 /* ChordStyle.swift in Sources */,
 				D3B899D02C3AC5B90090E6D6 /* IntervalMatrixView.swift in Sources */,
-				D301A3162BCEFE8B008BE4E8 /* Note.swift in Sources */,
-				D301A32D2BCEFECE008BE4E8 /* ScaleType.swift in Sources */,
 				D3E653E42C36238700401B60 /* Fuse+ArrObjects.swift in Sources */,
-				D301A3392BCEFFBC008BE4E8 /* CollectionExtensions.swift in Sources */,
 				D3E653E32C36238700401B60 /* FuseProp.swift in Sources */,
 				D37E4C362C33FCBC00179A19 /* Transport.swift in Sources */,
-				D301A3172BCEFE8B008BE4E8 /* Interval.swift in Sources */,
 				D3AA9B6F2BCD9AAA00C78DF3 /* LayoutView.swift in Sources */,
 				D37E4C412C34716D00179A19 /* TabViewType.swift in Sources */,
 				D3AA9B5D2BCD982E00C78DF3 /* SpotDocument.swift in Sources */,
@@ -609,22 +438,13 @@
 				D3AA9B5B2BCD982E00C78DF3 /* SpotApp.swift in Sources */,
 				D3E653E62C36238700401B60 /* String+.swift in Sources */,
 				D37E4C4B2C35944000179A19 /* LibraryDetailView.swift in Sources */,
-				D32AC5882BD24EA400F40B5B /* FretLabelType.swift in Sources */,
 				D3E653E52C36238700401B60 /* Fuse+ArrStrings.swift in Sources */,
-				D3E1F5492BCDDB2600167D43 /* FretboardViewModel.swift in Sources */,
 				D3E653E72C36238700401B60 /* Levenstain.swift in Sources */,
 				D31BA8772C3891E5003F678B /* RangePicker.swift in Sources */,
 				D3F0DD2C2C37102E00AFDA6A /* IntervalBannerView.swift in Sources */,
 				D37E4C472C34BCA200179A19 /* LibraryMenu.swift in Sources */,
-				D3E1F5462BCDDACC00167D43 /* FretNote.swift in Sources */,
 				D3AA9B712BCD9D6F00C78DF3 /* FretboardView.swift in Sources */,
 				D3E653EA2C36238700401B60 /* Fuse+String.swift in Sources */,
-				D301A3282BCEFEA6008BE4E8 /* Inversion.swift in Sources */,
-				D301A32F2BCEFECE008BE4E8 /* Mode.swift in Sources */,
-				D301A32E2BCEFECE008BE4E8 /* ScaleStyle.swift in Sources */,
-				D37E4C4F2C35A66E00179A19 /* Library.swift in Sources */,
-				D301A3102BCEFE43008BE4E8 /* Scale.swift in Sources */,
-				D3E1F54C2BCDDC9600167D43 /* NoteService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

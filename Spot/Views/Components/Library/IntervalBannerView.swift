@@ -6,11 +6,12 @@
 //
 
 import SwiftUI
+import SpotCore
 
 struct IntervalBannerView: View {
+    @Environment(\.theme) private var theme
     
-    var intervals: [Interval]
-    var theme: Theme
+    var degrees: [Degree]
     
     @State var markerSize: CGFloat = 30;
     
@@ -30,8 +31,8 @@ struct IntervalBannerView: View {
     
     var body: some View {
         HStack(spacing: 4) {
-            ForEach(intervals) { interval in
-                drawMarker(interval.description, markerColor: theme.intervalColors[interval.noteIndex])
+            ForEach(degrees, id: \.self) { degree in
+                drawMarker(degree.intervalName, markerColor: theme.intervalColors[degree.pitchClassOffset])
             }
         }
         .padding([.top], 4)

@@ -8,14 +8,12 @@
 import SwiftUI
 
 struct InstrumentView: View {
-    @EnvironmentObject var appState: AppState
+    @Environment(UIState.self) private var ui
     
     var body: some View {
-        let viewModel  = FretboardViewModel(appState: appState)
-        
-        return AnyView([.Sequence, .Settings].contains(where: {tab in tab == appState.tab})
-                       ? AnyView(EmptyView())
-                       : AnyView(FretboardView(viewModel: viewModel)))
+        if ![.Sequence, .Settings].contains(ui.tab) {
+            FretboardView()
+        }
     }
 }
 

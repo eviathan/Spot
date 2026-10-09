@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct LibraryMenu: View {
-    @EnvironmentObject var appState: AppState
+    @Environment(UIState.self) private var ui
+    @Environment(LibraryStore.self) private var library
     
     @State var buttonSize = CGFloat(50)
     @State var text: String = ""
@@ -20,10 +21,10 @@ struct LibraryMenu: View {
     
     var body: some View {
         HStack {
-            Button(action: {appState.toggleLeftSidebar()}) {
+            Button(action: {ui.displayLeftSidebar.toggle()}) {
                 Image(systemName: "sidebar.left")
                     .imageScale(.large)
-                    .foregroundColor(appState.displayLeftSidebar ? .white : unselectedColor)
+                    .foregroundColor(ui.displayLeftSidebar ? .white : unselectedColor)
                     .padding([.bottom], 2)
             }
             .buttonStyle(PlainButtonStyle())
@@ -46,10 +47,9 @@ struct LibraryMenu: View {
                     .onHover { hovering in
                         self.isSearching = text.count > 0 || hovering
                     }
-                    .onChange(of: text) { newValue in
+                    .onChange(of: text) {
                         isSearching = text.count > 0
-                        appState.library.query = text
-                        appState.library.refresh()
+                        library.query = text
                     }
                 
                 Button(action: {text = ""}) {
@@ -69,10 +69,10 @@ struct LibraryMenu: View {
             
             Spacer()
             
-            Button(action: {appState.toggleRightSidebar()}) {
+            Button(action: {ui.displayRightSidebar.toggle()}) {
                 Image(systemName: "sidebar.right")
                     .imageScale(.large)
-                    .foregroundColor(appState.displayRightSidebar ? .white : unselectedColor)
+                    .foregroundColor(ui.displayRightSidebar ? .white : unselectedColor)
                     .padding([.bottom], 2)
             }
             .buttonStyle(PlainButtonStyle())

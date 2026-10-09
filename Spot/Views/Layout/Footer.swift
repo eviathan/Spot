@@ -8,18 +8,18 @@
 import SwiftUI
 
 struct Footer: View {
-    @EnvironmentObject var appState: AppState
-    @State private var bpm = 120
+    @Environment(SelectionState.self) private var selection
+    @Environment(TransportState.self) private var transport
     @State private var previousBPMChangeValue:CGFloat =  0
     
     let backgroundColor = Color(hue: 0.62, saturation: 0.34, brightness: 0.20, opacity: 1.00)
     
     func incrementSelectedNote(_ value: Int) {
-        appState.selectedNote = appState.selectedNote.increment(value)
+        selection.transposeRoot(by: value)
     }
     
     func incrementBPM(_ value: Int) {
-        appState.bpm += value
+        transport.incrementBPM(value)
     }
     
     var body: some View {
@@ -30,7 +30,7 @@ struct Footer: View {
             Transport()
             Spacer()
             HStack {
-                RangePicker(data: Note.allCases,
+                RangePicker(data: 0..<12,
                             onDecrement: {incrementSelectedNote(-1)},
                             onIncrement: {incrementSelectedNote(1)}) { value in
                     
@@ -38,7 +38,7 @@ struct Footer: View {
                         .font(.system(size: 16))
                         .foregroundColor(.white)
                     
-                    Text(appState.selectedNote.longDescription)
+                    Text(selection.spelledRoot.description)
                         .font(.system(size: 20))
                         .foregroundColor(.white)
                         .frame(minWidth: 50)
@@ -53,7 +53,7 @@ struct Footer: View {
                             .font(.system(size: 16))
                             .foregroundColor(.white)
                         
-                        Text("\(appState.bpm)")
+                        Text("\(transport.bpm)")
                             .font(.system(size: 20))
                             .foregroundColor(.white)
                             .frame(minWidth: 50)

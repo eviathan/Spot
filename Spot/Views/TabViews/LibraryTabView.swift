@@ -8,31 +8,23 @@
 import SwiftUI
 
 struct LibraryTabView: View {
-    @EnvironmentObject var appState: AppState
-    @ObservedObject var library: Library
+    @Environment(UIState.self) private var ui
+    @Environment(SelectionState.self) private var selection
+    var library: LibraryStore
     
-    @State var chordSelection = ChordType.Maj
-    
-    @State private var selectedNoteCollectionMode: NoteCollectionMode = .Scale
     @State private var treeMenuWidth: CGFloat = 200
     
     private let minWidth: CGFloat = 160
     private let maxWidth: CGFloat = 400
     
     let geometryProxy: GeometryProxy
-    let menuOptions: [NoteCollectionMode] = [.Scale, .Chord]
     let panelBackgroundColor = Color(hue: 1.00, saturation: 0.00, brightness: 0.89, opacity: 1.00)
-    
-    func convertSearchResults(result: FuzzySrchResult) -> DataModel {
-        let item = library.items[result.index]
-        return DataModel(name: item.name, type: item.type.description, item: item)
-    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             LibraryMenu()
             HStack(spacing: 0) {
-                if appState.displayLeftSidebar {
+                if ui.displayLeftSidebar {
                     withAnimation {
                         HStack(spacing: 0) {
                             TreeMenuView()
@@ -60,13 +52,11 @@ struct LibraryTabView: View {
                 }
                 
                 LibraryList(library: library,
-                            onSelect: onSelect,
-                            currentSelectionMode: appState.noteCollectionMode,
-                            currentSelectionScale: appState.selectedScale,
-                            currentSelectionChord: appState.selectedChord)
+                            selectedId: selection.selectedId,
+                            onSelect: onSelect)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                                 
-                if appState.displayRightSidebar {
+                if ui.displayRightSidebar {
                     withAnimation {
                         LibraryDetailView()
                             .frame(minWidth: 450, maxWidth: 450, maxHeight: .infinity)
@@ -76,21 +66,13 @@ struct LibraryTabView: View {
                 }
             }
             .frame(maxHeight: .infinity)
-            .animation(.easeInOut, value: appState.displayLeftSidebar)
-            .animation(.easeInOut, value: appState.displayRightSidebar)
+            .animation(.easeInOut, value: ui.displayLeftSidebar)
+            .animation(.easeInOut, value: ui.displayRightSidebar)
         }
     }
     
-    func onSelect(_ item: LibraryItem) {
-        appState.noteCollectionMode = item.type
-        
-        if let scaleType = item.scaleType {
-            appState.selectedScale = scaleType
-        }
-        
-        if let chordType = item.chordType {
-            appState.selectedChord = chordType
-        }        
+    func onSelect(_ entry: LibraryEntry) {
+        selection.select(entry, in: library)
     }
 }
 

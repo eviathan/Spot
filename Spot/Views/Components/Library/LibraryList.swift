@@ -8,22 +8,19 @@
 import SwiftUI
 
 struct LibraryList: View {
-    @ObservedObject var library: Library
-    var onSelect: (_ item: LibraryItem) -> Void
-    var currentSelectionMode: NoteCollectionMode
-    var currentSelectionScale: ScaleType?
-    var currentSelectionChord: ChordType?
-    
+    var library: LibraryStore
+    var selectedId: String
+    var onSelect: (_ entry: LibraryEntry) -> Void
     
     var body: some View {
-        let withIndex = library.items.enumerated().map({ $0 })
+        let withIndex = library.results.enumerated().map({ $0 })
         
-        List(withIndex, id: \.element.id) { index, item in
-            LibraryListItem(item: item,
+        List(withIndex, id: \.element.id) { index, entry in
+            LibraryListItem(entry: entry,
                             index: index,
-                            currentSelectionMode: currentSelectionMode,
-                            currentSelectionScale: currentSelectionScale,
-                            currentSelectionChord: currentSelectionChord,
+                            isSelected: entry.id == selectedId,
+                            isFavourite: library.isFavourite(entry.id),
+                            onToggleFavourite: { library.toggleFavourite(entry.id) },
                             onSelect: onSelect)
         }
         .padding(0)
@@ -36,15 +33,13 @@ struct LibraryList: View {
 
 struct LibraryListItem: View {
     @State var isHovered: Bool = false
-    @ObservedObject var item: LibraryItem
     
+    var entry: LibraryEntry
     var index: Int
-    var currentSelectionMode: NoteCollectionMode
-    var currentSelectionScale: ScaleType?
-    var currentSelectionChord: ChordType?
-    var currentSelectionInterval: Interval?
-    
-    var onSelect: (_ item: LibraryItem) -> Void
+    var isSelected: Bool
+    var isFavourite: Bool
+    var onToggleFavourite: () -> Void
+    var onSelect: (_ entry: LibraryEntry) -> Void
     
     var backgroundColor: Color {
         isSelected
@@ -56,34 +51,23 @@ struct LibraryListItem: View {
                     : Color(hue: 0.75, saturation: 0.01, brightness: 0.80, opacity: 0.30)
     }
     
-    var isSelected: Bool {
-        switch currentSelectionMode {
-        case .Scale:
-            return currentSelectionScale == item.scaleType
-        case .Chord:
-            return currentSelectionChord == item.chordType
-        case .Interval:
-            return currentSelectionInterval == item.interval
-        }
-    }
-    
     var foregroundColor: Color {
         isHovered || isSelected ? .white : .black
     }
     
     var body: some View {
         HStack(spacing: 0) {
-            Button(action: { item.favourite.toggle() }) {
-                Image(systemName: item.favourite ? "heart.fill" : "heart")
+            Button(action: onToggleFavourite) {
+                Image(systemName: isFavourite ? "heart.fill" : "heart")
                     .foregroundColor(foregroundColor)
             }
             .buttonStyle(PlainButtonStyle())
             .padding(.trailing, 12)
             
             VStack(alignment: .leading, spacing: 0) {
-                Text(item.name)
+                Text(entry.name)
                     .foregroundColor(foregroundColor)
-                Text(item.type.description)
+                Text(entry.detail.isEmpty ? entry.kind.description : "\(entry.kind) · \(entry.detail)")
                     .foregroundColor(foregroundColor.opacity(0.5))
             }
             .frame(width: 200, alignment: .leading) // TODO: Derive this from the longest name in item.name
@@ -101,13 +85,13 @@ struct LibraryListItem: View {
         .frame(maxWidth: .infinity)
         .background(backgroundColor)
         .onTapGesture {
-            onSelect(item)
+            onSelect(entry)
         }
         .onHover { hover in
             isHovered = hover
         }
         .animation(.easeInOut, value: isSelected)
         .animation(.easeInOut, value: isHovered)
-        .animation(.easeInOut, value: item.favourite)
+        .animation(.easeInOut, value: isFavourite)
     }
 }

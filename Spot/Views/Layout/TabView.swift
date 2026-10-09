@@ -7,16 +7,17 @@
 import SwiftUI
 
 struct TabView: View {
-    @EnvironmentObject var appState: AppState
+    @Environment(UIState.self) private var ui
+    @Environment(LibraryStore.self) private var library
     
     let backgroundColor = Color(hue: 0.62, saturation: 0.38, brightness: 0.24, opacity: 1.00)
     
     var body: some View {
         GeometryReader { geometryProxy in
             VStack {
-                switch appState.tab {
+                switch ui.tab {
                     case .Library:
-                    LibraryTabView(library: appState.library, geometryProxy: geometryProxy)
+                    LibraryTabView(library: library, geometryProxy: geometryProxy)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     case .Editor:
                         EditorTabView()

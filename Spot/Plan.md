@@ -130,7 +130,7 @@ struct Keyboard: InstrumentLayout { var range: ClosedRange<Int> }          // Po
 
 ### 0.4 State and persistence
 - Replace `AppState` with `@Observable` stores split by concern: `SelectionState` (root, current scale/chord, shape), `DisplaySettings` (labels, hide unrelated, etc.), `TransportState`, `LibraryStore`.
-- **SwiftData** for user data: favourites, ratings, tags, user-created definitions and shapes, tunings, display preferences.
+- **SwiftData** for user data: favourites, ratings, tags, user-created definitions and shapes, tunings. Simple display preferences use UserDefaults.
 - Built-in definitions are loaded from the bundled JSON. User state (favourite, rating, tags) is stored separately and keyed by definition `id`, so built-ins can be updated without wiping user data.
 - **Sequences are documents** (`.spot` package): an audio reference + analysis + warp markers + chord lane. They can be shared, versioned and opened from Finder. The app uses a `DocumentGroup` for sequences alongside a main window for Library and Chord Practice. Opening a sequence switches to, or opens, a window on the Sequencer tab.
 
@@ -353,7 +353,7 @@ Suggestions, best first. I'd build **A + B** first and add **C** later.
 
 1. ✅ **Hygiene and quick fixes:** gitignore `build/`, fix the formula bugs, the `% 7` crash and the per-marker recompute. Also fixed: favourites lost on search, and 9th/11th/13th chord tones not highlighting on the fretboard.
 2. ✅ **SpotCore + theory model + tests** (0.1, 0.2). Built-ins ported to `SpotCore/Sources/SpotCore/Resources/BuiltInLibrary.json`; `ScaleType`/`ChordType` now read their formulas from it via `Appendix` (thin adapters, removed in step 3). Chord symbol parser and key-aware spelling done. Run tests with `swift test --package-path SpotCore`. Note: the 11 chord now includes the 9th; optional degrees live on `ChordDefinition` rather than `Formula`.
-3. **State and persistence refactor** (0.4) + **instrument abstraction and `Marker` model** (0.3). Fretboard redraws from the precomputed markers. Keep the `InstrumentLayout` abstraction, but build the keyboard view later (see step 10).
+3. ✅ **State and persistence refactor** (0.4) + **instrument abstraction and `Marker` model** (0.3). `AppState` is replaced by `@Observable` stores in `Spot/State/` (`SelectionState`, `DisplaySettings`, `UIState`, `TransportState`, `LibraryStore`). Favourites are saved with SwiftData (`LibraryItemState`, keyed by definition id); display settings and sidebars are saved with UserDefaults, which suits simple preferences better than SwiftData. `Fretboard`, `Tuning`, `FretMarker` and the ported 3NPS positions are in SpotCore. The old enums, services and `Appendix` adapters are gone. Also fixed: 3NPS shapes for modes were shifted from the wrong root (A Dorian showed A major notes). The keyboard view is still deferred to step 11.
 4. **Library v2:** shapes model, generators (3NPS/CAGED/voicings), detail panel, editors, import/export (Tab 1).
 5. **Audio engine core:** transport clock, MIDI out for audition, internal metronome (3.4 minus recording). Chord Practice needs audition.
 6. **Chord Practice** (Tab 2): harmony engine + UI.

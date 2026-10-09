@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct LibraryDetailView: View {
-    @EnvironmentObject var appState: AppState
+    @Environment(SelectionState.self) private var selection
     
     @State private var selectedInversion = "Ionian"
     
@@ -16,7 +16,7 @@ struct LibraryDetailView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            Text(appState.getSelectedName())
+            Text(selection.title)
                 .font(.title)
                 .frame(maxHeight: .infinity)
             
@@ -37,8 +37,8 @@ struct LibraryDetailView: View {
 //            .padding(24)
 //            .frame(maxHeight: .infinity)
             
-            IntervalMatrixView(key: appState.selectedNote, scale: appState.selectedScale, theme: appState.theme)
-            IntervalBannerView(intervals: appState.getSelectedIntervals(), theme: appState.theme)
+            IntervalMatrixView()
+            IntervalBannerView(degrees: selection.formula.degrees)
         }
     }
 }

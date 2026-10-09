@@ -9,29 +9,26 @@ import SwiftUI
 
 struct Transport: View {
     
-    @State private var isPlaying: Bool = false;
-    @State private var isRecording: Bool = false;
-    @State private var isLooping: Bool = false;
-    @State private var isMetronomeOn: Bool = false;
+    @Environment(TransportState.self) private var transport
    
     func onClickTransport() -> Void {
         
     }
     
     func onClickTransportPlay() -> Void {
-        isPlaying = !isPlaying;
+        transport.isPlaying.toggle()
     }
     
     func onClickTransportRecord() -> Void {
-        isRecording = !isRecording;
+        transport.isRecording.toggle()
     }
     
     func onClickTransportLoop() -> Void {
-        isLooping = !isLooping;
+        transport.isLooping.toggle()
     }
     
     func onClickTransportMetronome() -> Void {
-        isMetronomeOn = !isMetronomeOn;
+        transport.isMetronomeOn.toggle()
     }
     
     var body: some View {
@@ -39,7 +36,7 @@ struct Transport: View {
         {
             Image(systemName: "metronome")
                 .imageScale(.large)
-                .foregroundColor(isMetronomeOn ? .white : Color(hue: 0.62, saturation: 0.38, brightness: 0.38, opacity: 1.00))
+                .foregroundColor(transport.isMetronomeOn ? .white : Color(hue: 0.62, saturation: 0.38, brightness: 0.38, opacity: 1.00))
             
         }
         .buttonStyle(PlainButtonStyle())
@@ -47,9 +44,9 @@ struct Transport: View {
         
         Button(action: onClickTransportRecord)
         {
-            Image(systemName: isRecording ? "smallcircle.fill.circle.fill" : "circle.fill")
+            Image(systemName: transport.isRecording ? "smallcircle.fill.circle.fill" : "circle.fill")
                 .imageScale(.large)
-                .foregroundColor(isRecording ? Color(red:0.83, green:0.38, blue:0.42) : .white)
+                .foregroundColor(transport.isRecording ? Color(red:0.83, green:0.38, blue:0.42) : .white)
         }
         .buttonStyle(PlainButtonStyle())
         .frame(width: 30, height: 30)
@@ -64,9 +61,9 @@ struct Transport: View {
         
         Button(action: onClickTransportPlay)
         {
-            Image(systemName: isPlaying ? "stop.fill" : "play.fill")
+            Image(systemName: transport.isPlaying ? "stop.fill" : "play.fill")
                 .imageScale(.large)
-//                .foregroundColor(isRecording ? Color(red:0.83, green:0.38, blue:0.42) : isPlaying ? Color(red:0.69, green:0.85, blue:0.60) : .white)
+//                .foregroundColor(transport.isRecording ? Color(red:0.83, green:0.38, blue:0.42) : transport.isPlaying ? Color(red:0.69, green:0.85, blue:0.60) : .white)
         }
         .buttonStyle(PlainButtonStyle())
         .frame(width: 30, height: 30)
@@ -83,7 +80,7 @@ struct Transport: View {
         {
             Image(systemName: "recordingtape")
                 .imageScale(.large)
-                .foregroundColor(isLooping ? .white : Color(hue: 0.62, saturation: 0.38, brightness: 0.38, opacity: 1.00))
+                .foregroundColor(transport.isLooping ? .white : Color(hue: 0.62, saturation: 0.38, brightness: 0.38, opacity: 1.00))
             
         }
         .buttonStyle(PlainButtonStyle())
@@ -93,4 +90,5 @@ struct Transport: View {
 
 #Preview {
     Transport()
+        .environment(TransportState())
 }

@@ -8,39 +8,39 @@
 import SwiftUI
 
 struct ModeSwitcher: View {
-    @EnvironmentObject var appState: AppState
+    @Environment(UIState.self) private var ui
     
     let unselectedColor: Color = Color(hue: 0.62, saturation: 0.38, brightness: 0.38, opacity: 1.00)
     
     var body: some View {
-        Button(action: { appState.tab = .Library }) {
+        Button(action: { ui.tab = .Library }) {
             Image(systemName: "rectangle.split.3x1")
                 .imageScale(.large)
-                .foregroundColor(appState.tab == .Library ? .white : unselectedColor)
+                .foregroundColor(ui.tab == .Library ? .white : unselectedColor)
         }
         .buttonStyle(PlainButtonStyle())
         .frame(width: 30, height: 30)
         
-        Button(action: { appState.tab = .Editor }) {
+        Button(action: { ui.tab = .Editor }) {
             Image(systemName: "rectangle.split.3x3")
                 .imageScale(.large)
-                .foregroundColor(appState.tab == .Editor ? .white : unselectedColor)
+                .foregroundColor(ui.tab == .Editor ? .white : unselectedColor)
         }
         .buttonStyle(PlainButtonStyle())
         .frame(width: 30, height: 30)
         
-        Button(action: { appState.tab = .Sequence }) {
+        Button(action: { ui.tab = .Sequence }) {
             Image(systemName: "text.justify")
                 .imageScale(.large)
-                .foregroundColor(appState.tab == .Sequence ? .white : unselectedColor)
+                .foregroundColor(ui.tab == .Sequence ? .white : unselectedColor)
         }
         .buttonStyle(PlainButtonStyle())
         .frame(width: 30, height: 30)
         
-        Button(action: { appState.tab = .Settings }) {
+        Button(action: { ui.tab = .Settings }) {
             Image(systemName: "slider.horizontal.3")
                 .imageScale(.large)
-                .foregroundColor(appState.tab == .Settings ? .white : unselectedColor)
+                .foregroundColor(ui.tab == .Settings ? .white : unselectedColor)
         }
         .buttonStyle(PlainButtonStyle())
         .frame(width: 30, height: 30)

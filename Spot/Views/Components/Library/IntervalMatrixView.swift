@@ -6,17 +6,17 @@
 //
 
 import SwiftUI
+import SpotCore
 
+// TODO: Show the chords built on each scale degree (Plan.md, Library v2)
 struct IntervalMatrixView: View {
+    @Environment(\.theme) private var theme
     
-    var key: Note = .A
-    var scale: ScaleType = .Major
-    var chordStyle: ChordStyle = .Triad
-    var theme: Theme
+    var rows: Int = 3
     
     @State var markerSize: CGFloat = 30;
     
-    private func getChordIntervals(_ index: Int) -> [Interval] {
+    private func getChordIntervals(_ index: Int) -> [Degree] {
         return []
     }
     
@@ -36,10 +36,10 @@ struct IntervalMatrixView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            ForEach(0..<chordStyle.rawValue, id: \.self) { chordIndex in
+            ForEach(0..<rows, id: \.self) { chordIndex in
                 HStack(spacing: 4) {
-                    ForEach(getChordIntervals(chordIndex)) { interval in
-                        drawMarker(interval.description, markerColor: theme.intervalColors[interval.noteIndex])
+                    ForEach(getChordIntervals(chordIndex), id: \.self) { degree in
+                        drawMarker(degree.intervalName, markerColor: theme.intervalColors[degree.pitchClassOffset])
                     }
                 }
                 .padding([.vertical], 4)
