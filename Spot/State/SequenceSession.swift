@@ -679,15 +679,18 @@ final class SequenceSession {
     
     /// Puts the heard chords on the grid: everywhere, or only where there's no chord yet.
     func applyAnalysedChords(onlyEmpty: Bool) {
-        // Chords are placed by the heard beats, so the grid has to follow them first
+        // With no warp markers yet, line the grid up with the heard beats first
         if sequence?.audio?.warpMarkers.isEmpty == true {
             applyAnalysedBeatGrid()
         }
-        guard let analysis, var sequence else { return }
+        guard let analysis, var sequence, let audio = sequence.audio else { return }
         if !onlyEmpty {
             sequence.clearChords(in: BeatRange(0, sequence.lengthInBeats))
         }
-        for region in analysis.chordRegions(key: sequence.key ?? analysis.key) {
+        // Placed by when they're heard in the recording, through the grid as it is now (however it was made)
+        let regions = analysis.chordRegions(through: audio.map(tempo: sequence.tempo), key: sequence.key ?? analysis.key,
+                                            length: sequence.lengthInBeats)
+        for region in regions {
             if onlyEmpty && sequence.chords.contains(where: { $0.range.overlaps(region.range) }) {
                 continue
             }

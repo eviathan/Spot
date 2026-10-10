@@ -41,6 +41,8 @@ struct ChordPracticeTabView: View {
 
 private struct ProgressionBar: View {
     @Environment(PracticeState.self) private var practice
+    @State private var replacing: Int?
+    @State private var addingChord = false
 
     let unselectedColor = Color(hue: 0.62, saturation: 0.38, brightness: 0.38, opacity: 1.00)
 
@@ -81,7 +83,39 @@ private struct ProgressionBar: View {
                         .background(RoundedRectangle(cornerRadius: 4)
                             .fill(index == practice.index ? Color.white.opacity(0.2) : Color.clear))
                         .contentShape(Rectangle())
-                        .onTapGesture { practice.select(chordAt: index) }
+                        .gesture(TapGesture(count: 2).onEnded {
+                            practice.select(chordAt: index)
+                            replacing = index
+                        }.exclusively(before: TapGesture().onEnded { practice.select(chordAt: index) }))
+                        .popover(isPresented: Binding(get: { replacing == index }, set: { if !$0 { replacing = nil } }),
+                                 arrowEdge: .bottom) {
+                            ChordPalette(key: practice.key) { symbol in
+                                practice.replaceChord(at: index, with: symbol)
+                                replacing = nil
+                            }
+                        }
+                        .contextMenu {
+                            Button("Change…") { replacing = index }
+                            Button("Move Left") { practice.moveChord(at: index, by: -1) }
+                                .disabled(index == 0)
+                            Button("Move Right") { practice.moveChord(at: index, by: 1) }
+                                .disabled(index == practice.chords.count - 1)
+                            Divider()
+                            Button("Remove", role: .destructive) { practice.removeChord(at: index) }
+                        }
+                        .help("Click to practise, double-click to change, right-click for more")
+                }
+                
+                Button {
+                    addingChord = true
+                } label: {
+                    Image(systemName: "plus.circle")
+                }
+                .buttonStyle(.plain)
+                .help("Add a chord")
+                .popover(isPresented: $addingChord, arrowEdge: .bottom) {
+                    // Stays open so several chords can be added in a row
+                    ChordPalette(key: practice.key) { symbol in practice.appendChord(symbol) }
                 }
 
                 Button(action: practice.nextChord) { Image(systemName: "chevron.right") }

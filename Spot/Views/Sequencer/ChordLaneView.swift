@@ -81,15 +81,23 @@ struct ChordLaneView: View {
         let isPlaying = playback.playingSequence == editor.id
 
         return ZStack(alignment: .topLeading) {
-            // Clicking the top part (sections, chords, bar numbers) selects bars
+            // Clicking the top part (sections, chords, bar numbers) selects bars; double-clicking also opens the chord palette
             Color.clear
                 .frame(width: width, height: waveformTop)
                 .contentShape(Rectangle())
-                .onTapGesture(coordinateSpace: .local) { location in
-                    guard !isPlaying else { return }
-                    editor.select(beat: Double(location.x / beatWidth),
-                                  extend: NSEvent.modifierFlags.contains(.shift), in: sequence)
-                }
+                .gesture(
+                    SpatialTapGesture(count: 2)
+                        .onEnded { tap in
+                            guard !isPlaying else { return }
+                            editor.select(beat: Double(tap.location.x / beatWidth), extend: false, in: sequence)
+                            editor.showsPalette = true
+                        }
+                        .exclusively(before: SpatialTapGesture(count: 1).onEnded { tap in
+                            guard !isPlaying else { return }
+                            editor.select(beat: Double(tap.location.x / beatWidth),
+                                          extend: NSEvent.modifierFlags.contains(.shift), in: sequence)
+                        })
+                )
 
             // Selection and loop
             if !isPlaying {

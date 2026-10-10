@@ -65,6 +65,8 @@ final class SequenceEditorState {
     }
     /// Show a small diagram of the next chord in its position.
     var showsNextDiagram = true
+    /// The chord palette is open for the selection.
+    var showsPalette = false
     /// Lane zoom: how wide a bar is, in points.
     var barWidth: Double = 140
     

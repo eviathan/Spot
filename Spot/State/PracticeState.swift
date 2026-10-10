@@ -96,6 +96,43 @@ final class PracticeState {
         focus = .scale
     }
 
+    // MARK: - Editing the progression (rewrites the text, so the field and chips agree)
+    
+    private func setChords(_ symbols: [String], select index: Int) {
+        progressionText = symbols.joined(separator: " ")
+        self.index = min(max(index, 0), max(chords.count - 1, 0))
+    }
+    
+    private var symbols: [String] {
+        chords.map(\.asciiDescription)
+    }
+    
+    func appendChord(_ symbol: String) {
+        setChords(symbols + [symbol], select: chords.count)
+    }
+    
+    func replaceChord(at index: Int, with symbol: String) {
+        guard chords.indices.contains(index) else { return }
+        var list = symbols
+        list[index] = symbol
+        setChords(list, select: index)
+    }
+    
+    func removeChord(at index: Int) {
+        guard chords.indices.contains(index) else { return }
+        var list = symbols
+        list.remove(at: index)
+        setChords(list, select: min(index, list.count - 1))
+    }
+    
+    func moveChord(at index: Int, by offset: Int) {
+        let target = index + offset
+        guard chords.indices.contains(index), chords.indices.contains(target) else { return }
+        var list = symbols
+        list.swapAt(index, target)
+        setChords(list, select: target)
+    }
+    
     func nextChord() {
         guard !chords.isEmpty else { return }
         select(chordAt: (index + 1) % chords.count)

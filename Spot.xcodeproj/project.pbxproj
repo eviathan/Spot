@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		370AABE7FE394507BEF4D84D /* ChordPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91679E8434294778B7AAD903 /* ChordPalette.swift */; };
 		F6C19D5ABF9041C1B884B709 /* SequenceSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AD58EB22CE341C68A455B05 /* SequenceSession.swift */; };
 		D8F071B19CC84BAA9515DE95 /* SequenceEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8F4859D90034CA2A03C616F /* SequenceEditorView.swift */; };
 		79DFE9711A8547148E42448F /* SequencerFretboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4E0F9177ADE40C580A9F01D /* SequencerFretboard.swift */; };
@@ -78,6 +79,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		91679E8434294778B7AAD903 /* ChordPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChordPalette.swift; sourceTree = "<group>"; };
 		0AD58EB22CE341C68A455B05 /* SequenceSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SequenceSession.swift; sourceTree = "<group>"; };
 		D8F4859D90034CA2A03C616F /* SequenceEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SequenceEditorView.swift; sourceTree = "<group>"; };
 		E4E0F9177ADE40C580A9F01D /* SequencerFretboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SequencerFretboard.swift; sourceTree = "<group>"; };
@@ -340,6 +342,7 @@
 		D3F0DD2D2C3724A400AFDA6A /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				91679E8434294778B7AAD903 /* ChordPalette.swift */,
 				D3F0DD2E2C3724AE00AFDA6A /* Dropdown.swift */,
 				D34355052C375C6700059737 /* TreeMenuView.swift */,
 				D31BA8762C3891E5003F678B /* RangePicker.swift */,
@@ -458,6 +461,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				370AABE7FE394507BEF4D84D /* ChordPalette.swift in Sources */,
 				F6C19D5ABF9041C1B884B709 /* SequenceSession.swift in Sources */,
 				D8F071B19CC84BAA9515DE95 /* SequenceEditorView.swift in Sources */,
 				79DFE9711A8547148E42448F /* SequencerFretboard.swift in Sources */,

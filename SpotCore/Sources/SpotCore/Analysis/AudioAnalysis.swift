@@ -80,4 +80,37 @@ public struct AudioAnalysis: Sendable {
             return end > start ? (BeatRange(start, end), symbol) : nil
         }
     }
+
+    /// When each heard chord starts and ends in the recording, in seconds.
+    public func chordTimes(key: Key?) -> [(start: Double, end: Double, symbol: String)] {
+        guard !beats.isEmpty else { return [] }
+        let interval = beats.count > 1 ? (beats.last! - beats.first!) / Double(beats.count - 1) : 0.5
+        return chords.compactMap { chord in
+            guard let symbol = chord.symbol(in: key ?? self.key) else { return nil }
+            let start = beats[min(chord.beats.lowerBound, beats.count - 1)]
+            let end = chord.beats.upperBound < beats.count ? beats[chord.beats.upperBound] : beats.last! + interval
+            return (start, end, symbol)
+        }
+    }
+
+    /// The heard chords placed on any grid: their times in the recording are turned into beats through
+    /// `map` (the sequence's warp markers, however they were made) and snapped to whole beats.
+    public func chordRegions(through map: WarpMap, key: Key?, length: Double) -> [(range: BeatRange, symbol: String)] {
+        var result: [(range: BeatRange, symbol: String)] = []
+        for chord in chordTimes(key: key) {
+            let start = max(0, map.beat(atSourceTime: chord.start).rounded())
+            let end = min(length, map.beat(atSourceTime: chord.end).rounded())
+            guard end > start else { continue }
+            if let last = result.last, last.symbol == chord.symbol, last.range.end >= start {
+                result[result.count - 1].range = BeatRange(last.range.start, end)
+            } else if let last = result.last, last.range.end > start {
+                // Snapping can make neighbours overlap by a beat; the later chord wins
+                result[result.count - 1].range = BeatRange(last.range.start, start)
+                result.append((BeatRange(start, end), chord.symbol))
+            } else {
+                result.append((BeatRange(start, end), chord.symbol))
+            }
+        }
+        return result.filter { $0.range.length > 0 }
+    }
 }

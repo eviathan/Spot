@@ -139,5 +139,15 @@ final class ChordRecognitionTests: XCTestCase {
         let regions = analysis.chordRegions(key: analysis.key)
         XCTAssertEqual(regions.prefix(4).map(\.symbol), ["C", "Am", "F", "G"], "\(regions.map(\.symbol))")
         XCTAssertEqual(regions.prefix(4).map(\.range.start), [0, 4, 8, 12])
+
+        // Through a grid made by hand: bar 1 pinned to the first chord (0.25 s), at 120 bpm
+        let handMade = WarpMap(markers: [WarpMarker(sourceTime: 0.25, beat: 0)], tempo: 120)
+        let placed = analysis.chordRegions(through: handMade, key: analysis.key, length: 64)
+        XCTAssertEqual(placed.prefix(4).map(\.symbol), ["C", "Am", "F", "G"])
+        XCTAssertEqual(placed.prefix(4).map(\.range.start), [0, 4, 8, 12])
+
+        // A grid that puts the song two bars in: everything moves with it
+        let later = WarpMap(markers: [WarpMarker(sourceTime: 0.25, beat: 8)], tempo: 120)
+        XCTAssertEqual(analysis.chordRegions(through: later, key: analysis.key, length: 64).prefix(4).map(\.range.start), [8, 12, 16, 20])
     }
 }

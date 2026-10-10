@@ -53,6 +53,22 @@ private struct LaneEditorBar: View {
                     }
                 }
                 .help("Type a chord and press Return to set it and move on. Leave empty to clear.")
+            
+            Button {
+                editor.showsPalette.toggle()
+            } label: {
+                Label("Chords", systemImage: "square.grid.3x3")
+            }
+            .help("Pick chords without typing (or double-click a bar)")
+            .popover(isPresented: $editor.showsPalette, arrowEdge: .top) {
+                ChordPalette(key: editor.analysis.key) { symbol in
+                    // Set it and move on, keeping the palette open to enter the next chord
+                    editor.chordText = symbol
+                    if editor.applyChord(to: &sequence) {
+                        editor.advanceSelection(in: sequence)
+                    }
+                }
+            }
 
             Button("Clear") {
                 sequence.clearChords(in: editor.selection)
