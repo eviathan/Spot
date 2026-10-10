@@ -33,7 +33,9 @@ public struct RenderedAudio: Sendable {
 
     /// A playable buffer for the beats `from..<to` (silence outside what was rendered).
     public func buffer(fromBeat from: Double, toBeat to: Double) -> AVAudioPCMBuffer? {
-        audio.buffer(frames: frame(atBeat: from)..<frame(atBeat: to))
+        let start = frame(atBeat: from), end = frame(atBeat: to)
+        guard end > start else { return nil }
+        return audio.buffer(frames: start..<end)
     }
 
     /// Replaces part of this render with a re-rendered `segment` (same tempo), crossfading at its edges

@@ -57,7 +57,9 @@ private struct LaneEditorBar: View {
             }
 
             Button("Clear") {
-                sequence.clearChords(in: editor.selection)
+                // The selected range, or the chord at the playhead
+                let range = editor.selection.length > 0 ? editor.selection : sequence.chord(at: editor.selection.start)?.range
+                if let range { sequence.clearChords(in: range) }
             }
 
             if let region, let suggestions = editor.analysis.suggestions[region.id] {
@@ -223,7 +225,7 @@ private struct RecordingTempo: View {
     @State private var typed = ""
     
     private var beat: Double {
-        editor.pausedAt ?? editor.selection.start
+        editor.selection.start
     }
     
     var body: some View {

@@ -273,7 +273,8 @@ final class PlaybackController {
             let start = countInEnd <= 0.001 ? max(countInStart, min(audio.startBeat, countInEnd)) : countInEnd
             let first = max(start, from)
             guard first < to else { return }
-            let end = min(floor(first) + 1, loopEnd ?? .infinity)
+            // The loop end only counts if we start before it (clicking past a loop plays on from there)
+            let end = min(floor(first) + 1, loopEnd.map { first < $0 ? $0 : .infinity } ?? .infinity)
             guard let slice = audio.buffer(fromBeat: first, toBeat: end) else { return }
             let player = track ?? TrackPlayer()
             track = player

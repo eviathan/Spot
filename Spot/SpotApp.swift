@@ -113,10 +113,15 @@ struct SpotApp: App {
             }
             
             CommandMenu("Playback") {
-                Button(transport.isPlaying ? "Pause" : "Play") {
+                Button(transport.isPlaying ? "Stop Playing" : "Play") {
                     TransportActions.playPause(ui: ui, session: session, playback: playback)
                 }
                 .keyboardShortcut("p", modifiers: [.command])
+                // ⌥Space does this too (handled with the space bar, so it isn't listed here)
+                Button("Play Selection (⌥Space)") {
+                    TransportActions.playSelection(ui: ui, session: session, playback: playback)
+                }
+                .disabled(ui.tab != .Sequence || !session.isOpen)
                 Button("Stop") {
                     TransportActions.stop(ui: ui, session: session, playback: playback)
                 }

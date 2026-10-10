@@ -8,7 +8,7 @@ import SpotCore
 
 /// Where the playhead is in a sequence window: the live position while it plays, otherwise the selection.
 func sequencePosition(_ editor: SequenceEditorState, _ playback: PlaybackController, _ transport: TransportState) -> Double {
-    playback.playingSequence == editor.id ? transport.position() : (editor.pausedAt ?? editor.selection.start)
+    playback.playingSequence == editor.id ? transport.position() : editor.selection.start
 }
 
 /// The current chord and its scale, with the next chord fading in just before it arrives.

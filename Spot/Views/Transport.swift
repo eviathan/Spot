@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SpotCore
 
 struct Transport: View {
     
@@ -84,13 +85,14 @@ struct Transport: View {
         
         Button(action: onClickTransportPlay)
         {
-            Image(systemName: transport.isPlaying ? "pause.fill" : "play.fill")
+            Image(systemName: "play.fill")
                 .imageScale(.large)
+                .foregroundColor(transport.isPlaying ? Color(red: 0.55, green: 0.85, blue: 0.45) : .white)
 //                .foregroundColor(transport.isRecording ? Color(red:0.83, green:0.38, blue:0.42) : transport.isPlaying ? Color(red:0.69, green:0.85, blue:0.60) : .white)
         }
         .buttonStyle(PlainButtonStyle())
         .frame(width: 30, height: 30)
-        .help("Play / pause (space)")
+        .help("Play from the playhead, or stop (space). ⌥Space plays just the selection.")
         
         Button(action: onClickTransportStop)
         {
@@ -99,7 +101,7 @@ struct Transport: View {
         }
         .buttonStyle(PlainButtonStyle())
         .frame(width: 30, height: 30)
-        .help("Stop and go back to the selection")
+        .help("Stop")
         
         Button(action: onClickTransport)
         {
@@ -150,11 +152,21 @@ private struct PositionDisplay: View {
 /// Play/pause, stop and back-to-start, shared by the footer, the Playback menu and the space bar.
 /// On the Sequence tab they control the open sequence; elsewhere, the metronome transport.
 enum TransportActions {
+    /// Space: play from the playhead (the start of the selection), or stop.
     static func playPause(ui: UIState, session: SequenceSession, playback: PlaybackController) {
         if session.isPlaying || (ui.tab == .Sequence && session.isOpen && !playback.transport.isPlaying) {
             session.togglePlay()
         } else {
             playback.togglePlay()
+        }
+    }
+
+    /// ⌥Space: play the selected range and stop at its end; while playing, jump back to its start.
+    static func playSelection(ui: UIState, session: SequenceSession, playback: PlaybackController) {
+        if session.isPlaying || (ui.tab == .Sequence && session.isOpen && !playback.transport.isPlaying) {
+            session.playSelection()
+        } else {
+            playPause(ui: ui, session: session, playback: playback)
         }
     }
     
@@ -187,7 +199,14 @@ enum TransportActions {
     /// Loops the open sequence's selection, or turns the loop off.
     static func toggleLoop(session: SequenceSession) {
         guard let editor = session.editor, session.sequence != nil else { return }
-        session.sequence?.loop = session.sequence?.loop == nil ? editor.selection : nil
+        guard session.sequence?.loop == nil, let sequence = session.sequence else {
+            session.sequence?.loop = nil
+            return
+        }
+        // The selected range, or the bar the playhead is in
+        let bar = Double(sequence.beatsPerBar)
+        let start = floor(editor.selection.start / bar) * bar
+        session.sequence?.loop = editor.selection.length > 0 ? editor.selection : BeatRange(start, min(start + bar, sequence.lengthInBeats))
     }
     
     static func toStart(ui: UIState, session: SequenceSession, playback: PlaybackController) {
@@ -204,15 +223,16 @@ enum TransportActions {
 enum SpaceBarMonitor {
     private static var monitor: Any?
     
-    static func install(_ action: @escaping () -> Void) {
+    /// `action` is told whether ⌥ was held.
+    static func install(_ action: @escaping (_ option: Bool) -> Void) {
         guard monitor == nil else { return }
         monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
             let modifiers = event.modifierFlags.intersection([.command, .option, .control, .shift])
             let isTyping = NSApp.keyWindow?.firstResponder is NSText
-            guard event.keyCode == 49, modifiers.isEmpty, !isTyping, !event.isARepeat else {
+            guard event.keyCode == 49, modifiers.isEmpty || modifiers == .option, !isTyping, !event.isARepeat else {
                 return event
             }
-            action()
+            action(modifiers == .option)
             return nil
         }
     }

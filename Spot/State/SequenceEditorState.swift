@@ -41,15 +41,12 @@ final class SequenceEditorState {
     let library: LibraryStore
     let fretboard = Fretboard()
 
-    var selection = BeatRange(0, 4) {
-        didSet { pausedAt = nil }
-    }
-    /// Where playback paused; Play carries on from here. Cleared by Stop or by selecting somewhere else.
-    var pausedAt: Double?
-    /// The grid in beats, for selecting and for moving and resizing chords; 0 is off.
+    /// The playhead (empty, from a click) or a range (dragged), as in Live. Play starts from its start.
+    var selection = BeatRange(0, 0)
+    /// The grid in beats, for placing the playhead, selecting and moving and resizing chords; 0 is off.
     var snap: Double = 4
-    /// What a click selects: the grid, but at least a beat (finer grids are for dragging).
-    private var clickUnit: Double {
+    /// How long a chord put at the playhead is: the grid, but at least a beat.
+    private var chordUnit: Double {
         snap >= 1 ? snap : 1
     }
     private var selectionAnchor: Double = 0
@@ -247,17 +244,16 @@ final class SequenceEditorState {
 
     // MARK: - Selection
 
-    /// Puts the playhead at `beat`, on the grid line before it (or exactly there with the grid off), and
-    /// selects a grid unit (at least a beat) from there; or extends the selection to it.
+    /// Puts the playhead at `beat` (on the grid line before it, or exactly there with the grid off),
+    /// or extends the selection from where it was to there.
     func select(beat: Double, extend: Bool, in sequence: ChordSequence) {
-        let unit = clickUnit
         let onGrid = snap > 0 ? floor(beat / snap + 1e-9) * snap : beat
-        let start = max(0, min(onGrid, sequence.lengthInBeats - unit))
+        let point = max(0, min(onGrid, sequence.lengthInBeats))
         if extend {
-            selection = BeatRange(min(selectionAnchor, start), max(selectionAnchor + unit, start + unit))
+            selection = BeatRange(min(selectionAnchor, point), max(selectionAnchor, point))
         } else {
-            selection = BeatRange(start, start + unit)
-            selectionAnchor = start
+            selection = BeatRange(point, point)
+            selectionAnchor = point
         }
         chordError = nil
     }
@@ -289,9 +285,15 @@ final class SequenceEditorState {
         chordError = nil
     }
 
-    /// Moves the selection along by its own length, for typing a chart chord after chord.
+    /// What a chord goes over: the selected range, or a grid unit from the playhead.
+    func chordRange(in sequence: ChordSequence) -> BeatRange {
+        guard selection.length == 0 else { return selection }
+        return BeatRange(selection.start, min(selection.start + chordUnit, sequence.lengthInBeats))
+    }
+
+    /// Moves the selection along by its own length (a grid unit from a playhead), for entering chord after chord.
     func advanceSelection(in sequence: ChordSequence) {
-        let length = selection.length
+        let length = chordRange(in: sequence).length
         let start = min(selection.end, sequence.lengthInBeats - length)
         selection = BeatRange(start, start + length)
         selectionAnchor = start
@@ -306,6 +308,8 @@ final class SequenceEditorState {
             chordError = "“\(text)” isn't a chord Spot knows"
             return false
         }
+        // A chord at the playhead becomes the selection, so the next one goes after it
+        selection = chordRange(in: sequence)
         sequence.setChord(text, in: selection)
         chordError = nil
         return true
@@ -313,6 +317,12 @@ final class SequenceEditorState {
 
     func describe(_ range: BeatRange, beatsPerBar: Int) -> String {
         let bpb = Double(beatsPerBar)
+        guard range.length > 0 else {
+            // A playhead: bar.beat, with sixteenths if it's between beats
+            let beatInBar = range.start.truncatingRemainder(dividingBy: bpb)
+            let sixteenth = Int(((beatInBar - floor(beatInBar)) * 4).rounded())
+            return "\(Int(range.start / bpb) + 1).\(Int(beatInBar) + 1)" + (sixteenth > 0 && sixteenth < 4 ? ".\(sixteenth + 1)" : "")
+        }
         let firstBar = Int(range.start / bpb) + 1
         let lastBar = Int((range.end - 0.001) / bpb) + 1
         let wholeBars = range.start.truncatingRemainder(dividingBy: bpb) == 0 && range.end.truncatingRemainder(dividingBy: bpb) == 0

@@ -37,8 +37,12 @@ struct LayoutView: View {
         .edgesIgnoringSafeArea(.all)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
-            SpaceBarMonitor.install { [ui, session, playback] in
-                TransportActions.playPause(ui: ui, session: session, playback: playback)
+            SpaceBarMonitor.install { [ui, session, playback] option in
+                if option {
+                    TransportActions.playSelection(ui: ui, session: session, playback: playback)
+                } else {
+                    TransportActions.playPause(ui: ui, session: session, playback: playback)
+                }
             }
         }
         .sheet(item: $ui.definitionEditor) { request in

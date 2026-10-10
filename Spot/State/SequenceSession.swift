@@ -369,18 +369,38 @@ final class SequenceSession {
 
     /// Play, or pause where it is.
     func togglePlay() {
-        isPlaying ? pause() : play()
+        isPlaying ? stopPlayback() : play()
     }
     
-    /// Plays from where it paused, otherwise from the selection (with a count-in).
+    /// Plays from the start of the selection (the playhead), with a count-in, and carries on to the end.
     func play() {
         guard let sequence, let editor, !isPlaying else { return }
+        playRangeEnd = nil
+        start(sequence, editor: editor, from: editor.selection.start, countIn: true)
+    }
+
+    /// Plays the selected range and stops at its end (⌥Space). While playing it doesn't stop: it jumps
+    /// back to the start of the selection and carries on from there. With just a playhead, it's Play.
+    func playSelection() {
+        guard let sequence, let editor else { return }
+        let selection = editor.selection
+        playRangeEnd = selection.length > 0 ? selection.end : nil
+        if isPlaying {
+            guard !isRecording else { return }
+            start(sequence, editor: editor, from: selection.start, countIn: false)
+        } else {
+            start(sequence, editor: editor, from: selection.start, countIn: true)
+        }
+    }
+
+    /// Where playback stops when playing just the selection.
+    @ObservationIgnored private var playRangeEnd: Double?
+
+    private func start(_ sequence: ChordSequence, editor: SequenceEditorState, from beat: Double, countIn: Bool) {
         applyTempo(sequence)
         transport.beatsPerBar = sequence.beatsPerBar
-        let resume = editor.pausedAt
         editor.followSuspended = false
-        playback.play(playbackData(sequence, editor: editor), from: resume ?? editor.selection.start, id: editor.id,
-                      countIn: resume == nil)
+        playback.play(playbackData(sequence, editor: editor), from: beat, id: editor.id, countIn: countIn)
     }
     
     /// The clock runs at the sequence's tempo, and the recording is sped up or slowed down from its own to match.
@@ -392,25 +412,17 @@ final class SequenceSession {
     /// Moves playback to `beat` while playing (clicking in the lane), without a count-in.
     func seek(to beat: Double) {
         guard isPlaying, !isRecording, let sequence, let editor else { return }
+        playRangeEnd = nil
         playback.play(playbackData(sequence, editor: editor), from: beat, id: editor.id, countIn: false)
     }
 
-    func pause() {
-        guard isPlaying, let editor else { return }
-        stopRecording()
-        let position = transport.position()
-        playback.stop()
-        // Pausing during the count-in goes back to where it would have started
-        editor.pausedAt = position >= editor.selection.start ? position : nil
-    }
-    
-    /// Stops and goes back to the selection.
+    /// Stops; Play starts from the selection again.
     func stopPlayback() {
         stopRecording()
+        playRangeEnd = nil
         if isPlaying {
             playback.stop()
         }
-        editor?.pausedAt = nil
     }
     
     /// Back to bar 1.
@@ -427,8 +439,12 @@ final class SequenceSession {
     
     private func playbackData(_ sequence: ChordSequence, editor: SequenceEditorState) -> SequencePlayback {
         var data = editor.playback(for: sequence)
-        // Stop at the end of the bar the content ends in, not after the spare bars (unless recording into them)
-        if !isRecording, sequence.contentEnd > 0 {
+        // Playing just the selection: stop at its end, not looping
+        if let end = playRangeEnd {
+            data.length = min(data.length, end)
+            data.loop = nil
+        } else if !isRecording, sequence.contentEnd > 0 {
+            // Stop at the end of the bar the content ends in, not after the spare bars (unless recording into them)
             let bar = Double(sequence.beatsPerBar)
             data.length = min(sequence.lengthInBeats, ceil(sequence.contentEnd / bar - 1e-9) * bar)
         }

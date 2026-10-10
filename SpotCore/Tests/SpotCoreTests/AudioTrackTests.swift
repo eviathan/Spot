@@ -366,3 +366,12 @@ final class WarpClipTests: XCTestCase {
         }
     }
 }
+
+final class RenderedAudioTests: XCTestCase {
+    func testABackwardsRangeIsNothingNotACrash() {
+        let rendered = RenderedAudio(audio: AudioData(channels: [[Float](repeating: 0.1, count: 44_100)], sampleRate: 44_100), tempo: 120)
+        XCTAssertNil(rendered.buffer(fromBeat: 1.5, toBeat: 1))
+        XCTAssertNil(rendered.buffer(fromBeat: 1, toBeat: 1))
+        XCTAssertEqual(rendered.buffer(fromBeat: 0, toBeat: 1)?.frameLength, 22_050)
+    }
+}

@@ -251,7 +251,7 @@ private struct StoppedPlayhead: View {
         Rectangle()
             .fill(Color.orange.opacity(0.8))
             .frame(width: 2, height: height)
-            .offset(x: CGFloat(editor.pausedAt ?? editor.selection.start) * beatWidth)
+            .offset(x: CGFloat(editor.selection.start) * beatWidth)
             .allowsHitTesting(false)
     }
 }
@@ -601,9 +601,21 @@ private struct WaveformRow: View {
 
     @Environment(SequenceSession.self) private var session
 
-    /// A marker being dragged (an existing one, or a new one grabbed from the waveform).
+    /// A marker being dragged (an existing one, or one just made with a double-click).
     @State private var dragging: WarpMarker?
     @State private var hovered: UUID?
+    /// The marker last made or moved: its whole line can be grabbed, not just its arrow, until you click elsewhere.
+    @State private var selectedMarker: UUID?
+    /// What a press on the waveform turned out to be.
+    @State private var gesture: WaveformGesture?
+
+    private enum WaveformGesture {
+        /// A click so far (it becomes a range if it moves).
+        case click
+        case range
+        /// A double-click made this marker; dragging moves it.
+        case newMarker(WarpMarker)
+    }
 
     /// The markers as they'd be with the drag applied, so the waveform follows the mouse.
     private var liveMarkers: [WarpMarker] {
@@ -648,7 +660,8 @@ private struct WaveformRow: View {
             ForEach(liveMarkers) { marker in
                 let x = CGFloat(marker.beat) * beatWidth
                 if x >= left - 10 && x <= left + width + 10 {
-                    WarpFlag(height: height, isActive: dragging?.id == marker.id || hovered == marker.id)
+                    WarpFlag(height: height, isActive: dragging?.id == marker.id || hovered == marker.id || selectedMarker == marker.id,
+                             grabsWholeLine: selectedMarker == marker.id)
                         .offset(x: x - 6)
                         .onHover { hovered = $0 ? marker.id : (hovered == marker.id ? nil : hovered) }
                         .gesture(markerDrag(marker, map: map))
@@ -693,6 +706,7 @@ private struct WaveformRow: View {
     private func markerDrag(_ marker: WarpMarker, map: WarpMap) -> some Gesture {
         DragGesture(minimumDistance: 2, coordinateSpace: .named(WaveformRow.space))
             .onChanged { value in
+                selectedMarker = marker.id
                 let flags = NSEvent.modifierFlags
                 // The marker as it was before this drag (the one on screen has already moved)
                 let original = audio.warpMarkers.first { $0.id == marker.id } ?? marker
@@ -711,31 +725,52 @@ private struct WaveformRow: View {
             .onEnded { _ in commitDrag() }
     }
 
-    /// Click to place the playhead, double-click to add a marker, or drag to grab the audio at the click
-    /// and pull that moment onto a beat (a new marker, made on the fly). One gesture, so clicks act at once.
+    /// As in the rest of the lane: click to place the playhead, drag to select a range. Double-click to
+    /// add a warp marker there, and keep holding to drag it into place. One gesture, so clicks act at once.
     private func waveformDrag(map: WarpMap, left: CGFloat) -> some Gesture {
         DragGesture(minimumDistance: 0, coordinateSpace: .named(WaveformRow.space))
             .onChanged { value in
-                guard dragging != nil || abs(value.translation.width) >= 4 else { return }
-                // Where the drag began in the audio, worked out once with the map as it was then
-                let existing = dragging ?? {
-                    let startBeat = Double(value.startLocation.x / beatWidth)
-                    return WarpMarker(sourceTime: map.sourceTime(atBeat: startBeat), beat: startBeat)
-                }()
-                var moved = existing
-                moved.beat = snap(Double(value.location.x / beatWidth), free: NSEvent.modifierFlags.contains(.option))
-                dragging = clamped(moved)
+                if gesture == nil {
+                    gesture = .click
+                    selectedMarker = nil
+                    if (NSApp.currentEvent?.clickCount ?? 1) >= 2 {
+                        let beat = Double(value.startLocation.x / beatWidth)
+                        let marker = WarpMarker(sourceTime: map.sourceTime(atBeat: beat), beat: beat)
+                        if session.sequence?.audio?.setMarker(marker) == true {
+                            gesture = .newMarker(marker)
+                            selectedMarker = marker.id
+                        }
+                    }
+                }
+                switch gesture {
+                case .newMarker(let marker):
+                    guard dragging != nil || abs(value.translation.width) >= 2 else { return }
+                    var moved = marker
+                    moved.beat = snap(Double(value.location.x / beatWidth), free: NSEvent.modifierFlags.contains(.option))
+                    dragging = clamped(moved)
+                case .click:
+                    guard abs(value.translation.width) >= 3 else { return }
+                    gesture = .range
+                    fallthrough
+                case .range:
+                    editor.selectRange(from: Double(value.startLocation.x / beatWidth), to: Double(value.location.x / beatWidth),
+                                       free: NSEvent.modifierFlags.contains(.option), in: sequence)
+                case nil:
+                    break
+                }
             }
             .onEnded { value in
-                guard dragging == nil else { return commitDrag() }
-                let beat = Double(value.location.x / beatWidth)
-                if (NSApp.currentEvent?.clickCount ?? 1) >= 2 {
-                    // A new marker exactly where you clicked; nothing moves until you drag it
-                    session.sequence?.audio?.setMarker(WarpMarker(sourceTime: map.sourceTime(atBeat: beat), beat: beat))
-                } else {
-                    editor.select(beat: beat, extend: NSEvent.modifierFlags.contains(.shift), in: sequence)
+                switch gesture {
+                case .newMarker:
+                    commitDrag()
+                case .click, nil:
+                    editor.select(beat: Double(value.location.x / beatWidth),
+                                  extend: NSEvent.modifierFlags.contains(.shift), in: sequence)
                     session.seek(to: editor.selection.start)
+                case .range:
+                    break
                 }
+                gesture = nil
             }
     }
 
@@ -772,9 +807,11 @@ private struct WaveformRow: View {
     }
 }
 
+/// A warp marker: picked up by its arrow (or anywhere on its line while it's the selected one).
 private struct WarpFlag: View {
     let height: CGFloat
     let isActive: Bool
+    var grabsWholeLine = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -786,6 +823,6 @@ private struct WarpFlag: View {
                 .frame(width: isActive ? 2 : 1.5, height: height - 11)
         }
         .frame(width: 12, height: height)
-        .contentShape(Rectangle())
+        .contentShape(Rectangle().size(width: 12, height: grabsWholeLine ? height : 14))
     }
 }
