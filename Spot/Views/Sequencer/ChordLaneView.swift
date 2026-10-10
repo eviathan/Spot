@@ -180,14 +180,19 @@ struct ChordLaneView: View {
             // Sections
             ForEach(sequence.sections) { section in
                 if let span = LaneSpan(section.range.start, section.range.end, beatWidth: beatWidth, visible: visible) {
+                    // The box and the name as separate shapes, not the box as a background and not
+                    // allowsHitTesting(false): either stopped them drawing far along a zoomed-in lane. (The chord row
+                    // above takes the clicks anyway.)
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(Color.purple.opacity(0.45))
+                        .frame(width: max(0, span.width - 2), height: 20)
+                        .offset(x: span.x + 1, y: 6)
                     Text(section.name)
                         .font(.caption.weight(.semibold))
                         .lineLimit(1)
                         .padding(.horizontal, 6)
                         .frame(width: max(0, span.width - 2), height: 20, alignment: .leading)
-                        .background(RoundedRectangle(cornerRadius: 3).fill(Color.purple.opacity(0.45)))
                         .offset(x: span.x + 1, y: 6)
-                        .allowsHitTesting(false)
                 }
             }
 
@@ -238,6 +243,11 @@ struct ChordLaneView: View {
             ForEach(sequence.takes) { take in
                 if let span = LaneSpan(take.startBeat, max(take.endBeat, take.startBeat + Double(8 / beatWidth)),
                                        beatWidth: beatWidth, visible: visible) {
+                // Box and contents as separate shapes (a box as a background stopped drawing when zoomed in)
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(Color.red.opacity(take.isMuted ? 0.15 : 0.4))
+                    .frame(width: span.width, height: takesHeight)
+                    .offset(x: span.x, y: takesTop)
                 HStack(spacing: 4) {
                     Image(systemName: take.isMuted ? "speaker.slash" : "mic.fill")
                         .font(.system(size: 10))
@@ -247,7 +257,7 @@ struct ChordLaneView: View {
                 }
                 .padding(.horizontal, 6)
                 .frame(width: span.width, height: takesHeight, alignment: .leading)
-                .background(RoundedRectangle(cornerRadius: 3).fill(Color.red.opacity(take.isMuted ? 0.15 : 0.4)))
+                .contentShape(Rectangle())
                 .contextMenu {
                     Button(take.isMuted ? "Unmute" : "Mute") { session.setTakeMuted(take.id, !take.isMuted) }
                     Divider()
@@ -256,12 +266,11 @@ struct ChordLaneView: View {
                 .offset(x: span.x, y: takesTop)
                 }
             }
-        }
-        .overlay(alignment: .topLeading) {
-            ZStack(alignment: .topLeading) {
-                songMarkers(width: width, visible: visible)
-                loopBrace(visible: visible)
-            }
+
+            // On top: the start and end markers, and the loop brace. In the lane itself rather than an overlay,
+            // which stopped drawing its shapes when zoomed in
+            songMarkers(width: width, visible: visible)
+            loopBrace(visible: visible)
         }
         .frame(width: width, height: laneHeight, alignment: .topLeading)
         .contentShape(Rectangle())
@@ -291,12 +300,37 @@ struct ChordLaneView: View {
         if let range = loopDrag ?? sequence.loopRange,
            let span = LaneSpan(range.start, range.end, beatWidth: beatWidth, visible: visible, margin: 0) {
             let handle = min(8, span.width / 3)
+            let colour = sequence.isLooping ? Color.yellow : Color.gray
+            // Lines down the lane at each end, so the looped stretch reads over the chords and the waveform
+            // (plain rectangles ignoring clicks draw fine at any zoom, like the bar lines)
+            if !span.startCut {
+                Rectangle()
+                    .fill(colour.opacity(sequence.isLooping ? 0.6 : 0.35))
+                    .frame(width: 1, height: laneHeight - 18)
+                    .offset(x: span.x)
+                    .allowsHitTesting(false)
+                LoopEnd(pointsRight: true)
+                    .fill(colour.opacity(sequence.isLooping ? 0.95 : 0.6))
+                    .frame(width: 8, height: 12)
+                    .offset(x: span.x)
+            }
+            if !span.endCut {
+                Rectangle()
+                    .fill(colour.opacity(sequence.isLooping ? 0.6 : 0.35))
+                    .frame(width: 1, height: laneHeight - 18)
+                    .offset(x: span.x + span.width - 1)
+                    .allowsHitTesting(false)
+                LoopEnd(pointsRight: false)
+                    .fill(colour.opacity(sequence.isLooping ? 0.95 : 0.6))
+                    .frame(width: 8, height: 12)
+                    .offset(x: span.x + span.width - 8)
+            }
             // Separate plain shapes: the bar, then the body and ends to grab, on top
+            // (No allowsHitTesting: with it this stopped drawing when zoomed in. The body above takes the clicks.)
             RoundedRectangle(cornerRadius: 2)
                 .fill(sequence.isLooping ? Color.yellow.opacity(0.85) : Color.gray.opacity(0.55))
                 .frame(width: span.width, height: 6)
                 .offset(x: span.x)
-                .allowsHitTesting(false)
             Color.clear
                 .frame(width: span.width, height: 10)
                 .contentShape(Rectangle())
@@ -316,9 +350,26 @@ struct ChordLaneView: View {
         }
     }
 
+    /// The corner at each end of the loop: a right-angled triangle hanging from the bar, its upright side on
+    /// the loop's edge, pointing in.
+    private struct LoopEnd: SwiftUI.Shape {
+        var pointsRight: Bool
+
+        func path(in rect: CGRect) -> Path {
+            var path = Path()
+            let edge = pointsRight ? rect.minX : rect.maxX
+            let tip = pointsRight ? rect.maxX : rect.minX
+            path.move(to: CGPoint(x: edge, y: rect.minY))
+            path.addLine(to: CGPoint(x: tip, y: rect.minY))
+            path.addLine(to: CGPoint(x: edge, y: rect.maxY))
+            path.closeSubpath()
+            return path
+        }
+    }
+
     private func loopHandle(_ part: LoopPart, width: CGFloat) -> some View {
         Color.clear
-            .frame(width: width, height: 10)
+            .frame(width: width, height: 12)
             .contentShape(Rectangle())
             .onHover { inside in
                 if inside { NSCursor.resizeLeftRight.push() } else { NSCursor.pop() }
@@ -407,12 +458,16 @@ struct ChordLaneView: View {
     }
 
     private func markerFlag(_ title: String, marker: SongMarker, faded: Bool) -> some View {
-        Text(title)
-            .font(.system(size: 10, weight: .bold, design: .monospaced))
-            .foregroundColor(.black)
-            .frame(width: 34, height: 16)
-            .background(RoundedRectangle(cornerRadius: 3).fill(markerColour.opacity(faded ? 0.5 : 1)))
-            .contentShape(Rectangle())
+        // A shape with the title on it (not a background, which stopped drawing when zoomed in)
+        ZStack {
+            RoundedRectangle(cornerRadius: 3)
+                .fill(markerColour.opacity(faded ? 0.5 : 1))
+            Text(title)
+                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                .foregroundColor(.black)
+        }
+        .frame(width: 34, height: 16)
+        .contentShape(Rectangle())
             .onHover { inside in
                 if inside { NSCursor.resizeLeftRight.push() } else { NSCursor.pop() }
             }
@@ -751,8 +806,9 @@ private struct ChordClipsLayer: View {
 
 /// The whole sequence in miniature with the part on screen as a thumb: drag it to scroll, drag its
 /// ends to zoom, click elsewhere to jump there. Double-click to fit the whole sequence.
-/// The part of `start..<end` (beats) that's on screen, plus a margin, in lane x. Long shapes are drawn
-/// only this much, so zooming right in (to single samples) doesn't build views millions of points wide.
+/// The part of `start..<end` (beats) that's on screen, in lane x. Long shapes are drawn only this much, so
+/// zooming right in (to single samples) doesn't build views millions of points wide. No margin by default:
+/// far along a zoomed-in lane, shapes that start off the left of the screen weren't drawn at all.
 struct LaneSpan {
     var x: CGFloat
     var width: CGFloat
@@ -760,7 +816,7 @@ struct LaneSpan {
     var startCut: Bool
     var endCut: Bool
 
-    init?(_ start: Double, _ end: Double, beatWidth: CGFloat, visible: ClosedRange<CGFloat>, margin: CGFloat = 40) {
+    init?(_ start: Double, _ end: Double, beatWidth: CGFloat, visible: ClosedRange<CGFloat>, margin: CGFloat = 0) {
         let from = CGFloat(start) * beatWidth, to = CGFloat(end) * beatWidth
         let left = max(from, visible.lowerBound - margin), right = min(to, visible.upperBound + margin)
         guard right > left else { return nil }
@@ -945,6 +1001,24 @@ private struct WaveformRow: View {
         let width = max(1, visible.upperBound - left)
 
         ZStack(alignment: .topLeading) {
+            // Each section's own tempo, between markers, like Seg. BPM in Live. Under the waveform (which is
+            // see-through around it) so clicks still reach the waveform; not allowsHitTesting(false), which
+            // stopped it drawing when zoomed in
+            ForEach(Array(zip(liveMarkers, liveMarkers.dropFirst())), id: \.0.id) { a, b in
+                let start = CGFloat(a.beat) * beatWidth, end = CGFloat(b.beat) * beatWidth
+                if end - start > 56 && end >= left && start <= left + width {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(Color.black.opacity(0.45))
+                        Text(String(format: "%.1f", (b.beat - a.beat) / (b.sourceTime - a.sourceTime) * 60))
+                            .font(.system(size: 10, design: .monospaced))
+                            .foregroundColor(.yellow)
+                    }
+                    .frame(width: 40, height: 14)
+                    .offset(x: max(start, left) + 8, y: 13)
+                }
+            }
+
             if let peaks = session.peaks {
                 let source = session.sourceAudio
                 Canvas { context, size in
@@ -1032,19 +1106,6 @@ private struct WaveformRow: View {
                 }
             }
 
-            // Each section's own tempo, between markers, like Seg. BPM in Live
-            ForEach(Array(zip(liveMarkers, liveMarkers.dropFirst())), id: \.0.id) { a, b in
-                let start = CGFloat(a.beat) * beatWidth, end = CGFloat(b.beat) * beatWidth
-                if end - start > 56 && end >= left && start <= left + width {
-                    Text(String(format: "%.1f", (b.beat - a.beat) / (b.sourceTime - a.sourceTime) * 60))
-                        .font(.system(size: 10, design: .monospaced))
-                        .padding(.horizontal, 3)
-                        .background(RoundedRectangle(cornerRadius: 2).fill(Color.black.opacity(0.45)))
-                        .foregroundColor(.yellow)
-                        .offset(x: max(start, left) + 8, y: 13)
-                        .allowsHitTesting(false)
-                }
-            }
         }
         .frame(height: height, alignment: .topLeading)
         .coordinateSpace(name: WaveformRow.space)

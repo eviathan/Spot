@@ -153,6 +153,20 @@ public struct ChordSequence: Hashable, Codable, Sendable {
         chords.first { $0.range.start > beat }
     }
 
+    /// The chord that comes after the one playing at `beat`, and how many beats until it starts. While looping,
+    /// the last chord in the loop is followed by the one at the loop's start (arriving at the loop's end).
+    public func upcomingChord(at beat: Double) -> (chord: ChordRegion, beatsAway: Double)? {
+        let current = chord(at: max(beat, 0))
+        let next = chord(after: max(beat, current?.range.start ?? beat))
+        if let loop, beat >= loop.start - 1e-9, beat < loop.end, next.map({ $0.range.start >= loop.end - 1e-9 }) ?? true {
+            // Round to the top of the loop: whatever's playing at its start (or the first chord inside it)
+            guard let first = chord(at: loop.start) ?? chord(after: loop.start).flatMap({ $0.range.start < loop.end ? $0 : nil }),
+                  first.id != current?.id else { return nil }
+            return (first, loop.end - beat + max(0, first.range.start - loop.start))
+        }
+        return next.map { ($0, $0.range.start - beat) }
+    }
+
     public func section(at beat: Double) -> SequenceSection? {
         sections.first { $0.range.contains(beat) }
     }

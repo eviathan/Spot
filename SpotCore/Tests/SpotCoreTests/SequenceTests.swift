@@ -235,3 +235,40 @@ final class LoopBraceTests: XCTestCase {
         XCTAssertEqual(legacy.loop, BeatRange(0, 8))
     }
 }
+
+final class UpcomingChordTests: XCTestCase {
+    func testTheLoopComesRound() throws {
+        var sequence = ChordSequence(lengthInBars: 8)
+        sequence.setChord("Dm7", in: BeatRange(0, 4))
+        sequence.setChord("G7", in: BeatRange(4, 8))
+        sequence.setChord("Cmaj7", in: BeatRange(8, 16))
+        sequence.setChord("A7", in: BeatRange(16, 20))
+
+        // Not looping: the next one along
+        XCTAssertEqual(sequence.upcomingChord(at: 9)?.chord.symbol, "A7")
+        XCTAssertEqual(sequence.upcomingChord(at: 9)?.beatsAway, 7)
+
+        // Looping bars 2–4 (G7, Cmaj7): after Cmaj7 comes G7 again, at the loop's end
+        sequence.loop = BeatRange(4, 16)
+        let upcoming = try XCTUnwrap(sequence.upcomingChord(at: 13))
+        XCTAssertEqual(upcoming.chord.symbol, "G7")
+        XCTAssertEqual(upcoming.beatsAway, 3)
+        // Inside the loop, before the end, it's still the next one along
+        XCTAssertEqual(sequence.upcomingChord(at: 5)?.chord.symbol, "Cmaj7")
+        // Outside the loop, nothing changes
+        XCTAssertEqual(sequence.upcomingChord(at: 1)?.chord.symbol, "G7")
+
+        // A loop starting partway through a chord comes round to that chord
+        sequence.loop = BeatRange(2, 12)
+        XCTAssertEqual(sequence.upcomingChord(at: 10)?.chord.symbol, "Dm7")
+        XCTAssertEqual(sequence.upcomingChord(at: 10)?.beatsAway, 2)
+
+        // One chord across the whole loop: nothing changes, so nothing's next
+        sequence.loop = BeatRange(9, 15)
+        XCTAssertNil(sequence.upcomingChord(at: 10))
+
+        // Turned off: back to the next one along
+        sequence.loop = nil
+        XCTAssertEqual(sequence.upcomingChord(at: 13)?.chord.symbol, "A7")
+    }
+}

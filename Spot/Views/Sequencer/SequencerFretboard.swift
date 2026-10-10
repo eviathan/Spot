@@ -51,12 +51,14 @@ struct SequencerFretboard: View {
         let followsHand = editor.neckView == .followHand && current != nil
 
         // The next chord: where the hand goes for it, its notes named from its own root, and stronger as it nears
-        let nextRegion = sequence.chord(after: max(position, region.range.start))
+        // (Round to the start of the loop at its end, while looping)
+        let upcoming = sequence.upcomingChord(at: position)
+        let nextRegion = upcoming?.chord
         let nextChord = nextRegion.flatMap { analysis.chords[$0.id] }
         let nextNeck = nextRegion.flatMap { analysis.positions[$0.id] }
         var nearness = 0.0
-        if let nextRegion {
-            let beatsLeft = nextRegion.range.start - position
+        if let upcoming {
+            let beatsLeft = upcoming.beatsAway
             nearness = beatsLeft <= 0 ? 1 : max(0, 1 - beatsLeft / max(editor.ghostBeats, 0.5))
         }
         let nextDegrees = Dictionary((nextChord?.chord.formula.degrees ?? []).map { ($0.pitchClassOffset, $0) },
@@ -174,7 +176,9 @@ struct PerformanceHeader: View {
         TimelineView(.animation(minimumInterval: 1 / 30, paused: !isPlaying)) { _ in
             let position = sequencePosition(editor, playback, transport)
             let region = sequence.chord(at: max(position, 0))
-            let next = sequence.chord(after: max(position, region?.range.start ?? position))
+            // (Round to the start of the loop at its end, while looping)
+            let upcoming = sequence.upcomingChord(at: position)
+            let next = upcoming?.chord
 
             HStack(spacing: 0) {
                 now(region, position: position, isPlaying: isPlaying)
@@ -183,7 +187,7 @@ struct PerformanceHeader: View {
                 intervals(region ?? sequence.chord(after: position))
                     .frame(maxWidth: .infinity, alignment: .leading)
                 Divider().padding(.vertical, 12)
-                upNext(next, after: region, position: position, isPlaying: isPlaying)
+                upNext(next, after: region, beatsAway: upcoming?.beatsAway ?? 0, isPlaying: isPlaying)
                     .frame(width: 300, alignment: .leading)
             }
             .frame(height: 86)
@@ -278,13 +282,13 @@ struct PerformanceHeader: View {
 
     // MARK: Next
 
-    private func upNext(_ next: ChordRegion?, after region: ChordRegion?, position: Double, isPlaying: Bool) -> some View {
+    private func upNext(_ next: ChordRegion?, after region: ChordRegion?, beatsAway: Double, isPlaying: Bool) -> some View {
         VStack(alignment: .leading, spacing: 5) {
             HStack(spacing: 6) {
                 blockTitle("NEXT")
                     .foregroundColor(nextChordColour)
-                if let next {
-                    let beatsLeft = Int(ceil(next.range.start - position))
+                if next != nil {
+                    let beatsLeft = Int(ceil(beatsAway))
                     Text(beatsLeft == 1 ? "in 1 beat" : "in \(beatsLeft) beats")
                         .font(.caption.monospacedDigit())
                         .foregroundColor(beatsLeft <= Int(editor.ghostBeats) && isPlaying ? .orange : .white.opacity(0.6))
@@ -445,7 +449,9 @@ struct FretboardReadout: View {
         TimelineView(.animation(minimumInterval: 1 / 30, paused: !isPlaying)) { _ in
             let position = sequencePosition(editor, playback, transport)
             let region = sequence.chord(at: max(position, 0))
-            let next = sequence.chord(after: max(position, region?.range.start ?? position))
+            // (Round to the start of the loop at its end, while looping)
+            let upcoming = sequence.upcomingChord(at: position)
+            let next = upcoming?.chord
             let beatInBar = Int(sequence.barAndBeat(at: position).beat)
 
             Group {
@@ -467,7 +473,7 @@ struct FretboardReadout: View {
                     cardView(next, accent: nextChordColour) {
                         title("NEXT").foregroundColor(nextChordColour)
                         if let next {
-                            let beatsLeft = Int(ceil(next.range.start - position))
+                            let beatsLeft = Int(ceil(upcoming?.beatsAway ?? 0))
                             Text(beatsLeft == 1 ? "in 1 beat" : "in \(beatsLeft) beats")
                                 .font(.callout.monospacedDigit().weight(.semibold))
                                 .foregroundColor(beatsLeft <= Int(editor.ghostBeats) && isPlaying ? .orange : .secondary)
