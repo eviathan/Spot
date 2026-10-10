@@ -44,7 +44,7 @@ final class SequenceEditorState {
     /// The playhead (empty, from a click) or a range (dragged), as in Live. Play starts from its start.
     var selection = BeatRange(0, 0)
     /// The grid in beats, for placing the playhead, selecting and moving and resizing chords; 0 is off.
-    var snap: Double = 4
+    var snap: Double = 1
     /// How long a chord put at the playhead is: the grid, but at least a beat.
     private var chordUnit: Double {
         snap >= 1 ? snap : 1
