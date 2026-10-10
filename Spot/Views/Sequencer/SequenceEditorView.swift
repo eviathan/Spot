@@ -17,6 +17,7 @@ struct SequenceEditorView: View {
             let binding = Binding(get: { session.sequence ?? sequence }, set: { session.sequence = $0 })
             VStack(spacing: 0) {
                 AudioBar(sequence: binding, editor: editor)
+                ChordScaleIntervals(sequence: sequence, editor: editor)
                 ChordLaneView(sequence: sequence, editor: editor)
                 Divider()
                 LaneEditorBar(sequence: binding, editor: editor)

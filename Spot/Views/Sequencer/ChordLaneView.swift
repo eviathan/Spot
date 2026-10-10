@@ -106,10 +106,8 @@ struct ChordLaneView: View {
         let isPlaying = playback.playingSequence == editor.id
 
         return ZStack(alignment: .topLeading) {
-            // Selection and loop
-            if !isPlaying {
-                SelectionHighlight(editor: editor, beatWidth: beatWidth, height: laneHeight)
-            }
+            // Selection (shown while playing too, like Live) and loop
+            SelectionHighlight(editor: editor, beatWidth: beatWidth, height: laneHeight)
             if let loop = sequence.loop {
                 Rectangle()
                     .fill(Color.yellow.opacity(0.7))

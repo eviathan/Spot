@@ -163,10 +163,11 @@ struct SpotApp: App {
                     }
                 }
                 .disabled(!session.isOpen || session.editor?.neckView != .followHand)
-                Toggle("Next Chord Box", isOn: Binding(get: { session.editor?.showsNextDiagram ?? false },
-                                                       set: { session.editor?.showsNextDiagram = $0 }))
-                    .disabled(!session.isOpen)
-                Picker("Show Next Chord", selection: Binding(get: { session.editor?.ghostBeats ?? 2 },
+                // The next chord box is off for now (see NowNextView)
+                // Toggle("Next Chord Box", isOn: Binding(get: { session.editor?.showsNextDiagram ?? false },
+                //                                        set: { session.editor?.showsNextDiagram = $0 }))
+                //     .disabled(!session.isOpen)
+                Picker("Next Chord Brightens", selection: Binding(get: { session.editor?.ghostBeats ?? 2 },
                                                              set: { session.editor?.ghostBeats = $0 })) {
                     Text("1 Beat Early").tag(1.0)
                     Text("2 Beats Early").tag(2.0)

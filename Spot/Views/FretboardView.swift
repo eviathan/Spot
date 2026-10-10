@@ -23,10 +23,22 @@ struct FretboardMarker: Identifiable {
     var halo: Color? = nil
     /// Below 1 to fade a note in or out.
     var opacity: Double = 1
+    /// A small label tucked against the top-right of the note, kept apart from the marker itself,
+    /// e.g. what the note is in the next chord.
+    var tag: FretTag? = nil
 
     var id: FretPosition {
         marker.position
     }
+}
+
+struct FretTag {
+    var label: String
+    var color: Color
+    /// 0...1: how strongly it shows.
+    var emphasis: Double = 1
+    /// Drawn a little bigger (e.g. a note worth aiming for).
+    var isStrong = false
 }
 
 /// Draws the neck and a set of markers. What the markers mean is up to the caller.
@@ -62,6 +74,7 @@ struct FretboardView: View {
                 drawFretNumbers(width: width, height: height, fretSpacing: fretSpacing, stringSpacing: stringSpacing)
                     .opacity(guitarOpacity)
                 drawMarkers(width: width, height: height, fretSpacing: fretSpacing, stringSpacing: stringSpacing)
+                drawTags(fretSpacing: fretSpacing, stringSpacing: stringSpacing)
             }
             .frame(maxWidth: .infinity)        }
             .frame(maxWidth: .infinity, maxHeight: 300)
@@ -173,6 +186,26 @@ struct FretboardView: View {
                 }
                 .position(x: x, y: height / 2)
             }
+        }
+    }
+
+    /// Tags sit up and to the right of their note, between the strings, so they never cover a marker.
+    func drawTags(fretSpacing: CGFloat, stringSpacing: CGFloat) -> some View {
+        let size = min(fretSpacing, stringSpacing) * markerSize
+        return ForEach(markers.filter { $0.tag != nil }) { item in
+            let tag = item.tag!
+            Text(tag.label)
+                .font(.system(size: max(8, size * (tag.isStrong ? 0.42 : 0.36)), weight: tag.isStrong ? .heavy : .bold))
+                .foregroundColor(.white)
+                .padding(.horizontal, 3)
+                .padding(.vertical, 1)
+                .background(Capsule().fill(tag.color))
+                .overlay(Capsule().stroke(Color.black.opacity(0.5), lineWidth: 0.5))
+                .fixedSize()
+                .position(x: (CGFloat(item.marker.position.fret) * fretSpacing - fretSpacing / 2) + fretSpacing + size * 0.62,
+                          y: y(forString: item.marker.position.string, stringSpacing: stringSpacing) - stringSpacing * 0.42)
+                .opacity(0.45 + 0.55 * tag.emphasis)
+                .allowsHitTesting(false)
         }
     }
 
