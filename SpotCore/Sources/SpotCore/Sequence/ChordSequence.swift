@@ -80,8 +80,6 @@ public struct ChordSequence: Hashable, Codable, Sendable {
     public var loop: BeatRange?
     /// A recording to play along with, lined up by warp markers.
     public var audio: AudioTrack?
-    /// Practice speed: 1 is full tempo, 0.5 half. Slows the audio and the clock together.
-    public var practiceRate: Double
     /// Your recordings, oldest first.
     public var takes: [RecordedTake]
 
@@ -95,7 +93,6 @@ public struct ChordSequence: Hashable, Codable, Sendable {
         self.sections = []
         self.loop = nil
         self.audio = nil
-        self.practiceRate = 1
         self.takes = []
     }
 
@@ -181,6 +178,26 @@ public struct ChordSequence: Hashable, Codable, Sendable {
         }
     }
 
+    /// Where the recording ends on the grid (through its warp markers), if there is one.
+    public var audioEndBeat: Double? {
+        audio.map { $0.map.beat(atSourceTime: $0.reference.duration) }
+    }
+
+    /// Where the last thing ends: a chord, a section, a take or the recording.
+    public var contentEnd: Double {
+        max(chords.last?.range.end ?? 0, sections.last?.range.end ?? 0,
+            takes.map(\.endBeat).max() ?? 0, audioEndBeat ?? 0)
+    }
+
+    /// Sizes the sequence to what's in it, plus `spareBars` empty bars to add more (and at least `minimumBars`).
+    public mutating func fitLength(spareBars: Int = 4, minimumBars: Int = 16) {
+        let used = Int(ceil(contentEnd / Double(beatsPerBar) - 1e-9))
+        let bars = max(minimumBars, used + spareBars)
+        if bars != lengthInBars {
+            setLength(bars: bars)
+        }
+    }
+
     private func clamped(_ range: BeatRange) -> BeatRange {
         BeatRange(max(0, range.start), min(lengthInBeats, range.end))
     }
@@ -212,7 +229,11 @@ public struct ChordSequence: Hashable, Codable, Sendable {
     // MARK: - Files
 
     enum CodingKeys: String, CodingKey {
-        case version, tempo, beatsPerBar, lengthInBars, key, chords, sections, loop, audio, practiceRate, takes
+        case version, tempo, beatsPerBar, lengthInBars, key, chords, sections, loop, audio, takes
+    }
+
+    private enum LegacyKeys: String, CodingKey {
+        case practiceRate
     }
 
     public init(from decoder: Decoder) throws {
@@ -230,7 +251,13 @@ public struct ChordSequence: Hashable, Codable, Sendable {
         sections = (try container.decodeIfPresent([SequenceSection].self, forKey: .sections) ?? []).sorted { $0.range.start < $1.range.start }
         loop = try container.decodeIfPresent(BeatRange.self, forKey: .loop)
         audio = try container.decodeIfPresent(AudioTrack.self, forKey: .audio)
-        practiceRate = try container.decodeIfPresent(Double.self, forKey: .practiceRate) ?? 1
+        // Older files: the sequence tempo was the recording's, and a practice speed slowed both
+        let legacy = try decoder.container(keyedBy: LegacyKeys.self)
+        let practiceRate = try legacy.decodeIfPresent(Double.self, forKey: .practiceRate) ?? 1
+        if audio?.tempo == 0 {
+            audio?.tempo = tempo
+        }
+        tempo *= practiceRate
         takes = try container.decodeIfPresent([RecordedTake].self, forKey: .takes) ?? []
     }
 

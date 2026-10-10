@@ -57,8 +57,9 @@ final class WarpMapTests: XCTestCase {
 
     func testMarkersMustKeepTimeMovingForwards() {
         var track = AudioTrack(reference: AudioReference(bookmark: nil, lastKnownPath: "", fileName: "x", duration: 10,
-                                                         sampleRate: 44_100, channelCount: 2, fingerprint: ""))
-        XCTAssertTrue(track.setMarker(WarpMarker(sourceTime: 1, beat: 0)))
+                                                         sampleRate: 44_100, channelCount: 2, fingerprint: ""), tempo: 120)
+        XCTAssertEqual(track.warpMarkers.map(\.beat), [0], "starts with one marker")
+        XCTAssertTrue(track.setMarker(WarpMarker(sourceTime: 1, beat: 0)), "same beat replaces it")
         XCTAssertTrue(track.setMarker(WarpMarker(sourceTime: 3, beat: 4)))
         XCTAssertFalse(track.setMarker(WarpMarker(sourceTime: 0.5, beat: 8)), "earlier audio on a later beat")
         XCTAssertEqual(track.warpMarkers.count, 2)
@@ -76,14 +77,30 @@ final class WarpMapTests: XCTestCase {
         var sequence = ChordSequence()
         sequence.audio = AudioTrack(reference: AudioReference(bookmark: Data([1, 2]), lastKnownPath: "/a/b.wav", fileName: "b.wav",
                                                               duration: 3, sampleRate: 48_000, channelCount: 2, fingerprint: "abc"),
-                                    warpMarkers: [WarpMarker(sourceTime: 0.2, beat: 0)], gain: -3)
-        sequence.practiceRate = 0.75
+                                    tempo: 96, warpMarkers: [WarpMarker(sourceTime: 0.2, beat: 0)], gain: -3)
         XCTAssertEqual(try JSONDecoder().decode(ChordSequence.self, from: sequence.encoded()), sequence)
 
         let old = #"{"version": 1, "tempo": 100, "beatsPerBar": 4, "lengthInBars": 4}"#
         let decoded = try JSONDecoder().decode(ChordSequence.self, from: Data(old.utf8))
         XCTAssertNil(decoded.audio)
-        XCTAssertEqual(decoded.practiceRate, 1)
+        XCTAssertEqual(decoded.tempo, 100)
+    }
+
+    /// Before recordings had their own tempo, the sequence's was the recording's and a practice speed slowed both.
+    func testOlderFilesKeepTheirTimingAndSpeed() throws {
+        let old = #"""
+        {"version": 1, "tempo": 100, "beatsPerBar": 4, "lengthInBars": 4, "practiceRate": 0.75,
+         "audio": {"reference": {"lastKnownPath": "/a.wav", "fileName": "a.wav", "duration": 3, "sampleRate": 44100,
+                                 "channelCount": 2, "fingerprint": "x"},
+                   "warpMarkers": [], "gain": 0, "isMuted": false}}
+        """#
+        let decoded = try JSONDecoder().decode(ChordSequence.self, from: Data(old.utf8))
+        XCTAssertEqual(decoded.audio?.tempo, 100, "the recording keeps the tempo it was lined up at")
+        XCTAssertEqual(decoded.tempo, 75, "and plays at the speed it was practised at")
+        XCTAssertEqual(decoded.audio?.warpMarkers.map(\.beat), [0])
+        XCTAssertEqual(decoded.audio?.warpMarkers.map(\.sourceTime), [0])
+        let saved = try JSONSerialization.jsonObject(with: decoded.encoded()) as? [String: Any]
+        XCTAssertNil(saved?["practiceRate"], "saved without it")
     }
 }
 
@@ -249,5 +266,103 @@ final class RecordingTests: XCTestCase {
     func testListsInputDevicesWithoutCrashing() {
         // Contents depend on the machine; every listed device must have inputs
         XCTAssertTrue(AudioDevices.inputs().allSatisfy { $0.channelCount > 0 })
+    }
+}
+
+/// Warping like a clip in Live: the recording's own tempo, a marker that's always there, and section tempos.
+final class WarpClipTests: XCTestCase {
+    private func track(tempo: Double = 120) -> AudioTrack {
+        AudioTrack(reference: AudioReference(bookmark: nil, lastKnownPath: "", fileName: "x", duration: 20,
+                                             sampleRate: 44_100, channelCount: 1, fingerprint: ""), tempo: tempo)
+    }
+
+    func testThereIsAlwaysAMarker() throws {
+        var track = track()
+        let first = try XCTUnwrap(track.warpMarkers.first)
+        track.removeMarker(first.id)
+        XCTAssertEqual(track.warpMarkers.count, 1, "the last marker can't be removed")
+
+        // Dragging the only marker moves the whole recording without stretching it
+        var moved = first
+        moved.beat = 2
+        track.setMarker(moved)
+        XCTAssertEqual(track.map.sourceTime(atBeat: 2), 0)
+        XCTAssertEqual(track.map.sourceTime(atBeat: 6), 2, "still 0.5 s per beat at 120")
+
+        track.setMarker(WarpMarker(sourceTime: 4, beat: 10))
+        track.setMarker(WarpMarker(sourceTime: 6, beat: 14))
+        track.removeAllMarkers()
+        XCTAssertEqual(track.warpMarkers, [moved], "clearing keeps the first")
+    }
+
+    func testSectionTempos() {
+        var track = track(tempo: 100)
+        track.setMarker(WarpMarker(sourceTime: 2, beat: 4))     // 4 beats in 2 s: 120 bpm
+        track.setMarker(WarpMarker(sourceTime: 4, beat: 7))     // 3 beats in 2 s: 90 bpm
+        XCTAssertEqual(track.segmentTempo(atBeat: -1), 100, "before the first marker: its own tempo")
+        XCTAssertEqual(track.segmentTempo(atBeat: 1), 120, accuracy: 1e-9)
+        XCTAssertEqual(track.segmentTempo(atBeat: 5), 90, accuracy: 1e-9)
+        XCTAssertEqual(track.segmentTempo(atBeat: 9), 100, "after the last: its own tempo")
+
+        // Setting a section's tempo moves its end marker, and the later ones keep their tempos
+        track.setSegmentTempo(60, atBeat: 1)
+        XCTAssertEqual(track.warpMarkers.map(\.beat), [0, 2, 5])
+        XCTAssertEqual(track.segmentTempo(atBeat: 1), 60, accuracy: 1e-9)
+        XCTAssertEqual(track.segmentTempo(atBeat: 3), 90, accuracy: 1e-9)
+
+        // Outside the markers it's the recording's tempo
+        track.setSegmentTempo(110, atBeat: 20)
+        XCTAssertEqual(track.tempo, 110)
+    }
+
+    private func clicks(at times: [Double], seconds: Double) -> AudioData {
+        var samples = [Float](repeating: 0, count: Int(seconds * 44_100))
+        for i in samples.indices { samples[i] = Float(sin(Double(i) * 0.05) * 0.02) }
+        for time in times {
+            let start = Int(time * 44_100)
+            for i in start..<min(start + 80, samples.count) { samples[i] = 0.9 }
+        }
+        return AudioData(channels: [samples], sampleRate: 44_100)
+    }
+
+    private func onsets(_ rendered: RenderedAudio) -> [Double] {
+        var result: [Double] = []
+        var i = 0
+        let samples = rendered.audio.channels[0]
+        while i < samples.count {
+            if abs(samples[i]) > 0.5 {
+                result.append(rendered.startBeat + Double(i) / rendered.framesPerBeat)
+                i += 4_410
+            } else {
+                i += 1
+            }
+        }
+        return result
+    }
+
+    func testAtItsOwnTempoTheRecordingIsCopiedExactly() throws {
+        let source = clicks(at: [0.3, 1.3], seconds: 3)
+        // Bar 1 is 0.3 s in, and nothing is stretched
+        let map = WarpMap(markers: [WarpMarker(sourceTime: 0.3, beat: 0)], tempo: 120)
+        let rendered = try XCTUnwrap(WarpRenderer.render(source, map: map, tempo: 120, from: -1, to: 4))
+        let offset = Int(0.3 * 44_100) - 22_050    // beat -1 is 0.2 s before
+        for i in stride(from: 0, to: rendered.audio.frameCount, by: 97) {
+            let j = i + offset
+            let expected: Float = j >= 0 && j < source.frameCount ? source.channels[0][j] : 0
+            XCTAssertEqual(rendered.audio.channels[0][i], expected, "frame \(i)")
+        }
+    }
+
+    func testOnlyTheStretchedSectionIsStretched() throws {
+        // Clicks every half second; the section from 1 s to 2 s is pinned to beats 2...6 (twice as long)
+        let source = clicks(at: [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5], seconds: 4.5)
+        let map = WarpMap(markers: [WarpMarker(sourceTime: 1, beat: 2), WarpMarker(sourceTime: 2, beat: 6)], tempo: 120)
+        let fast = try XCTUnwrap(WarpRenderer.render(source, map: map, tempo: 120, from: 0, to: 9))
+        let found = onsets(fast)
+        let expected: [Double] = [0, 1, 2, 4, 6, 7, 8]
+        XCTAssertEqual(found.count, expected.count, "\(found)")
+        for (x, y) in zip(found, expected) {
+            XCTAssertEqual(x, y, accuracy: 0.02)
+        }
     }
 }

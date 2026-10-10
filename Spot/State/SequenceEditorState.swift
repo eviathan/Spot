@@ -247,10 +247,12 @@ final class SequenceEditorState {
 
     // MARK: - Selection
 
-    /// Selects the grid unit at `beat`, or extends the selection to it.
+    /// Puts the playhead at `beat`, on the grid line before it (or exactly there with the grid off), and
+    /// selects a grid unit (at least a beat) from there; or extends the selection to it.
     func select(beat: Double, extend: Bool, in sequence: ChordSequence) {
         let unit = clickUnit
-        let start = max(0, min(floor(beat / unit) * unit, sequence.lengthInBeats - unit))
+        let onGrid = snap > 0 ? floor(beat / snap + 1e-9) * snap : beat
+        let start = max(0, min(onGrid, sequence.lengthInBeats - unit))
         if extend {
             selection = BeatRange(min(selectionAnchor, start), max(selectionAnchor + unit, start + unit))
         } else {

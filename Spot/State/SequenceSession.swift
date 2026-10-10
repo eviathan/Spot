@@ -51,7 +51,6 @@ final class SequenceSession {
     /// The audio lined up with the grid, ready to play; nil while it's being (re)rendered.
     private(set) var rendered: RenderedAudio?
     /// 0...1 while rendering.
-    private(set) var renderProgress: Double?
     /// What was heard in the recording: tempo, beats, bar 1, chords, key. Nothing changes until it's applied.
     
     private(set) var isRecording = false
@@ -237,7 +236,7 @@ final class SequenceSession {
         self.recorder = recorder
         try recorder.setDevice(playback.settings.inputDeviceID)
         try recorder.start(writingTo: url)
-        recordingFile = (url, "Take \(number)", sequence.tempo * sequence.practiceRate)
+        recordingFile = (url, "Take \(number)", sequence.tempo)
         isRecording = true
         if !isPlaying {
             play()
@@ -274,13 +273,36 @@ final class SequenceSession {
         sequence?.takes[index].isMuted = muted
     }
 
+    /// The sequence before a change, while the length is being fitted to it.
+    @ObservationIgnored private var fittingFrom: ChordSequence??
+
+    /// Where the rendered audio stops: the end of the bar the recording ends in.
+    private static func renderEnd(_ sequence: ChordSequence) -> Double? {
+        guard let end = sequence.audioEndBeat else { return nil }
+        let bar = Double(sequence.beatsPerBar)
+        return min(sequence.lengthInBeats, ceil(end / bar - 1e-9) * bar)
+    }
+
     private func sequenceChanged(from old: ChordSequence?) {
-        guard !isLoading, let sequence, sequence != old else { return }
+        guard !isLoading, var fitted = sequence, fitted != old else { return }
+        // The length follows the content (plus a few spare bars). Fitting sets the sequence again, which
+        // comes back here; that pass does the work, measured against the sequence from before both.
+        fitted.fitLength()
+        if fitted != sequence {
+            fittingFrom = .some(old)
+            self.sequence = fitted
+            return
+        }
+        let old = fittingFrom ?? old
+        fittingFrom = nil
+        guard let sequence else { return }
         editor?.analyse(sequence)
         
-        // The rendered audio depends on the markers, tempo and length. Moving one marker only changes the
-        // audio between its neighbours, so just that stretch is re-rendered (quickly).
-        if sequence.tempo != old?.tempo || sequence.lengthInBars != old?.lengthInBars || sequence.beatsPerBar != old?.beatsPerBar {
+        // The rendered audio depends on the markers and the recording's tempo (not the sequence's: that's
+        // applied as it plays), and runs to the end of the recording.
+        // Moving one marker only changes the audio between its neighbours, so just that stretch is
+        // re-rendered (quickly).
+        if sequence.audio?.tempo != old?.audio?.tempo || SequenceSession.renderEnd(sequence) != old.flatMap(SequenceSession.renderEnd) {
             scheduleRender()
         } else if let markers = sequence.audio?.warpMarkers, markers != old?.audio?.warpMarkers {
             if let range = SequenceSession.affectedRange(old: old?.audio?.warpMarkers ?? [], new: markers) {
@@ -291,8 +313,7 @@ final class SequenceSession {
         }
         if isPlaying, let editor {
             playback.update(playbackData(sequence, editor: editor), id: editor.id)
-            transport.setBPM(sequence.tempo * sequence.practiceRate)
-            playback.setAudioRate(sequence.practiceRate)
+            applyTempo(sequence)
         }
         hasUnsavedChanges = true
         scheduleAutosave()
@@ -354,16 +375,26 @@ final class SequenceSession {
     /// Plays from where it paused, otherwise from the selection (with a count-in).
     func play() {
         guard let sequence, let editor, !isPlaying else { return }
-        // Practice speed slows everything: the clock, the clicks and the audio
-        transport.setBPM(sequence.tempo * sequence.practiceRate)
+        applyTempo(sequence)
         transport.beatsPerBar = sequence.beatsPerBar
-        playback.setAudioRate(sequence.practiceRate)
         let resume = editor.pausedAt
         editor.followSuspended = false
         playback.play(playbackData(sequence, editor: editor), from: resume ?? editor.selection.start, id: editor.id,
                       countIn: resume == nil)
     }
     
+    /// The clock runs at the sequence's tempo, and the recording is sped up or slowed down from its own to match.
+    private func applyTempo(_ sequence: ChordSequence) {
+        transport.setBPM(sequence.tempo)
+        playback.setAudioRate(sequence.audio.map { sequence.tempo / $0.tempo } ?? 1)
+    }
+
+    /// Moves playback to `beat` while playing (clicking in the lane), without a count-in.
+    func seek(to beat: Double) {
+        guard isPlaying, !isRecording, let sequence, let editor else { return }
+        playback.play(playbackData(sequence, editor: editor), from: beat, id: editor.id, countIn: false)
+    }
+
     func pause() {
         guard isPlaying, let editor else { return }
         stopRecording()
@@ -396,7 +427,12 @@ final class SequenceSession {
     
     private func playbackData(_ sequence: ChordSequence, editor: SequenceEditorState) -> SequencePlayback {
         var data = editor.playback(for: sequence)
-        if let audio = sequence.audio, !audio.isMuted, rendered?.tempo == sequence.tempo {
+        // Stop at the end of the bar the content ends in, not after the spare bars (unless recording into them)
+        if !isRecording, sequence.contentEnd > 0 {
+            let bar = Double(sequence.beatsPerBar)
+            data.length = min(sequence.lengthInBeats, ceil(sequence.contentEnd / bar - 1e-9) * bar)
+        }
+        if let audio = sequence.audio, !audio.isMuted, rendered?.tempo == audio.tempo {
             data.audio = rendered
             data.audioGain = Float(pow(10, audio.gain / 20))
         }
@@ -415,7 +451,8 @@ final class SequenceSession {
     func importAudio(_ url: URL) throws {
         let reference = try makeReference(url)
         let secondsPerBar = Double(sequence?.beatsPerBar ?? 4) * 60 / (sequence?.tempo ?? 120)
-        sequence?.audio = AudioTrack(reference: reference)
+        // Starts at bar 1, at the sequence's tempo until told otherwise
+        sequence?.audio = AudioTrack(reference: reference, tempo: sequence?.tempo ?? 120)
         if let bars = sequence?.lengthInBars, Double(bars) * secondsPerBar < reference.duration {
             sequence?.setLength(bars: Int(ceil(reference.duration / secondsPerBar)))
         }
@@ -458,44 +495,23 @@ final class SequenceSession {
         return min(max((60 / interval * 10).rounded() / 10, 20), 300)
     }
 
-    /// Tap tempo for the sequence. With a recording, the taps are its tempo (heard at the practice speed,
-    /// if it's playing), so the grid follows it; without one, they're simply the tempo.
+    /// Tap tempo for the sequence: the tempo it plays at.
     func tapTempo() {
-        guard let tapped = tap(), let sequence else { return }
-        if sequence.audio != nil {
-            let heardRate = isPlaying ? sequence.practiceRate : 1
-            self.sequence?.tempo = (tapped / heardRate * 10).rounded() / 10
-        } else {
-            self.sequence?.tempo = tapped
-            self.sequence?.practiceRate = 1
+        guard let tapped = tap() else { return }
+        sequence?.tempo = tapped
+        if !isPlaying {
+            transport.setBPM(tapped)
         }
     }
 
-    /// The tempo things play at: the sequence's tempo times the practice speed.
-    var playingTempo: Double? {
-        sequence.map { $0.tempo * $0.practiceRate }
+    /// Tap along with the recording to set its own tempo where the playhead is. While it's playing
+    /// sped up or slowed down, the taps are scaled back to what it was played at.
+    func tapRecordingTempo(atBeat beat: Double) {
+        guard let tapped = tap(), let sequence, let audio = sequence.audio else { return }
+        let heardRate = isPlaying ? sequence.tempo / audio.tempo : 1
+        self.sequence?.audio?.setSegmentTempo((tapped / heardRate * 10).rounded() / 10, atBeat: beat)
     }
 
-    /// Sets the tempo to play at. With a recording, that's a practice speed (the recording's own tempo, which
-    /// the grid is lined up to, stays put); without one, it's the tempo itself.
-    func setPlayingTempo(_ bpm: Double) {
-        guard let sequence else { return }
-        let bpm = min(max(bpm, 20), 300)
-        if sequence.audio != nil {
-            self.sequence?.practiceRate = min(max(bpm / sequence.tempo, 0.25), 2)
-        } else {
-            self.sequence?.tempo = bpm
-            self.sequence?.practiceRate = 1
-        }
-        if !isPlaying, let tempo = playingTempo {
-            transport.setBPM(tempo)
-        }
-    }
-    
-    var tapCount: Int {
-        taps.count
-    }
-    
     private func makeReference(_ url: URL) throws -> AudioReference {
         let accessing = url.startAccessingSecurityScopedResource()
         defer { if accessing { url.stopAccessingSecurityScopedResource() } }
@@ -559,7 +575,6 @@ final class SequenceSession {
         sourceAudio = nil
         peaks = nil
         rendered = nil
-        renderProgress = nil
         if sequence?.audio == nil {
             audioStatus = .none
         }
@@ -606,9 +621,10 @@ final class SequenceSession {
         }
         renderTask?.cancel()
         guard let source = sourceAudio, let sequence, let audio = sequence.audio else { return }
-        let map = audio.map(tempo: sequence.tempo)
-        let tempo = sequence.tempo
-        let end = sequence.lengthInBeats
+        // Rendered at the recording's own tempo; playback speeds it up or slows it down to the sequence's
+        let map = audio.map
+        let tempo = audio.tempo
+        let end = SequenceSession.renderEnd(sequence) ?? sequence.lengthInBeats
         // Include anything recorded before bar 1, so it can play during the count-in
         let start = min(0, floor(map.beat(atSourceTime: 0)))
         
@@ -636,17 +652,9 @@ final class SequenceSession {
             return
         }
         
-        renderProgress = 0
+        // Quiet: at the recording's own tempo this is mostly a copy, and only stretched sections take any time
         renderTask = Task.detached(priority: .userInitiated) {
-            var lastReport = Date.distantPast
-            let result = WarpRenderer.render(source, map: map, tempo: tempo, from: start, to: end) { progress in
-                if Task.isCancelled { return false }
-                if Date().timeIntervalSince(lastReport) > 0.1 {
-                    lastReport = Date()
-                    Task { @MainActor in owner.session?.renderProgress = progress }
-                }
-                return true
-            }
+            let result = WarpRenderer.render(source, map: map, tempo: tempo, from: start, to: end) { _ in !Task.isCancelled }
             guard !Task.isCancelled, let result else { return }
             await MainActor.run {
                 owner.session?.finishRender(result)
@@ -657,7 +665,6 @@ final class SequenceSession {
     private func finishRender(_ result: RenderedAudio) {
         inFlight = nil
         rendered = result
-        renderProgress = nil
         if isPlaying, let sequence, let editor {
             playback.update(playbackData(sequence, editor: editor), id: editor.id)
         }

@@ -227,7 +227,7 @@ final class PlaybackController {
         guard to > from else { return }
         scheduleClicks(from: from, to: to)
         if let sequence, let audio = sequence.audio {
-            scheduleAudio(audio, gain: sequence.audioGain, loopEnd: sequence.loop?.end, to: to)
+            scheduleAudio(audio, gain: sequence.audioGain, loopEnd: sequence.loop?.end, from: from, to: to)
         }
         if sequence != nil, !takesStarted, countInEnd < to {
             takesStarted = true
@@ -261,10 +261,17 @@ final class PlaybackController {
     
     /// Queues the recording in one-beat slices. The first starts at an exact time when the count-in ends;
     /// the rest follow on back to back, so loops and slices join without gaps.
-    private func scheduleAudio(_ audio: RenderedAudio, gain: Float, loopEnd: Double?, to: Double) {
+    private func scheduleAudio(_ audio: RenderedAudio, gain: Float, loopEnd: Double?, from: Double, to: Double) {
+        // Fallen behind (the audio was missing for a while, e.g. while it re-rendered): queuing the gap
+        // would make it late, so start it again from here
+        if let cursor = audioCursor, cursor < from - 1e-6 {
+            audioCursor = nil
+        }
         if audioCursor == nil {
-            // From the very start, audio before bar 1 (a pickup) plays during the count-in
-            let first = countInEnd <= 0.001 ? max(countInStart, min(audio.startBeat, countInEnd)) : countInEnd
+            // From the very start, audio before bar 1 (a pickup) plays during the count-in. Audio that
+            // arrives once playback is under way (it was still rendering) joins in now, not back at the start.
+            let start = countInEnd <= 0.001 ? max(countInStart, min(audio.startBeat, countInEnd)) : countInEnd
+            let first = max(start, from)
             guard first < to else { return }
             let end = min(floor(first) + 1, loopEnd ?? .infinity)
             guard let slice = audio.buffer(fromBeat: first, toBeat: end) else { return }

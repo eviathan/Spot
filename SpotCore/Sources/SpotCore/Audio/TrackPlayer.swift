@@ -13,10 +13,10 @@ public final class TrackPlayer {
     private let timePitch = AVAudioUnitTimePitch()
     private var format: AVAudioFormat?
 
-    /// 1 is normal speed, 0.5 half speed.
+    /// 1 is normal speed, 0.5 half speed (what the time-pitch unit allows: 1/32 to 32).
     public var rate: Float {
         get { timePitch.rate }
-        set { timePitch.rate = min(max(newValue, 0.25), 2) }
+        set { timePitch.rate = min(max(newValue, 1 / 32), 32) }
     }
 
     /// 0...1 (and above for boost).

@@ -139,6 +139,35 @@ struct SpotApp: App {
                 Button("Zoom Out") { session.editor?.zoom(by: 1 / 1.5) }
                     .keyboardShortcut("-", modifiers: [.command])
                     .disabled(ui.tab != .Sequence || !session.isOpen)
+                Toggle("Follow Playhead", isOn: Binding(get: { session.editor?.followsPlayhead ?? false },
+                                                        set: { session.editor?.followsPlayhead = $0 }))
+                    .disabled(!session.isOpen)
+                Divider()
+                
+                // How the Sequence tab shows each chord's scale on the neck
+                Picker("Sequence Neck", selection: Binding(get: { session.editor?.neckView ?? .followHand },
+                                                           set: { session.editor?.neckView = $0 })) {
+                    Text("Follow Hand").tag(SequenceEditorState.NeckView.followHand)
+                    Text("Whole Neck").tag(SequenceEditorState.NeckView.wholeNeck)
+                }
+                .disabled(!session.isOpen)
+                Picker("Start Around Fret", selection: Binding(get: { session.editor?.handFret ?? 5 },
+                                                               set: { session.editor?.handFret = $0 })) {
+                    ForEach([1, 3, 5, 7, 9, 12], id: \.self) { fret in
+                        Text("Fret \(fret)").tag(fret)
+                    }
+                }
+                .disabled(!session.isOpen || session.editor?.neckView != .followHand)
+                Toggle("Next Chord Box", isOn: Binding(get: { session.editor?.showsNextDiagram ?? false },
+                                                       set: { session.editor?.showsNextDiagram = $0 }))
+                    .disabled(!session.isOpen)
+                Picker("Show Next Chord", selection: Binding(get: { session.editor?.ghostBeats ?? 2 },
+                                                             set: { session.editor?.ghostBeats = $0 })) {
+                    Text("1 Beat Early").tag(1.0)
+                    Text("2 Beats Early").tag(2.0)
+                    Text("1 Bar Early").tag(Double(session.sequence?.beatsPerBar ?? 4))
+                }
+                .disabled(!session.isOpen)
                 Divider()
             }
             

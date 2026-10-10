@@ -141,20 +141,23 @@ struct NowNextView: View {
             let next = sequence.chord(after: max(position, region?.range.start ?? position))
             let beatInBar = Int(floor(position)) - Int(floor(position / Double(sequence.beatsPerBar))) * sequence.beatsPerBar
 
-            HStack(alignment: .center, spacing: 24) {
-                VStack(alignment: .leading, spacing: 2) {
+            HStack(alignment: .center, spacing: 18) {
+                VStack(alignment: .leading, spacing: 0) {
                     Text(isPlaying && position < editor.selection.start ? "Count-in" : (sequence.section(at: max(position, 0))?.name ?? " "))
-                        .font(.caption)
+                        .font(.caption2)
                         .opacity(0.6)
-                    Text(region.map(display) ?? "–")
-                        .font(.system(size: 34, weight: .bold))
+                    // Nothing when there's no chord here (keeps its height so the row doesn't jump)
+                    Text(region.map(display) ?? " ")
+                        .font(.system(size: 26, weight: .bold))
+                        .lineLimit(1)
                     if let region, let scale = editor.analysis.scales[region.id], let chord = editor.analysis.chords[region.id] {
                         Text(chord.root.description + " " + scale.name)
-                            .font(.callout)
+                            .font(.caption)
+                            .lineLimit(1)
                             .opacity(0.7)
                     }
                 }
-                .frame(minWidth: 220, alignment: .leading)
+                .frame(minWidth: 150, alignment: .leading)
 
                 // The beats of the current bar
                 HStack(spacing: 8) {
@@ -167,15 +170,16 @@ struct NowNextView: View {
 
                 if let next {
                     let beatsLeft = Int(ceil(next.range.start - position))
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: 0) {
                         Text("Next")
-                            .font(.caption)
+                            .font(.caption2)
                             .opacity(0.6)
-                        HStack(alignment: .firstTextBaseline, spacing: 10) {
+                        HStack(alignment: .firstTextBaseline, spacing: 8) {
                             Text(display(next))
-                                .font(.system(size: 24, weight: .semibold))
+                                .font(.system(size: 18, weight: .semibold))
+                                .lineLimit(1)
                             Text(beatsLeft == 1 ? "in 1 beat" : "in \(beatsLeft) beats")
-                                .font(.callout)
+                                .font(.caption)
                                 .foregroundColor(beatsLeft <= Int(editor.ghostBeats) && isPlaying ? .orange : .white.opacity(0.7))
                         }
                         if let shift = shiftHint(from: region, to: next) {
@@ -189,14 +193,11 @@ struct NowNextView: View {
                        let placement = editor.analysis.positions[next.id]?.placement {
                         ChordBoxView(placement: placement, chordTones: Set(chord.chord.formula.pitchClasses(from: chord.root.pitchClass)),
                                      root: chord.root.pitchClass, fretboard: editor.fretboard)
-                            .frame(width: 130, height: 64)
+                            .frame(width: 110, height: 48)
                             .help("The next chord's notes in the position to play it")
                     }
                 }
-                Spacer()
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
         }
     }
 

@@ -107,3 +107,31 @@ final class ChordClipTests: XCTestCase {
         XCTAssertEqual(sequence.chords.last?.range, BeatRange(14, 16))
     }
 }
+
+final class SequenceLengthTests: XCTestCase {
+    func testLengthFitsTheContent() {
+        var sequence = ChordSequence(tempo: 120, beatsPerBar: 4, lengthInBars: 16)
+        sequence.fitLength()
+        XCTAssertEqual(sequence.lengthInBars, 16, "never below the minimum")
+
+        // Chords out to bar 20 (beat 78.5): 20 bars used, plus 4 spare
+        sequence.setLength(bars: 40)
+        sequence.setChord("C", in: BeatRange(70, 78.5))
+        sequence.fitLength()
+        XCTAssertEqual(sequence.lengthInBars, 24)
+        XCTAssertEqual(sequence.chords.last?.range.end, 78.5, "the chords themselves are kept")
+
+        // A minute of audio at 120 bpm is 120 beats, 30 bars
+        sequence.audio = AudioTrack(reference: AudioReference(bookmark: nil, lastKnownPath: "/x.wav", fileName: "x.wav", duration: 60,
+                                                              sampleRate: 44_100, channelCount: 2, fingerprint: "x"), tempo: 120)
+        XCTAssertEqual(sequence.audioEndBeat ?? 0, 120, accuracy: 0.001)
+        sequence.fitLength()
+        XCTAssertEqual(sequence.lengthInBars, 34)
+
+        // Shrinks again when the content goes
+        sequence.audio = nil
+        sequence.clearChords(in: BeatRange(0, sequence.lengthInBeats))
+        sequence.fitLength()
+        XCTAssertEqual(sequence.lengthInBars, 16)
+    }
+}

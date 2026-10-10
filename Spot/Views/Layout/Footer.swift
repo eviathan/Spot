@@ -42,12 +42,15 @@ struct Footer: View {
     // MARK: Tempo
 
     private var bpm: Int {
-        Int((editsSequence ? session.playingTempo ?? transport.bpm : transport.bpm).rounded())
+        Int((editsSequence ? session.sequence?.tempo ?? transport.bpm : transport.bpm).rounded())
     }
 
     func incrementBPM(_ value: Int) {
-        if editsSequence {
-            session.setPlayingTempo(Double(bpm + value))
+        if editsSequence, let tempo = session.sequence?.tempo {
+            session.sequence?.tempo = min(max(tempo.rounded() + Double(value), 20), 300)
+            if !session.isPlaying, let tempo = session.sequence?.tempo {
+                transport.setBPM(tempo)
+            }
         } else {
             transport.incrementBPM(value)
         }
@@ -111,9 +114,7 @@ struct Footer: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .help(editsSequence && session.sequence?.audio != nil
-                      ? "Tap along with the recording to set its tempo (after four taps)"
-                      : "Tap along with the beat to set the tempo (after four taps)")
+                .help("Tap along with the beat to set the tempo (after four taps)")
 
                 Menu {
                     ForEach([2, 3, 4, 5, 6, 7], id: \.self) { value in
@@ -178,23 +179,10 @@ struct Footer: View {
                 .font(.system(size: 16))
                 .foregroundColor(.white)
 
-            VStack(spacing: 0) {
-                Text("\(bpm)")
-                    .font(.system(size: 20))
-                    .foregroundColor(.white)
-                // With a recording, a tempo other than its own is a practice speed: click to go back
-                if editsSequence, let sequence = session.sequence, sequence.audio != nil,
-                   abs(sequence.practiceRate - 1) > 0.001 {
-                    Button("\(Int((sequence.practiceRate * 100).rounded()))% of \(Int(sequence.tempo.rounded()))") {
-                        session.setPlayingTempo(sequence.tempo)
-                    }
-                    .buttonStyle(.plain)
-                    .font(.system(size: 9))
-                    .foregroundColor(.orange)
-                    .help("Playing the recording slower or faster than it was played. Click for its own tempo.")
-                }
-            }
-            .frame(minWidth: 50)
+            Text("\(bpm)")
+                .font(.system(size: 20))
+                .foregroundColor(.white)
+                .frame(minWidth: 50)
         }
         .contentShape(Rectangle())
         .gesture(
@@ -209,7 +197,7 @@ struct Footer: View {
                 }
                 .onEnded { _ in previousBPMChangeValue = 0 })
         .help(editsSequence && session.sequence?.audio != nil
-              ? "The tempo to play at. The recording slows down or speeds up to match, without changing pitch."
+              ? "The tempo to play at. The recording is sped up or slowed down from its own tempo to match, without changing pitch."
               : "Tempo")
     }
 }

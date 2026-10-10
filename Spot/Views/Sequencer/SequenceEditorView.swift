@@ -7,7 +7,8 @@ import SwiftUI
 import SpotCore
 
 /// The Sequence tab with a sequence open: now/next, the chord lane and its controls.
-/// The fretboard above is `SequencerFretboard`; play, loop, key, tempo and time signature are in the main footer.
+/// The fretboard above is `SequencerFretboard`; play, loop, key, tempo and time signature are in the main footer,
+/// and file and view options in the menu bar.
 struct SequenceEditorView: View {
     @Environment(SequenceSession.self) private var session
     
@@ -15,9 +16,7 @@ struct SequenceEditorView: View {
         if let editor = session.editor, let sequence = session.sequence {
             let binding = Binding(get: { session.sequence ?? sequence }, set: { session.sequence = $0 })
             VStack(spacing: 0) {
-                SequenceFileBar(sequence: binding, editor: editor)
-                AudioBar(sequence: binding)
-                NowNextView(sequence: sequence, editor: editor)
+                AudioBar(sequence: binding, editor: editor)
                 ChordLaneView(sequence: sequence, editor: editor)
                 Divider()
                 LaneEditorBar(sequence: binding, editor: editor)
@@ -104,9 +103,10 @@ private struct LaneEditorBar: View {
     }
 }
 
-// MARK: - File and settings
+// MARK: - Now, next and the recording
 
-private struct SequenceFileBar: View {
+/// One row: the chord now and the beat, what's next, which sequence, then the recording's tempos and level.
+private struct AudioBar: View {
     @Binding var sequence: ChordSequence
     let editor: SequenceEditorState
     
@@ -114,96 +114,54 @@ private struct SequenceFileBar: View {
     @Environment(UIState.self) private var ui
     
     var body: some View {
-        HStack(spacing: 18) {
-            HStack(spacing: 6) {
+        HStack(spacing: 14) {
+            NowNextView(sequence: sequence, editor: editor)
+            
+            Spacer(minLength: 8)
+            
+            // Which sequence (Save, Close and the rest are in the File menu)
+            HStack(spacing: 5) {
                 Image(systemName: "music.note.list")
                 Text(session.displayName)
-                    .font(.headline)
+                    .lineLimit(1)
                 if session.hasUnsavedChanges && session.fileURL == nil {
                     Text("not saved")
-                        .font(.caption)
                         .foregroundStyle(.orange)
                 } else if let error = session.saveError {
-                    Label(error, systemImage: "exclamationmark.triangle")
-                        .font(.caption)
+                    Image(systemName: "exclamationmark.triangle")
                         .foregroundStyle(.orange)
+                        .help(error)
                 }
             }
+            .font(.caption)
+            .opacity(0.8)
             
-            Button(session.fileURL == nil ? "Save…" : "Save As…") { ui.isSavingSequenceAs = true }
-            Button("Close") { ui.requestSequenceAction(.close, session: session) }
+            Divider().frame(height: 18)
             
-            Divider().frame(height: 20)
-            
-            Stepper(value: Binding(get: { sequence.lengthInBars }, set: { sequence.setLength(bars: $0) }), in: 1...512) {
-                Text("\(sequence.lengthInBars) bars")
-                    .monospacedDigit()
-            }
-            
-            Menu("View") {
-                Toggle("Follow Playhead", isOn: Binding(get: { editor.followsPlayhead }, set: { editor.followsPlayhead = $0 }))
-                Divider()
-                Picker("Neck", selection: Binding(get: { editor.neckView }, set: { editor.neckView = $0 })) {
-                    Text("Follow Hand").tag(SequenceEditorState.NeckView.followHand)
-                    Text("Whole Neck").tag(SequenceEditorState.NeckView.wholeNeck)
-                }
-                .pickerStyle(.inline)
-                Menu("Start Around Fret \(editor.handFret)") {
-                    ForEach([1, 3, 5, 7, 9, 12], id: \.self) { fret in
-                        Button("Fret \(fret)") { editor.handFret = fret }
-                    }
-                }
-                .disabled(editor.neckView != .followHand)
-                Divider()
-                Toggle("Next Chord Box", isOn: Binding(get: { editor.showsNextDiagram }, set: { editor.showsNextDiagram = $0 }))
-                Picker("Show Next Chord", selection: Binding(get: { editor.ghostBeats }, set: { editor.ghostBeats = $0 })) {
-                    Text("1 Beat Early").tag(1.0)
-                    Text("2 Beats Early").tag(2.0)
-                    Text("1 Bar Early").tag(Double(sequence.beatsPerBar))
-                }
-            }
-            .menuStyle(.borderlessButton)
-            .fixedSize()
-            .help("Follow Hand shows one position per chord, each close to the last; click a fret to move your hand there")
-            
-            Spacer()
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
-        .background(Color(hue: 0.63, saturation: 0.30, brightness: 0.20, opacity: 1.00))
-    }
-}
-
-// MARK: - Audio
-
-private struct AudioBar: View {
-    @Binding var sequence: ChordSequence
-    
-    @Environment(SequenceSession.self) private var session
-    @Environment(UIState.self) private var ui
-    
-    var body: some View {
-        HStack(spacing: 16) {
             if session.isRecording {
                 Label("Recording", systemImage: "record.circle")
                     .foregroundStyle(.red)
                     .font(.callout.weight(.semibold))
             }
-            Image(systemName: "waveform")
             
             if let audio = sequence.audio {
-                Text(audio.reference.fileName)
-                    .lineLimit(1)
-                    .frame(maxWidth: 220, alignment: .leading)
+                HStack(spacing: 5) {
+                    Image(systemName: "waveform")
+                    Text(audio.reference.fileName)
+                        .lineLimit(1)
+                        .frame(maxWidth: 160, alignment: .leading)
+                }
+                .font(.callout)
+                .help("Double-click the waveform to add a warp marker, drag a marker onto its beat (⇧ to slide it along the audio instead)")
                 status(audio)
                 
-                Divider().frame(height: 18)
+                RecordingTempo(sequence: $sequence, editor: editor)
                 
                 Toggle(isOn: Binding(get: { !(sequence.audio?.isMuted ?? false) }, set: { sequence.audio?.isMuted = !$0 })) {
                     Image(systemName: audio.isMuted ? "speaker.slash" : "speaker.wave.2")
                 }
                 .toggleStyle(.button)
-                .help("Mute the recording")
+                .help(audio.isMuted ? "The recording is muted: click to hear it" : "Mute the recording")
                 
                 Slider(value: Binding(get: { sequence.audio?.gain ?? 0 }, set: { sequence.audio?.gain = $0 }), in: -24...6)
                     .frame(width: 90)
@@ -211,7 +169,7 @@ private struct AudioBar: View {
                 
                 Menu("Audio") {
                     Button("Clear Warp Markers") { sequence.audio?.removeAllMarkers() }
-                        .disabled(audio.warpMarkers.isEmpty)
+                        .disabled(audio.warpMarkers.count <= 1)
                     Button("Locate File…") { ui.isRelinkingAudio = true }
                     Button("Replace Audio…") { ui.isImportingAudio = true }
                     Divider()
@@ -219,22 +177,13 @@ private struct AudioBar: View {
                 }
                 .menuStyle(.borderlessButton)
                 .fixedSize()
-                
-                if audio.warpMarkers.isEmpty && session.audioStatus == .ready {
-                    Text("Double-click a hit in the waveform to add a warp marker, then drag it onto its beat.")
-                        .font(.caption)
-                        .opacity(0.6)
-                }
             } else {
                 Button("Add Audio…") { ui.isImportingAudio = true }
-                Text("Play along with a recording: it stays where it is and is lined up with the grid.")
-                    .font(.caption)
-                    .opacity(0.6)
+                    .help("Play along with a recording: it stays where it is and is lined up with the grid")
             }
-            Spacer()
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 6)
+        .padding(.vertical, 4)
     }
     
     @ViewBuilder
@@ -242,28 +191,98 @@ private struct AudioBar: View {
         switch session.audioStatus {
         case .loading:
             ProgressView().controlSize(.small)
-            Text("Loading…").font(.caption)
         case .missing:
             Label("File not found", systemImage: "exclamationmark.triangle")
                 .foregroundStyle(.orange)
                 .font(.caption)
             Button("Locate…") { ui.isRelinkingAudio = true }
         case .failed(let message):
-            Label(message, systemImage: "exclamationmark.triangle")
+            Image(systemName: "exclamationmark.triangle")
                 .foregroundStyle(.orange)
-                .font(.caption)
-                .lineLimit(1)
+                .help(message)
         case .ready, .none:
-            if let progress = session.renderProgress {
-                ProgressView(value: progress)
-                    .frame(width: 80)
-                Text("Lining up…").font(.caption)
-            } else if let warning = session.audioWarning {
-                Label(warning, systemImage: "exclamationmark.triangle")
+            if let warning = session.audioWarning {
+                Image(systemName: "exclamationmark.triangle")
                     .foregroundStyle(.orange)
-                    .font(.caption)
-                    .lineLimit(2)
+                    .help(warning)
             }
         }
+    }
+}
+
+/// The recording's own tempo where the playhead is (between two markers, that section's) and the tempo
+/// it's playing at, like Seg. BPM in Live. Drag the number to change it (⌥ for tenths), double-click to
+/// type it, or tap along.
+private struct RecordingTempo: View {
+    @Binding var sequence: ChordSequence
+    let editor: SequenceEditorState
+    
+    @Environment(SequenceSession.self) private var session
+    @State private var dragStart: Double?
+    @State private var isTyping = false
+    @State private var typed = ""
+    
+    private var beat: Double {
+        editor.pausedAt ?? editor.selection.start
+    }
+    
+    var body: some View {
+        let original = sequence.audio?.segmentTempo(atBeat: beat) ?? sequence.tempo
+        let isSection = (sequence.audio?.warpMarkers.count ?? 0) > 1 && abs(original - (sequence.audio?.tempo ?? original)) > 0.001
+        
+        HStack(spacing: 6) {
+            Text(isSection ? "Section" : "Original")
+                .font(.caption)
+                .opacity(0.6)
+            Text(String(format: "%.1f", original))
+                .font(.system(.body, design: .monospaced))
+                .padding(.horizontal, 5)
+                .background(RoundedRectangle(cornerRadius: 4).fill(Color.white.opacity(0.1)))
+                .contentShape(Rectangle())
+                .gesture(DragGesture(minimumDistance: 1)
+                    .onChanged { value in
+                        let start = dragStart ?? original
+                        dragStart = start
+                        let step = NSEvent.modifierFlags.contains(.option) ? 0.1 : 1
+                        let change = (Double(value.translation.width - value.translation.height) / 4).rounded() * step
+                        setTempo(start + change)
+                    }
+                    .onEnded { _ in dragStart = nil })
+                .onTapGesture(count: 2) {
+                    typed = String(format: "%.1f", original)
+                    isTyping = true
+                }
+                .popover(isPresented: $isTyping, arrowEdge: .bottom) {
+                    TextField("BPM", text: $typed)
+                        .frame(width: 80)
+                        .padding(10)
+                        .onSubmit {
+                            if let value = Double(typed.trimmingCharacters(in: .whitespaces)) {
+                                setTempo(value)
+                            }
+                            isTyping = false
+                        }
+                }
+            Image(systemName: "arrow.right")
+                .font(.caption)
+                .opacity(0.6)
+            Text("\(Int(sequence.tempo.rounded()))")
+                .font(.system(.body, design: .monospaced))
+                .help("The tempo it's playing at (in the footer)")
+            Button {
+                session.tapRecordingTempo(atBeat: beat)
+            } label: {
+                Image(systemName: "hand.tap")
+            }
+            .buttonStyle(.plain)
+            .help("Tap along with the recording to set its own tempo here (after four taps)")
+        }
+        .help(isSection
+              ? "The tempo of the recording between the warp markers around the playhead. Drag to change it (⌥ for tenths), double-click to type it."
+              : "The tempo the recording was played at. Drag to change it (⌥ for tenths), double-click to type it.")
+    }
+    
+    private func setTempo(_ bpm: Double) {
+        sequence.audio?.setSegmentTempo((bpm * 10).rounded() / 10, atBeat: beat)
     }
 }

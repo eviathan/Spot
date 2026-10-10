@@ -43,23 +43,62 @@ public struct WarpMarker: Identifiable, Hashable, Codable, Sendable {
 }
 
 /// The sequence's audio: which file, how it lines up with the grid, and its level.
+///
+/// Like a warped clip in Live: the recording has its own tempo, and warp markers pin moments in it to
+/// beats. There's always at least one marker (where the recording sits on the grid); between markers
+/// the audio is stretched to fit, and outside them it plays at its own tempo. The sequence's tempo is
+/// separate: the whole thing is sped up or slowed down to it as it plays.
 public struct AudioTrack: Hashable, Codable, Sendable {
     public var reference: AudioReference
-    /// Kept sorted by beat, with source times rising.
+    /// The tempo the recording was played at (the user sets it; nothing is detected).
+    public var tempo: Double
+    /// Kept sorted by beat, with source times rising. Never empty.
     public private(set) var warpMarkers: [WarpMarker]
     /// Decibels.
     public var gain: Double
     public var isMuted: Bool
 
-    public init(reference: AudioReference, warpMarkers: [WarpMarker] = [], gain: Double = 0, isMuted: Bool = false) {
+    /// With no markers given, the start of the recording sits on bar 1.
+    public init(reference: AudioReference, tempo: Double, warpMarkers: [WarpMarker] = [], gain: Double = 0, isMuted: Bool = false) {
         self.reference = reference
-        self.warpMarkers = warpMarkers.sorted { $0.beat < $1.beat }
+        self.tempo = tempo
+        self.warpMarkers = warpMarkers.isEmpty ? [WarpMarker(sourceTime: 0, beat: 0)] : warpMarkers.sorted { $0.beat < $1.beat }
         self.gain = gain
         self.isMuted = isMuted
     }
 
-    public func map(tempo: Double) -> WarpMap {
+    /// Beats against seconds in the recording.
+    public var map: WarpMap {
         WarpMap(markers: warpMarkers, tempo: tempo)
+    }
+
+    /// The recording's own tempo at a beat: between two markers, what fits that stretch of audio onto
+    /// those beats; outside them, `tempo`.
+    public func segmentTempo(atBeat beat: Double) -> Double {
+        guard let (a, b) = segment(atBeat: beat) else { return tempo }
+        return (b.beat - a.beat) / (b.sourceTime - a.sourceTime) * 60
+    }
+
+    /// Sets the recording's tempo at a beat. Between two markers, the later one moves (and the markers
+    /// after it with it, so their stretches keep their tempos); outside them, it sets `tempo`.
+    public mutating func setSegmentTempo(_ bpm: Double, atBeat beat: Double) {
+        let bpm = min(max(bpm, 20), 400)
+        guard let (a, b) = segment(atBeat: beat) else {
+            tempo = bpm
+            return
+        }
+        let shift = a.beat + (b.sourceTime - a.sourceTime) * bpm / 60 - b.beat
+        warpMarkers = warpMarkers.map { marker in
+            var marker = marker
+            if marker.beat >= b.beat { marker.beat += shift }
+            return marker
+        }
+    }
+
+    /// The markers either side of `beat`, if it's between two.
+    private func segment(atBeat beat: Double) -> (WarpMarker, WarpMarker)? {
+        guard let next = warpMarkers.firstIndex(where: { $0.beat > beat }), next > 0 else { return nil }
+        return (warpMarkers[next - 1], warpMarkers[next])
     }
 
     /// Adds a marker, replacing any on the same beat. Returns false if it would make the audio run backwards.
@@ -73,20 +112,39 @@ public struct AudioTrack: Hashable, Codable, Sendable {
         return true
     }
 
+    /// Removes a marker, unless it's the only one.
     public mutating func removeMarker(_ id: UUID) {
+        guard warpMarkers.count > 1 else { return }
         warpMarkers.removeAll { $0.id == id }
     }
 
+    /// Back to just the first marker: the recording where it starts, at its own tempo.
     public mutating func removeAllMarkers() {
-        warpMarkers = []
+        warpMarkers = Array(warpMarkers.prefix(1))
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case reference, tempo, warpMarkers, gain, isMuted
+    }
+
+    /// Files from before recordings had their own tempo have none (0): `ChordSequence` fills it in.
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        reference = try container.decode(AudioReference.self, forKey: .reference)
+        tempo = try container.decodeIfPresent(Double.self, forKey: .tempo) ?? 0
+        let markers = try container.decodeIfPresent([WarpMarker].self, forKey: .warpMarkers) ?? []
+        // No markers used to mean the start of the recording on bar 1
+        warpMarkers = markers.isEmpty ? [WarpMarker(sourceTime: 0, beat: 0)] : markers.sorted { $0.beat < $1.beat }
+        gain = try container.decodeIfPresent(Double.self, forKey: .gain) ?? 0
+        isMuted = try container.decodeIfPresent(Bool.self, forKey: .isMuted) ?? false
     }
 }
 
 /// Converts between beats and seconds in the recording, following the warp markers.
 ///
-/// With no markers the recording starts on beat 1 at the sequence tempo. One marker shifts it.
+/// `tempo` is the recording's own. With no markers it starts on beat 1; one marker shifts it.
 /// Between markers time is stretched evenly. Beyond the outermost markers the audio isn't stretched:
-/// it plays at its own speed against the sequence tempo, just moved along with the marker.
+/// it plays at its own tempo, just moved along with the marker.
 public struct WarpMap: Sendable {
     public let markers: [WarpMarker]
     public let tempo: Double
@@ -149,7 +207,7 @@ public struct WarpMap: Sendable {
         return (markers[upper - 1], markers[upper])
     }
 
-    /// The recording's speed at a beat, relative to the sequence tempo (2 means it's stretched to half speed).
+    /// The recording's speed at a beat, relative to its own tempo (2 means it's stretched to half speed).
     public func stretch(atBeat beat: Double) -> Double {
         let delta = 0.01
         let seconds = sourceTime(atBeat: beat + delta) - sourceTime(atBeat: beat)

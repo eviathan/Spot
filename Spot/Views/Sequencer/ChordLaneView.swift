@@ -17,13 +17,19 @@ struct ChordLaneView: View {
     @Environment(TransportState.self) private var transport
     @Environment(SequenceSession.self) private var session
 
+    /// The height the lane has to fill.
+    @State private var availableHeight: CGFloat = 0
+
     /// Chords and sections, plus a waveform row when there's audio and a row of takes when there are any.
     private var laneHeight: CGFloat {
         takesTop + (sequence.takes.isEmpty ? 0 : takesHeight + 4) + 20
     }
     let waveformTop: CGFloat = 84
-    let waveformHeight: CGFloat = 60
     let takesHeight: CGFloat = 22
+    /// The waveform takes whatever room the rest of the lane leaves.
+    private var waveformHeight: CGFloat {
+        max(60, availableHeight - waveformTop - 4 - (sequence.takes.isEmpty ? 0 : takesHeight + 4) - 20)
+    }
     private var takesTop: CGFloat {
         sequence.audio == nil ? waveformTop : waveformTop + waveformHeight + 4
     }
@@ -53,7 +59,8 @@ struct ChordLaneView: View {
                     .clipped()
                     .contentShape(Rectangle())
             }
-            .frame(height: laneHeight)
+            .frame(minHeight: sequence.audio == nil ? laneHeight : waveformTop + 84 + (sequence.takes.isEmpty ? 0 : takesHeight + 4) + 20,
+                   maxHeight: sequence.audio == nil ? laneHeight : .infinity)
             // Trackpad: swipe to pan, pinch (or ⌘/⌥ + scroll) to zoom around the pointer
             .background(ScrollCatcher(
                 onScroll: { event, x in
@@ -75,8 +82,12 @@ struct ChordLaneView: View {
                 }))
             .background(GeometryReader { geometry in
                 Color.clear
-                    .onAppear { updateViewport(geometry.size.width) }
+                    .onAppear {
+                        updateViewport(geometry.size.width)
+                        availableHeight = geometry.size.height
+                    }
                     .onChange(of: geometry.size.width) { _, width in updateViewport(width) }
+                    .onChange(of: geometry.size.height) { _, height in availableHeight = height }
                     .onChange(of: sequence.lengthInBeats) { updateViewport(geometry.size.width) }
                     .onChange(of: sequence.beatsPerBar) { updateViewport(geometry.size.width) }
             })
@@ -190,6 +201,7 @@ struct ChordLaneView: View {
                 guard abs(value.translation.width) < 3 else { return }
                 editor.select(beat: Double(value.location.x / beatWidth),
                               extend: NSEvent.modifierFlags.contains(.shift), in: sequence)
+                session.seek(to: editor.selection.start)
             }
     }
 }
@@ -362,6 +374,7 @@ private struct ChordClipsLayer: View {
                     }
                 } else {
                     editor.select(region.range, extend: NSEvent.modifierFlags.contains(.shift), in: sequence)
+                    session.seek(to: editor.selection.start)
                     if clickCount >= 2 { editor.showsPalette = true }
                 }
             }
@@ -379,6 +392,7 @@ private struct ChordClipsLayer: View {
                 if !isSelectingRange {
                     editor.select(beat: Double(value.location.x / beatWidth),
                                   extend: NSEvent.modifierFlags.contains(.shift), in: sequence)
+                    session.seek(to: editor.selection.start)
                     if clickCount >= 2 { editor.showsPalette = true }
                 }
                 isSelectingRange = false
@@ -598,7 +612,7 @@ private struct WaveformRow: View {
     }
 
     var body: some View {
-        let map = WarpMap(markers: liveMarkers, tempo: sequence.tempo)
+        let map = WarpMap(markers: liveMarkers, tempo: audio.tempo)
         let left = max(0, visible.lowerBound)
         let width = max(1, visible.upperBound - left)
 
@@ -643,8 +657,25 @@ private struct WaveformRow: View {
                         })
                         .contextMenu {
                             Button("Delete Warp Marker") { session.sequence?.audio?.removeMarker(marker.id) }
+                                .disabled(liveMarkers.count <= 1)
                         }
-                        .help("Drag to stretch onto a beat (⌥ free, ⇧ slide along the audio). Double-click to remove.")
+                        .help(liveMarkers.count <= 1
+                              ? "Where the recording sits on the grid: drag to move it all (⌥ free, ⇧ slide along the audio to put it on another hit)"
+                              : "Drag to stretch onto a beat (⌥ free, ⇧ slide along the audio). Double-click to remove.")
+                }
+            }
+
+            // Each section's own tempo, between markers, like Seg. BPM in Live
+            ForEach(Array(zip(liveMarkers, liveMarkers.dropFirst())), id: \.0.id) { a, b in
+                let start = CGFloat(a.beat) * beatWidth, end = CGFloat(b.beat) * beatWidth
+                if end - start > 56 && end >= left && start <= left + width {
+                    Text(String(format: "%.1f", (b.beat - a.beat) / (b.sourceTime - a.sourceTime) * 60))
+                        .font(.system(size: 10, design: .monospaced))
+                        .padding(.horizontal, 3)
+                        .background(RoundedRectangle(cornerRadius: 2).fill(Color.black.opacity(0.45)))
+                        .foregroundColor(.yellow)
+                        .offset(x: max(start, left) + 8, y: 13)
+                        .allowsHitTesting(false)
                 }
             }
         }
@@ -669,7 +700,7 @@ private struct WaveformRow: View {
                 let raw = Double((value.location.x - grab) / beatWidth)
                 var moved = original
                 if flags.contains(.shift) {
-                    let base = WarpMap(markers: audio.warpMarkers.filter { $0.id != marker.id }, tempo: sequence.tempo)
+                    let base = WarpMap(markers: audio.warpMarkers.filter { $0.id != marker.id }, tempo: audio.tempo)
                     moved.beat = raw
                     moved.sourceTime = base.sourceTime(atBeat: raw)
                 } else {
@@ -703,6 +734,7 @@ private struct WaveformRow: View {
                     session.sequence?.audio?.setMarker(WarpMarker(sourceTime: map.sourceTime(atBeat: beat), beat: beat))
                 } else {
                     editor.select(beat: beat, extend: NSEvent.modifierFlags.contains(.shift), in: sequence)
+                    session.seek(to: editor.selection.start)
                 }
             }
     }

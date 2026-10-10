@@ -37,15 +37,16 @@ public struct RenderedAudio: Sendable {
     }
 
     /// Replaces part of this render with a re-rendered `segment` (same tempo), crossfading at its edges
-    /// so there are no clicks where the new audio joins the old.
-    public mutating func splice(_ segment: RenderedAudio, crossfade: Int = 256) {
+    /// so there are no clicks where the new audio joins the old. An edge with nothing to join (the edge
+    /// of this render) can go without.
+    public mutating func splice(_ segment: RenderedAudio, crossfade: Int = 256, fadeIn: Bool = true, fadeOut: Bool = true) {
         let offset = frame(atBeat: segment.startBeat)
         let count = segment.audio.frameCount
         for channel in audio.channels.indices where channel < segment.audio.channels.count {
             for index in 0..<count {
                 let target = offset + index
                 guard target >= 0, target < audio.frameCount else { continue }
-                let fromEdge = min(index, count - 1 - index)
+                let fromEdge = min(fadeIn ? index : .max, fadeOut ? count - 1 - index : .max)
                 let mix = fromEdge < crossfade ? Float(fromEdge) / Float(crossfade) : 1
                 audio.channels[channel][target] = audio.channels[channel][target] * (1 - mix)
                     + segment.audio.channels[channel][index] * mix
@@ -64,8 +65,74 @@ public enum WarpRenderer {
 
     /// Renders the grid from beat `from` to beat `to` at `tempo`. Calls `progress` with 0...1 and stops
     /// early if it returns false.
+    ///
+    /// At the recording's own tempo (`map.tempo`), only the stretches between markers that need it are
+    /// time-stretched; the rest is copied as it is, which is nearly instant.
     public static func render(_ source: AudioData, map: WarpMap, tempo: Double, from startBeat: Double, to endBeat: Double,
                               progress: (Double) -> Bool = { _ in true }) -> RenderedAudio? {
+        guard abs(map.tempo - tempo) < 1e-9 else {
+            return stretch(source, map: map, tempo: tempo, from: startBeat, to: endBeat, progress: progress)
+        }
+        guard endBeat > startBeat, !source.channels.isEmpty else { return nil }
+        let sampleRate = source.sampleRate
+        let framesPerBeat = sampleRate * 60 / tempo
+        let outputFrames = Int((endBeat - startBeat) * framesPerBeat)
+        var output = [[Float]](repeating: [Float](repeating: 0, count: outputFrames), count: source.channels.count)
+
+        // Between each pair of markers (and beyond the outer ones) the recording either plays at its
+        // own speed, just shifted, or has to be stretched
+        let markers = map.markers
+        let edges = [-Double.infinity] + markers.map(\.beat) + [Double.infinity]
+        var stretched: [BeatRange] = []
+        for (start, end) in zip(edges, edges.dropFirst()) {
+            let from = max(start, startBeat), to = min(end, endBeat)
+            guard to > from else { continue }
+            let seconds = map.sourceTime(atBeat: to) - map.sourceTime(atBeat: from)
+            let isOwnSpeed = abs(seconds - (to - from) * 60 / tempo) < 1e-6
+            if !isOwnSpeed {
+                // Neighbouring stretches are done in one go
+                if let last = stretched.last, last.end == from {
+                    stretched[stretched.count - 1] = BeatRange(last.start, to)
+                } else {
+                    stretched.append(BeatRange(from, to))
+                }
+                continue
+            }
+            let outStart = Int(((from - startBeat) * framesPerBeat).rounded())
+            let outEnd = min(outputFrames, Int(((to - startBeat) * framesPerBeat).rounded()))
+            let sourceStart = Int((map.sourceTime(atBeat: from) * sampleRate).rounded())
+            // Only the part that's inside the recording
+            let first = max(outStart, outStart - sourceStart)
+            let last = min(outEnd, outStart + source.frameCount - sourceStart)
+            guard last > first else { continue }
+            for channel in output.indices {
+                output[channel].withUnsafeMutableBufferPointer { destination in
+                    source.channels[channel].withUnsafeBufferPointer { samples in
+                        (destination.baseAddress! + first)
+                            .update(from: samples.baseAddress! + sourceStart + (first - outStart), count: last - first)
+                    }
+                }
+            }
+        }
+
+        var result = RenderedAudio(audio: AudioData(channels: output, sampleRate: sampleRate), tempo: tempo, startBeat: startBeat)
+        // The stretched parts, with half a beat either side to crossfade into the copied audio
+        let total = stretched.reduce(0) { $0 + $1.length }
+        var done = 0.0
+        for range in stretched {
+            let from = max(startBeat, range.start - 0.5), to = min(endBeat, range.end + 0.5)
+            guard let segment = stretch(source, map: map, tempo: tempo, from: from, to: to, progress: { fraction in
+                progress((done + fraction * range.length) / max(total, 1e-9))
+            }) else { return nil }
+            result.splice(segment, fadeIn: from > startBeat, fadeOut: to < endBeat)
+            done += range.length
+        }
+        return result
+    }
+
+    /// Time-stretches the whole of `from..<to`.
+    private static func stretch(_ source: AudioData, map: WarpMap, tempo: Double, from startBeat: Double, to endBeat: Double,
+                                progress: (Double) -> Bool) -> RenderedAudio? {
         let beats = endBeat - startBeat
         let channelCount = source.channels.count
         let sampleRate = source.sampleRate
