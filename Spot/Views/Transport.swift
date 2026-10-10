@@ -121,7 +121,7 @@ struct Transport: View {
         .buttonStyle(PlainButtonStyle())
         .frame(width: 30, height: 30)
         .disabled(!editsSequence)
-        .help(isLooping ? "Stop looping" : "Loop the selection")
+        .help(isLooping ? "Stop looping (⌘L), or loop a different selected range" : "Loop the selected range, or bring back the last loop (⌘L)")
         
         PositionDisplay()
     }
@@ -199,15 +199,7 @@ enum TransportActions {
     
     /// Loops the open sequence's selection, or turns the loop off.
     static func toggleLoop(session: SequenceSession) {
-        guard let editor = session.editor, session.sequence != nil else { return }
-        guard session.sequence?.loop == nil, let sequence = session.sequence else {
-            session.sequence?.loop = nil
-            return
-        }
-        // The selected range, or the bar the playhead is in
-        let bar = Double(sequence.beatsPerBar)
-        let start = sequence.onGrid(editor.selection.start, unit: bar)
-        session.sequence?.loop = editor.selection.length > 0 ? editor.selection : BeatRange(start, min(start + bar, sequence.lengthInBeats))
+        session.toggleLoop()
     }
     
     static func toStart(ui: UIState, session: SequenceSession, playback: PlaybackController) {

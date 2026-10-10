@@ -131,6 +131,11 @@ struct SpotApp: App {
                     TransportActions.playSelection(ui: ui, session: session, playback: playback)
                 }
                 .disabled(ui.tab != .Sequence || !session.isOpen)
+                Button(session.sequence?.loop == nil ? "Loop" : "Stop Looping") {
+                    TransportActions.toggleLoop(session: session)
+                }
+                .keyboardShortcut("l", modifiers: [.command])
+                .disabled(ui.tab != .Sequence || !session.isOpen)
                 Button("Stop") {
                     TransportActions.stop(ui: ui, session: session, playback: playback)
                 }
@@ -240,7 +245,8 @@ struct SpotApp: App {
                 Button("Cycle Labels (Interval / Note / Finger)") {
                     display.markerLabel = display.markerLabel.next
                 }
-                .keyboardShortcut("L", modifiers: [.command])
+                // ⌘L loops
+                .keyboardShortcut("l", modifiers: [.command, .option])
             }
        }
     }
