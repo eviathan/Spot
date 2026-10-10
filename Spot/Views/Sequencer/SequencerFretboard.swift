@@ -273,7 +273,7 @@ struct PerformanceHeader: View {
                     let beatsLeft = Int(ceil(next.range.start - position))
                     Text(beatsLeft == 1 ? "in 1 beat" : "in \(beatsLeft) beats")
                         .font(.caption.monospacedDigit())
-                        .foregroundColor(beatsLeft <= Int(editor.ghostBeats) && isPlaying ? .orange : .black)
+                        .foregroundColor(beatsLeft <= Int(editor.ghostBeats) && isPlaying ? .orange : .white.opacity(0.6))
                 }
             }
             // The chord, and the scale that goes with it

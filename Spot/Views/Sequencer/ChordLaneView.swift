@@ -511,12 +511,25 @@ private struct ChordClipsLayer: View {
             ForEach(displayed) { region in
                 // The one being dragged is always drawn, so the drag carries on if it leaves the screen
                 let isDragged = dragged?.id == region.id
+                // No margin: a long chord's name stays at the left of the screen when its start is scrolled off
                 if let span = LaneSpan(region.range.start, region.range.end, beatWidth: beatWidth,
-                                       visible: isDragged ? -CGFloat.infinity...CGFloat.infinity : visible) {
+                                       visible: isDragged ? -CGFloat.infinity...CGFloat.infinity : visible, margin: 0) {
                 let parsed = editor.analysis.chords[region.id] ?? bySymbol[region.symbol]?.0
                 let scale = editor.analysis.scales[region.id] ?? bySymbol[region.symbol]?.1
                 let clipWidth = max(0, span.width - 2)
                 let handle = min(7, clipWidth / 4)
+                // The box (and the outline while dragging) as plain shapes of their own. Drawn as a background
+                // of the name with the outline as an overlay, the box disappeared far along a zoomed-in lane.
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(parsed == nil ? Color.red.opacity(0.4) : Color.blue.opacity(isDragged ? 0.55 : 0.35))
+                    .frame(width: clipWidth, height: 46)
+                    .offset(x: span.x + 1, y: 30)
+                if isDragged {
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(Color.white.opacity(0.7), lineWidth: 1)
+                        .frame(width: clipWidth, height: 46)
+                        .offset(x: span.x + 1, y: 30)
+                }
                 VStack(alignment: .leading, spacing: 1) {
                     Text(parsed?.description ?? region.symbol)
                         .font(.system(size: 17, weight: .semibold))
@@ -529,15 +542,8 @@ private struct ChordClipsLayer: View {
                     }
                 }
                 .padding(.horizontal, 6)
+                // The names truncate to fit
                 .frame(width: clipWidth, height: 46, alignment: .leading)
-                .clipped()
-                .background(RoundedRectangle(cornerRadius: 4)
-                    .fill(parsed == nil ? Color.red.opacity(0.4) : Color.blue.opacity(dragged?.id == region.id ? 0.55 : 0.35)))
-                .overlay {
-                    if dragged?.id == region.id {
-                        RoundedRectangle(cornerRadius: 4).stroke(Color.white.opacity(0.7), lineWidth: 1)
-                    }
-                }
                 .contentShape(Rectangle())
                 .gesture(clipGesture(region, .body), including: isEditable ? .all : .none)
                 // Resize handles only on the clip's real edges, not where it's cut off at the screen's edge

@@ -15,7 +15,21 @@ struct SequenceEditorView: View {
     @Environment(SequenceSession.self) private var session
 
     var body: some View {
-        if let editor = session.editor, let sequence = session.sequence {
+        if let sequence = session.sequence, session.isPreparingAudio {
+            // Nothing to work with until the recording can be heard: just what's happening
+            VStack(spacing: 12) {
+                ProgressView()
+                    .controlSize(.large)
+                    // White: the macOS spinner takes its colour from the appearance, not a tint
+                    .tint(.white)
+                    .environment(\.colorScheme, .dark)
+                    .padding(.bottom, 12)
+                Text("Loading \(sequence.audio?.reference.fileName ?? "audio")…")
+                    .font(.title3)
+                    .opacity(0.8)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if let editor = session.editor, let sequence = session.sequence {
             let binding = Binding(get: { session.sequence ?? sequence }, set: { session.sequence = $0 })
             VStack(spacing: 0) {
                 PerformanceHeader(sequence: sequence, editor: editor)

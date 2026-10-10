@@ -48,11 +48,17 @@ final class SequenceSession {
     /// Set when a relinked file isn't the recording the sequence was made with.
     private(set) var audioWarning: String?
     private(set) var peaks: WaveformPeaks?
-    /// The audio lined up with the grid, ready to play; nil while it's being (re)rendered.
+    /// The audio lined up with the grid, ready to play; nil until the first render is done.
     private(set) var rendered: RenderedAudio?
-    /// 0...1 while rendering.
-    /// What was heard in the recording: tempo, beats, bar 1, chords, key. Nothing changes until it's applied.
-    
+
+    /// The recording is still being read or lined up for the first time, so Play wouldn't be heard with it
+    /// yet. (Not while re-rendering after an edit: the previous version plays until the new one's ready.
+    /// Not if the file is missing or unreadable either: then the editor shows why.)
+    var isPreparingAudio: Bool {
+        guard sequence?.audio != nil else { return false }
+        return audioStatus == .loading || (audioStatus == .ready && rendered == nil)
+    }
+
     private(set) var isRecording = false
     @ObservationIgnored private var recorder: InputRecorder?
     @ObservationIgnored private var recordingFile: (url: URL, name: String, tempo: Double)?
@@ -448,7 +454,7 @@ final class SequenceSession {
     
     /// Plays from the start marker (1.1.1), with a count-in, and carries on to the end marker.
     func play() {
-        guard let sequence, let editor, !isPlaying else { return }
+        guard let sequence, let editor, !isPlaying, !isPreparingAudio else { return }
         playRangeEnd = nil
         start(sequence, editor: editor, from: sequence.startBeat, countIn: true)
     }
@@ -456,7 +462,7 @@ final class SequenceSession {
     /// Plays from the playhead (⌥Space); with a range selected, just that range, stopping at its end.
     /// While playing it doesn't stop: it jumps back to the playhead and carries on from there.
     func playSelection() {
-        guard let sequence, let editor else { return }
+        guard let sequence, let editor, !isPreparingAudio else { return }
         let selection = editor.selection
         playRangeEnd = selection.length > 0 ? selection.end : nil
         if isPlaying {
@@ -758,9 +764,14 @@ final class SequenceSession {
         // Quiet: at the recording's own tempo this is mostly a copy, and only stretched sections take any time
         renderTask = Task.detached(priority: .userInitiated) {
             let result = WarpRenderer.render(source, map: map, tempo: tempo, from: start, to: end) { _ in !Task.isCancelled }
-            guard !Task.isCancelled, let result else { return }
+            guard !Task.isCancelled else { return }
+            // Nothing to render (e.g. the recording lies outside the sequence): silence, rather than
+            // waiting for audio that will never come
+            let rendered = result ?? RenderedAudio(audio: AudioData(channels: source.channels.map { _ in [] },
+                                                                    sampleRate: source.sampleRate),
+                                                   tempo: tempo, startBeat: start)
             await MainActor.run {
-                owner.session?.finishRender(result)
+                owner.session?.finishRender(rendered)
             }
         }
     }
