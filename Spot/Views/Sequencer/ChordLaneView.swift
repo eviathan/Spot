@@ -842,8 +842,6 @@ private struct WaveformRow: View {
     /// A marker being dragged (an existing one, or one just made with a double-click).
     @State private var dragging: WarpMarker?
     @State private var hovered: UUID?
-    /// The marker last made or moved: its whole line can be grabbed, not just its arrow, until you click elsewhere.
-    @State private var selectedMarker: UUID?
     /// What a press on the waveform turned out to be.
     @State private var gesture: WaveformGesture?
     /// When and where the last click ended, to tell a double-click (the system's click count isn't
@@ -929,8 +927,15 @@ private struct WaveformRow: View {
             ForEach(liveMarkers) { marker in
                 let x = CGFloat(marker.beat) * beatWidth
                 if x >= left - 10 && x <= left + width + 10 {
-                    WarpFlag(height: height, isActive: dragging?.id == marker.id || hovered == marker.id || selectedMarker == marker.id,
-                             grabsWholeLine: selectedMarker == marker.id)
+                    let isActive = dragging?.id == marker.id || hovered == marker.id
+                    // The line is only drawn: clicks on it go to the waveform (playhead, ranges, new markers)
+                    Rectangle()
+                        .fill(isActive ? Color.orange : Color.yellow)
+                        .frame(width: isActive ? 2 : 1.5, height: height - 11)
+                        .offset(x: x - (isActive ? 1 : 0.75), y: 11)
+                        .allowsHitTesting(false)
+                    // Only the arrow picks the marker up
+                    WarpFlag(isActive: isActive)
                         .onHover { hovered = $0 ? marker.id : (hovered == marker.id ? nil : hovered) }
                         .gesture(markerDrag(marker, map: map))
                         .simultaneousGesture(TapGesture(count: 2).onEnded {
@@ -1007,7 +1012,6 @@ private struct WaveformRow: View {
     private func markerDrag(_ marker: WarpMarker, map: WarpMap) -> some Gesture {
         DragGesture(minimumDistance: 2, coordinateSpace: .named(WaveformRow.space))
             .onChanged { value in
-                selectedMarker = marker.id
                 let flags = NSEvent.modifierFlags
                 // The marker as it was before this drag (the one on screen has already moved)
                 let original = audio.warpMarkers.first { $0.id == marker.id } ?? marker
@@ -1047,7 +1051,6 @@ private struct WaveformRow: View {
             .onChanged { value in
                 if gesture == nil {
                     gesture = .click
-                    selectedMarker = nil
                     let isDoubleClick = lastClick.map {
                         Date().timeIntervalSince($0.time) <= NSEvent.doubleClickInterval && abs($0.x - value.startLocation.x) <= 5
                     } ?? false
@@ -1057,7 +1060,6 @@ private struct WaveformRow: View {
                         let marker = WarpMarker(sourceTime: map.sourceTime(atBeat: beat), beat: beat)
                         if session.sequence?.audio?.setMarker(marker) == true {
                             gesture = .newMarker(marker)
-                            selectedMarker = marker.id
                         }
                     }
                 }
@@ -1128,21 +1130,15 @@ private struct WaveformRow: View {
 }
 
 /// A warp marker: picked up by its arrow (or anywhere on its line while it's the selected one).
+/// A warp marker's arrow: the handle that picks it up (its line is drawn separately and isn't clickable).
 private struct WarpFlag: View {
-    let height: CGFloat
     let isActive: Bool
-    var grabsWholeLine = false
 
     var body: some View {
-        VStack(spacing: 0) {
-            Image(systemName: "arrowtriangle.down.fill")
-                .font(.system(size: 11))
-                .foregroundColor(isActive ? .orange : .yellow)
-            Rectangle()
-                .fill(isActive ? Color.orange : Color.yellow)
-                .frame(width: isActive ? 2 : 1.5, height: height - 11)
-        }
-        .frame(width: 12, height: height)
-        .contentShape(Rectangle().size(width: 12, height: grabsWholeLine ? height : 14))
+        Image(systemName: "arrowtriangle.down.fill")
+            .font(.system(size: 11))
+            .foregroundColor(isActive ? .orange : .yellow)
+            .frame(width: 12, height: 13)
+            .contentShape(Rectangle())
     }
 }
