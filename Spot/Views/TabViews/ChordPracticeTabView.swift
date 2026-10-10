@@ -83,10 +83,14 @@ private struct ProgressionBar: View {
                         .background(RoundedRectangle(cornerRadius: 4)
                             .fill(index == practice.index ? Color.white.opacity(0.2) : Color.clear))
                         .contentShape(Rectangle())
-                        .gesture(TapGesture(count: 2).onEnded {
+                        // One tap gesture, so a click acts at once (waiting to rule out a double-click made every
+                        // switch lag by the double-click interval); the second click of a double-click opens the palette
+                        .onTapGesture {
                             practice.select(chordAt: index)
-                            replacing = index
-                        }.exclusively(before: TapGesture().onEnded { practice.select(chordAt: index) }))
+                            if (NSApp.currentEvent?.clickCount ?? 1) >= 2 {
+                                replacing = index
+                            }
+                        }
                         .popover(isPresented: Binding(get: { replacing == index }, set: { if !$0 { replacing = nil } }),
                                  arrowEdge: .bottom) {
                             ChordPalette(key: practice.key, current: chord) { symbol in
