@@ -89,7 +89,7 @@ private struct ProgressionBar: View {
                         }.exclusively(before: TapGesture().onEnded { practice.select(chordAt: index) }))
                         .popover(isPresented: Binding(get: { replacing == index }, set: { if !$0 { replacing = nil } }),
                                  arrowEdge: .bottom) {
-                            ChordPalette(key: practice.key) { symbol in
+                            ChordPalette(key: practice.key, current: chord) { symbol in
                                 practice.replaceChord(at: index, with: symbol)
                                 replacing = nil
                             }

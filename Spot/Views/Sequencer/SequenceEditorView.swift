@@ -59,7 +59,9 @@ private struct LaneEditorBar: View {
             }
             .help("Pick a chord for the selection (or double-click in the lane)")
             .popover(isPresented: $editor.showsPalette, arrowEdge: .top) {
-                ChordPalette(key: editor.analysis.key) { symbol in
+                // Changing a chord (e.g. double-clicked): it's highlighted in the palette
+                ChordPalette(key: editor.analysis.key,
+                             current: sequence.chord(at: editor.selection.start).flatMap { editor.analysis.chords[$0.id] }) { symbol in
                     // Set it and move on, keeping the palette open to enter the next chord
                     if editor.applyChord(symbol, to: &sequence) {
                         editor.advanceSelection(in: sequence)

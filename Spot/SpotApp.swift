@@ -90,6 +90,15 @@ struct SpotApp: App {
                     .keyboardShortcut("n", modifiers: [.command, .option, .shift])
             }
             
+            // Undo and Redo act on what you're working on: text being typed, the open sequence, or the
+            // Chord Practice progression
+            CommandGroup(replacing: .undoRedo) {
+                Button("Undo") { undoOrRedo(redo: false) }
+                    .keyboardShortcut("z", modifiers: [.command])
+                Button("Redo") { undoOrRedo(redo: true) }
+                    .keyboardShortcut("z", modifiers: [.command, .shift])
+            }
+
             CommandGroup(replacing: .saveItem) {
                 Button("Save") {
                     if session.fileURL == nil {
@@ -221,6 +230,18 @@ struct SpotApp: App {
        }
     }
     
+    private func undoOrRedo(redo: Bool) {
+        let isTyping = NSApp.keyWindow?.firstResponder is NSText
+        if !isTyping && ui.tab == .Sequence && session.isOpen {
+            redo ? session.redo() : session.undo()
+        } else if !isTyping && ui.tab == .Practice {
+            redo ? practice.redo() : practice.undo()
+        } else {
+            // Text fields (and anything else with its own undo) handle it themselves
+            NSApp.sendAction(Selector(redo ? "redo:" : "undo:"), to: nil, from: nil)
+        }
+    }
+
     private func previewCurrentShape() {
         if ui.tab == .Practice {
             playback.preview(practice.chordEvents(clock: transport.clock))

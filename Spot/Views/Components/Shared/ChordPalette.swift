@@ -8,10 +8,12 @@ import SpotCore
 
 /// Pick a chord without typing: the key's chords in one click, or a root then a type. Recent picks too.
 /// Hands back a chord symbol (e.g. "F#m7b5") that the chord parser reads.
+/// When changing a chord, pass it as `current`: its root is picked already and its buttons are highlighted.
 struct ChordPalette: View {
     @Environment(LibraryStore.self) private var library
 
     let key: Key?
+    var current: ChordSymbol? = nil
     let onPick: (String) -> Void
 
     @State private var useSevenths = true
@@ -39,8 +41,28 @@ struct ChordPalette: View {
         key?.spell(pitchClass) ?? SpelledNote.conventional(pitchClass)
     }
 
+    /// Whether a root and chord type are the chord being changed.
+    private func isCurrent(root: PitchClass?, chordId: String) -> Bool {
+        guard let current, let root else { return false }
+        return current.root.pitchClass == root && current.chord.id == chordId
+    }
+
+    private func highlight(_ isOn: Bool) -> some View {
+        RoundedRectangle(cornerRadius: 4).fill(isOn ? Color.accentColor.opacity(0.4) : .clear)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
+            if let current {
+                HStack(spacing: 6) {
+                    Text("Changing")
+                        .foregroundStyle(.secondary)
+                    Text(current.description)
+                        .fontWeight(.bold)
+                }
+                .font(.callout)
+            }
+
             if let key {
                 section("Chords in \(key)") {
                     Picker("", selection: $useSevenths) {
@@ -60,6 +82,7 @@ struct ChordPalette: View {
                                 }
                                 .frame(maxWidth: .infinity, minHeight: 34)
                             }
+                            .background(highlight(isCurrent(root: chord.root, chordId: chord.chordId)))
                         }
                     }
                 }
@@ -87,15 +110,28 @@ struct ChordPalette: View {
                                 Text(chord.displaySymbol.isEmpty ? "maj" : chord.displaySymbol)
                                     .frame(maxWidth: .infinity, minHeight: 24)
                             }
+                            .background(highlight(isCurrent(root: root, chordId: chord.id)))
                             .help(chord.name)
                         }
                     }
                 }
                 .disabled(root == nil)
 
-                Menu("More types") {
+                // Names the current type when it's one of these
+                let otherCurrent = current.flatMap { current in
+                    Self.commonTypes.contains { "builtin.chord." + $0 == current.chord.id } ? nil : current.chord
+                }
+                Menu(otherCurrent.map { "More types (\($0.name))" } ?? "More types") {
                     ForEach(library.chords.sorted { $0.name < $1.name }) { chord in
-                        Button("\(chord.name)  (\(chord.displaySymbol.isEmpty ? "maj" : chord.displaySymbol))") { pickType(chord) }
+                        Button {
+                            pickType(chord)
+                        } label: {
+                            if isCurrent(root: root, chordId: chord.id) {
+                                Label("\(chord.name)  (\(chord.displaySymbol.isEmpty ? "maj" : chord.displaySymbol))", systemImage: "checkmark")
+                            } else {
+                                Text("\(chord.name)  (\(chord.displaySymbol.isEmpty ? "maj" : chord.displaySymbol))")
+                            }
+                        }
                     }
                 }
                 .disabled(root == nil)
@@ -107,6 +143,7 @@ struct ChordPalette: View {
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 4), count: 5), spacing: 4) {
                         ForEach(recent, id: \.self) { symbol in
                             Button(symbol) { pick(symbol) }
+                                .background(highlight(symbol == current?.asciiDescription))
                         }
                     }
                 }
@@ -114,6 +151,12 @@ struct ChordPalette: View {
         }
         .padding(16)
         .frame(width: 460)
+        .onAppear {
+            // Changing a chord: start from its root, so picking a type just changes the type
+            if let current {
+                root = current.root.pitchClass
+            }
+        }
     }
 
     private func pickType(_ chord: ChordDefinition) {
@@ -133,13 +176,14 @@ struct ChordPalette: View {
     }
 
     /// The chords built on each degree of the key's scale.
-    private func diatonic(in key: Key) -> [(symbol: String, display: String, numeral: String)] {
+    private func diatonic(in key: Key) -> [(symbol: String, display: String, numeral: String, root: PitchClass, chordId: String)] {
         let scaleId = key.quality == .major ? "builtin.scale.major" : "builtin.scale.natural-minor"
         guard let scale = library.scale(scaleId) else { return [] }
         return DiatonicChords.build(scale: scale.formula, size: useSevenths ? 4 : 3, chords: library.chords).compactMap { diatonic in
             guard let chord = diatonic.chord else { return nil }
             let root = key.tonic.spelling(diatonic.scaleDegree)
-            return (root.asciiDescription + chord.displaySymbol, root.description + chord.displaySymbol, diatonic.numeral)
+            return (root.asciiDescription + chord.displaySymbol, root.description + chord.displaySymbol, diatonic.numeral,
+                    root.pitchClass, chord.id)
         }
     }
 }

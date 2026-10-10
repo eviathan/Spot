@@ -103,6 +103,76 @@ final class SequenceSession {
         editor.map { playback.playingSequence == $0.id } ?? false
     }
 
+    // MARK: - Undo
+
+    /// Whether Undo and Redo have anything to do.
+    private(set) var canUndo = false
+    private(set) var canRedo = false
+    /// The sequence before each change, most recent last.
+    @ObservationIgnored private var undoStack: [ChordSequence] = []
+    @ObservationIgnored private var redoStack: [ChordSequence] = []
+    @ObservationIgnored private var lastChange = Date.distantPast
+    @ObservationIgnored private var isUndoing = false
+
+    /// Keeps the sequence from before a change. Changes in quick succession (dragging a slider or a
+    /// number) are one step. Takes aren't undone: they're files, recorded or deleted for good.
+    private func recordUndo(from old: ChordSequence?, to new: ChordSequence) {
+        guard !isUndoing, var old else { return }
+        old.takes = new.takes
+        guard old != new else { return }
+        if Date().timeIntervalSince(lastChange) > 0.5 || undoStack.isEmpty {
+            undoStack.append(old)
+            if undoStack.count > 200 {
+                undoStack.removeFirst()
+            }
+        }
+        lastChange = Date()
+        redoStack.removeAll()
+        updateUndoState()
+    }
+
+    func undo() {
+        guard let current = sequence, let target = undoStack.popLast() else { return }
+        redoStack.append(current)
+        restore(target, from: current)
+    }
+
+    func redo() {
+        guard let current = sequence, let target = redoStack.popLast() else { return }
+        undoStack.append(current)
+        restore(target, from: current)
+    }
+
+    private func restore(_ target: ChordSequence, from current: ChordSequence) {
+        var target = target
+        target.takes = current.takes
+        // A different recording (undoing Replace Audio, say) has to be loaded again
+        let audioChanged = target.audio?.reference != current.audio?.reference
+        if audioChanged {
+            unloadAudio()
+        }
+        isUndoing = true
+        sequence = target
+        isUndoing = false
+        if audioChanged {
+            loadAudio()
+        }
+        lastChange = .distantPast
+        updateUndoState()
+    }
+
+    private func updateUndoState() {
+        canUndo = !undoStack.isEmpty
+        canRedo = !redoStack.isEmpty
+    }
+
+    private func clearUndo() {
+        undoStack.removeAll()
+        redoStack.removeAll()
+        lastChange = .distantPast
+        updateUndoState()
+    }
+
     // MARK: - Opening and closing
 
     func newSequence() {
@@ -155,6 +225,7 @@ final class SequenceSession {
         isLoading = false
         hasUnsavedChanges = false
         saveError = nil
+        clearUndo()
         defaults.removeObject(forKey: SequenceSession.lastFileKey)
         defaults.removeObject(forKey: SequenceSession.draftKey)
     }
@@ -171,6 +242,7 @@ final class SequenceSession {
         isLoading = false
         hasUnsavedChanges = false
         saveError = nil
+        clearUndo()
         loadAudio()
     }
     
@@ -296,6 +368,7 @@ final class SequenceSession {
         let old = fittingFrom ?? old
         fittingFrom = nil
         guard let sequence else { return }
+        recordUndo(from: old, to: sequence)
         editor?.analyse(sequence)
         
         // The rendered audio depends on the markers and the recording's tempo (not the sequence's: that's

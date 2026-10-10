@@ -24,7 +24,51 @@ final class PracticeState {
         didSet {
             UserDefaults.standard.set(progressionText, forKey: "practice.progression")
             parse()
+            recordUndo(from: oldValue)
         }
+    }
+
+    // MARK: Undo
+
+    private(set) var canUndo = false
+    private(set) var canRedo = false
+    @ObservationIgnored private var undoStack: [String] = []
+    @ObservationIgnored private var redoStack: [String] = []
+    @ObservationIgnored private var lastChange = Date.distantPast
+    @ObservationIgnored private var isUndoing = false
+
+    /// Keeps the progression from before a change (changes in quick succession are one step).
+    private func recordUndo(from old: String) {
+        guard !isUndoing, old != progressionText else { return }
+        if Date().timeIntervalSince(lastChange) > 0.5 || undoStack.isEmpty {
+            undoStack.append(old)
+            if undoStack.count > 200 { undoStack.removeFirst() }
+        }
+        lastChange = Date()
+        redoStack.removeAll()
+        canUndo = true
+        canRedo = false
+    }
+
+    func undo() {
+        guard let previous = undoStack.popLast() else { return }
+        redoStack.append(progressionText)
+        restore(previous)
+    }
+
+    func redo() {
+        guard let next = redoStack.popLast() else { return }
+        undoStack.append(progressionText)
+        restore(next)
+    }
+
+    private func restore(_ text: String) {
+        isUndoing = true
+        progressionText = text
+        isUndoing = false
+        lastChange = .distantPast
+        canUndo = !undoStack.isEmpty
+        canRedo = !redoStack.isEmpty
     }
     private(set) var chords: [ChordSymbol] = []
     /// Words in the progression that aren't chord symbols.
