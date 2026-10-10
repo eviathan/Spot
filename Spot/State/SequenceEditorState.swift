@@ -64,6 +64,8 @@ final class SequenceEditorState {
     }
     /// Show a small diagram of the next chord in its position.
     var showsNextDiagram = true
+    /// Show the rest of the next chord's scale on the fretboard, as well as its chord tones.
+    var showsNextScale = true
     /// The chord palette is open for the selection.
     var showsPalette = false
     /// Lane zoom: how wide a bar is, in points.

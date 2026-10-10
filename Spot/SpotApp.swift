@@ -172,7 +172,10 @@ struct SpotApp: App {
                     }
                 }
                 .disabled(!session.isOpen || session.editor?.neckView != .followHand)
-                // The next chord box is off for now (see NowNextView)
+                Toggle("Next Scale on Fretboard", isOn: Binding(get: { session.editor?.showsNextScale ?? true },
+                                                                set: { session.editor?.showsNextScale = $0 }))
+                    .disabled(!session.isOpen)
+                // The next chord box is off for now (see PerformanceHeader)
                 // Toggle("Next Chord Box", isOn: Binding(get: { session.editor?.showsNextDiagram ?? false },
                 //                                        set: { session.editor?.showsNextDiagram = $0 }))
                 //     .disabled(!session.isOpen)

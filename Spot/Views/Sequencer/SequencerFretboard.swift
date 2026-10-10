@@ -59,6 +59,10 @@ struct SequencerFretboard: View {
         }
         let nextDegrees = Dictionary((nextChord?.chord.formula.degrees ?? []).map { ($0.pitchClassOffset, $0) },
                                      uniquingKeysWith: { first, _ in first })
+        // ...and the rest of its scale, named as tensions (9, 11, 13)
+        let nextScale = editor.showsNextScale ? nextRegion.flatMap { analysis.scales[$0.id] } : nil
+        let nextScaleDegrees = Dictionary((nextScale?.formula.degrees ?? []).map { ($0.pitchClassOffset, $0) },
+                                          uniquingKeysWith: { first, _ in first })
 
         let chordDegrees = Dictionary(chord.chord.formula.degrees.map { ($0.pitchClassOffset, $0) }, uniquingKeysWith: { first, _ in first })
         let scaleDegrees = Dictionary((scale?.formula.degrees ?? []).map { ($0.pitchClassOffset, $0) }, uniquingKeysWith: { first, _ in first })
@@ -77,31 +81,45 @@ struct SequencerFretboard: View {
                                     intervalName: degree?.intervalName ?? Degree.chromaticIntervalName(offset))
             let label = display.markerLabel == .note ? marker.noteName.description : marker.intervalName
 
-            // In the next chord? Only where the hand goes for it (everywhere only if there's no position for it)
-            var next: (label: String, isTarget: Bool)?
-            if let nextChord, nextPlacement.map({ $0[position] != nil }) ?? true,
-               let nextDegree = nextDegrees[pitchClass.semitones(above: nextChord.root.pitchClass)] {
-                next = (display.markerLabel == .note ? nextChord.root.spelling(nextDegree).description : nextDegree.intervalName,
-                        // Its 3rd and 7th are the notes to aim for
-                        [2, 6].contains(nextDegree.letterSteps))
+            // In the next chord or its scale? Only where the hand goes for it (everywhere only if there's no position for it)
+            var next: (label: String, isTarget: Bool, isChordTone: Bool)?
+            if let nextChord, nextPlacement.map({ $0[position] != nil }) ?? true {
+                let nextOffset = pitchClass.semitones(above: nextChord.root.pitchClass)
+                let name = { (degree: Degree) in
+                    display.markerLabel == .note ? nextChord.root.spelling(degree).description : degree.intervalName
+                }
+                if let nextDegree = nextDegrees[nextOffset] {
+                    // Its 3rd and 7th are the notes to aim for
+                    next = (name(nextDegree), [2, 6].contains(nextDegree.letterSteps), true)
+                } else if let scaleDegree = nextScaleDegrees[nextOffset] {
+                    next = (name(ChordScaleMatcher.tensionName(scaleDegree)), false, false)
+                }
             }
             let nextStrength = 0.5 + 0.5 * nearness
-            // A note in both chords keeps its marker and gets a thin ring in the next chord's colour
-            let sharedRing = next == nil ? nil : nextChordColour.opacity(nextStrength)
+            // A note you're already playing that's in the next chord gets a thin ring in the next chord's colour;
+            // dashed if it's only in the next scale
+            let sharedRing = next.map { nextChordColour.opacity($0.isChordTone ? nextStrength : nextStrength * 0.8) }
+            let sharedDashed = next.map { !$0.isChordTone } ?? false
 
             switch role {
             case .chordTone where inCurrent:
                 return FretboardMarker(marker: marker, label: label, ring: roleColour(.chordTone), fill: .black, text: .white,
-                                       halo: sharedRing)
+                                       halo: sharedRing, haloDashed: sharedDashed)
             case .tension where inCurrent, .avoid where inCurrent:
                 return FretboardMarker(marker: marker, label: label, ring: roleColour(role), fill: theme.defaultMarkerColor,
-                                       text: theme.fretboardColor, scale: 0.8, halo: sharedRing)
+                                       text: theme.fretboardColor, scale: 0.8, halo: sharedRing, haloDashed: sharedDashed)
             default:
-                // Only in the next chord: a small marker of its own, on the string where the note is
-                if let next {
+                // Only in what's next: a small marker of its own, on the string where the note is.
+                // Chord tones filled; the rest of the scale hollow and smaller
+                if let next, next.isChordTone {
                     return FretboardMarker(marker: marker, label: next.label, ring: nextChordColour,
                                            fill: nextChordColour.opacity(0.35), text: .white,
                                            scale: next.isTarget ? 0.66 : 0.54, opacity: nextStrength)
+                }
+                if let next {
+                    return FretboardMarker(marker: marker, label: next.label, ring: nextChordColour.opacity(0.75),
+                                           fill: .black.opacity(0.3), text: .white.opacity(0.85),
+                                           scale: 0.46, opacity: nextStrength * 0.85)
                 }
                 if role == .chordTone {
                     // Chord tones elsewhere on the neck, faint, for orientation
@@ -152,7 +170,7 @@ struct PerformanceHeader: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 Divider().padding(.vertical, 12)
                 upNext(next, after: region, position: position, isPlaying: isPlaying)
-                    .frame(width: 240, alignment: .leading)
+                    .frame(width: 300, alignment: .leading)
             }
             .frame(height: 86)
             .background(Color.black.opacity(0.18))
@@ -270,11 +288,21 @@ struct PerformanceHeader: View {
                         .foregroundColor(beatsLeft <= Int(editor.ghostBeats) && isPlaying ? .orange : .white.opacity(0.6))
                 }
             }
-            Text(next.map(display) ?? "–")
-                .font(.system(size: 24, weight: .semibold))
-                .foregroundColor(next == nil ? .white.opacity(0.3) : nextChordColour)
-                .lineLimit(1)
-                .minimumScaleFactor(0.6)
+            // The chord, and the scale that goes with it
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text(next.map(display) ?? "–")
+                    .font(.system(size: 24, weight: .semibold))
+                    .foregroundColor(next == nil ? .white.opacity(0.3) : nextChordColour)
+                    .lineLimit(1)
+                    .layoutPriority(1)
+                if let next, let chord = editor.analysis.chords[next.id], let scale = editor.analysis.scales[next.id] {
+                    Text("\(chord.root.description) \(scale.name)")
+                        .font(.callout)
+                        .foregroundColor(nextChordColour.opacity(0.85))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                }
+            }
             // Always a line here, empty or not, so the block keeps its shape
             Group {
                 if let next, let shift = shiftHint(from: region, to: next) {
@@ -289,7 +317,7 @@ struct PerformanceHeader: View {
             .frame(height: 14)
         }
         .padding(.horizontal, 16)
-        .help("The next chord. On the fretboard its notes are lilac: ringed where you're already playing them, small where they're new.")
+        .help("The next chord and its scale. On the fretboard they're lilac: a ring on notes you're already playing (dashed if only in the scale), a small marker on new ones (hollow if only in the scale).")
     }
 
     private func blockTitle(_ text: String) -> some View {

@@ -21,6 +21,8 @@ struct FretboardMarker: Identifiable {
     var canSetFinger = false
     /// A thin extra ring just outside the marker, e.g. for notes shared with the next chord.
     var halo: Color? = nil
+    /// A dashed halo: a weaker link than a solid one (e.g. in the next scale but not the next chord).
+    var haloDashed = false
     /// Below 1 to fade a note in or out.
     var opacity: Double = 1
 
@@ -224,7 +226,7 @@ private struct FretMarkerView: View {
             .overlay {
                 if let halo = item.halo {
                     Circle()
-                        .stroke(halo, lineWidth: 1.5)
+                        .stroke(halo, style: StrokeStyle(lineWidth: 1.5, dash: item.haloDashed ? [3, 2.5] : []))
                         .padding(-4)
                 }
             }
