@@ -57,7 +57,8 @@ final class SequenceSession {
     @ObservationIgnored private var recorder: InputRecorder?
     @ObservationIgnored private var recordingFile: (url: URL, name: String, tempo: Double)?
     
-    @ObservationIgnored private var sourceAudio: AudioData?
+    /// The decoded recording (read by the waveform when zoomed in to single samples).
+    @ObservationIgnored private(set) var sourceAudio: AudioData?
     @ObservationIgnored private var audioURL: URL?
     @ObservationIgnored private var renderTask: Task<Void, Never>?
     @ObservationIgnored private var renderDelay: DispatchWorkItem?

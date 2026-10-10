@@ -104,7 +104,8 @@ final class SequenceEditorState {
     /// Zoomed right out, the whole sequence fits.
     private var barWidthRange: ClosedRange<Double> {
         let fit = viewportWidth > 0 ? viewportWidth * laneBeatsPerBar / laneBeats : 40
-        return min(40, fit)...1_200
+        // In far enough to place markers on single samples
+        return min(40, fit)...400_000
     }
 
     func setViewport(width: Double, lengthInBeats: Double, beatsPerBar: Int) {

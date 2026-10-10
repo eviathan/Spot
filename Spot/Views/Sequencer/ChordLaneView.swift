@@ -173,30 +173,32 @@ struct ChordLaneView: View {
 
         return ZStack(alignment: .topLeading) {
             // Selection (shown while playing too, like Live) and loop
-            SelectionHighlight(editor: editor, beatWidth: beatWidth, height: laneHeight)
-            if let loop = sequence.loop {
+            SelectionHighlight(editor: editor, beatWidth: beatWidth, height: laneHeight, visible: visible)
+            if let loop = sequence.loop, let span = LaneSpan(loop.start, loop.end, beatWidth: beatWidth, visible: visible) {
                 Rectangle()
                     .fill(Color.yellow.opacity(0.7))
-                    .frame(width: CGFloat(loop.length) * beatWidth, height: 4)
-                    .offset(x: CGFloat(loop.start) * beatWidth, y: 0)
+                    .frame(width: span.width, height: 4)
+                    .offset(x: span.x, y: 0)
                     .allowsHitTesting(false)
             }
 
             // Sections
             ForEach(sequence.sections) { section in
-                Text(section.name)
-                    .font(.caption.weight(.semibold))
-                    .lineLimit(1)
-                    .padding(.horizontal, 6)
-                    .frame(width: max(0, CGFloat(section.range.length) * beatWidth - 2), height: 20, alignment: .leading)
-                    .background(RoundedRectangle(cornerRadius: 3).fill(Color.purple.opacity(0.45)))
-                    .offset(x: CGFloat(section.range.start) * beatWidth + 1, y: 6)
-                    .allowsHitTesting(false)
+                if let span = LaneSpan(section.range.start, section.range.end, beatWidth: beatWidth, visible: visible) {
+                    Text(section.name)
+                        .font(.caption.weight(.semibold))
+                        .lineLimit(1)
+                        .padding(.horizontal, 6)
+                        .frame(width: max(0, span.width - 2), height: 20, alignment: .leading)
+                        .background(RoundedRectangle(cornerRadius: 3).fill(Color.purple.opacity(0.45)))
+                        .offset(x: span.x + 1, y: 6)
+                        .allowsHitTesting(false)
+                }
             }
 
             // Chords, which can be moved and resized; clicking or dragging between them selects
             ChordClipsLayer(sequence: sequence, editor: editor, beatWidth: beatWidth,
-                            height: waveformTop, isEditable: !isPlaying)
+                            height: waveformTop, isEditable: !isPlaying, visible: visible)
 
             // Bar lines and numbers (only those on screen), counted from 1.1.1: the bars before it are −1, −2…
             let bpb = Double(sequence.beatsPerBar)
@@ -239,6 +241,8 @@ struct ChordLaneView: View {
             
             // Recorded takes
             ForEach(sequence.takes) { take in
+                if let span = LaneSpan(take.startBeat, max(take.endBeat, take.startBeat + Double(8 / beatWidth)),
+                                       beatWidth: beatWidth, visible: visible) {
                 HStack(spacing: 4) {
                     Image(systemName: take.isMuted ? "speaker.slash" : "mic.fill")
                         .font(.system(size: 10))
@@ -247,17 +251,18 @@ struct ChordLaneView: View {
                         .lineLimit(1)
                 }
                 .padding(.horizontal, 6)
-                .frame(width: max(8, CGFloat(take.endBeat - take.startBeat) * beatWidth), height: takesHeight, alignment: .leading)
+                .frame(width: span.width, height: takesHeight, alignment: .leading)
                 .background(RoundedRectangle(cornerRadius: 3).fill(Color.red.opacity(take.isMuted ? 0.15 : 0.4)))
-                .offset(x: CGFloat(take.startBeat) * beatWidth, y: takesTop)
+                .offset(x: span.x, y: takesTop)
                 .contextMenu {
                     Button(take.isMuted ? "Unmute" : "Mute") { session.setTakeMuted(take.id, !take.isMuted) }
                     Divider()
                     Button("Delete Take", role: .destructive) { session.removeTake(take.id) }
                 }
+                }
             }
         }
-        .overlay(alignment: .topLeading) { songMarkers(width: width) }
+        .overlay(alignment: .topLeading) { songMarkers(width: width, visible: visible) }
         .frame(width: width, height: laneHeight, alignment: .topLeading)
         .contentShape(Rectangle())
         .gesture(laneClick)
@@ -279,20 +284,25 @@ struct ChordLaneView: View {
 
     /// The area before 1.1.1 and after the end, shaded, and a flag for each in the bar-number strip.
     /// Drag a flag to move it (⌥ for free); right-click anywhere in the lane to set either there.
-    private func songMarkers(width: CGFloat) -> some View {
+    private func songMarkers(width: CGFloat, visible: ClosedRange<CGFloat>) -> some View {
         let startX = CGFloat(origin) * beatWidth
         let endX = CGFloat(songEnd) * beatWidth
         let isAutomaticEnd = sequence.endBeat == nil && markerDrag?.marker != .end
         return ZStack(alignment: .topLeading) {
-            Rectangle()
-                .fill(Color.black.opacity(0.28))
-                .frame(width: max(0, startX), height: laneHeight)
-                .allowsHitTesting(false)
-            Rectangle()
-                .fill(Color.black.opacity(0.28))
-                .frame(width: max(0, width - endX), height: laneHeight)
-                .offset(x: endX)
-                .allowsHitTesting(false)
+            if let before = LaneSpan(0, origin, beatWidth: beatWidth, visible: visible) {
+                Rectangle()
+                    .fill(Color.black.opacity(0.28))
+                    .frame(width: before.width, height: laneHeight)
+                    .offset(x: before.x)
+                    .allowsHitTesting(false)
+            }
+            if let after = LaneSpan(songEnd, sequence.lengthInBeats, beatWidth: beatWidth, visible: visible) {
+                Rectangle()
+                    .fill(Color.black.opacity(0.28))
+                    .frame(width: after.width, height: laneHeight)
+                    .offset(x: after.x)
+                    .allowsHitTesting(false)
+            }
             Rectangle()
                 .fill(markerColour.opacity(0.8))
                 .frame(width: 1.5, height: laneHeight)
@@ -306,7 +316,7 @@ struct ChordLaneView: View {
 
             markerFlag("start", marker: .start, faded: false)
                 .offset(x: startX, y: laneHeight - 18)
-                .help("Where bar 1 beat 1 is: bars, beats and the grid count from here. Drag it (it sticks to warp markers; ⌥ for free), or right-click in the lane: Set 1.1.1 Here.")
+                .help("Where bar 1 beat 1 is: bars, beats and the grid count from here. Drag it (it sticks to warp markers unless Snap is off or you hold ⌥), or right-click in the lane: Set 1.1.1 Here.")
             markerFlag("End", marker: .end, faded: isAutomaticEnd)
                 .offset(x: endX - 34, y: laneHeight - 18)
                 .contextMenu {
@@ -350,14 +360,15 @@ struct ChordLaneView: View {
                 })
     }
 
-    /// 1.1.1 goes on a warp marker if one's close (that's usually the downbeat), otherwise on a sixteenth.
+    /// 1.1.1 sticks to a warp marker if one's close (that's usually the downbeat); otherwise it goes exactly
+    /// where it's put. (Not on the grid: the grid counts from it.) With Snap off, or ⌥, it never sticks.
     private func snappedStart(_ beat: Double, free: Bool) -> Double {
-        guard !free else { return beat }
+        guard !free, editor.snap > 0 else { return beat }
         if let marker = sequence.audio?.warpMarkers.map(\.beat).min(by: { abs($0 - beat) < abs($1 - beat) }),
            CGFloat(abs(marker - beat)) * beatWidth <= 10 {
             return marker
         }
-        return sequence.onGrid(beat, unit: 0.25, .toNearestOrAwayFromZero)
+        return beat
     }
 
     private func setStart(_ beat: Double) {
@@ -393,13 +404,16 @@ private struct SelectionHighlight: View {
     let editor: SequenceEditorState
     let beatWidth: CGFloat
     let height: CGFloat
+    let visible: ClosedRange<CGFloat>
 
     var body: some View {
-        Rectangle()
-            .fill(Color.white.opacity(0.12))
-            .frame(width: CGFloat(editor.selection.length) * beatWidth, height: height)
-            .offset(x: CGFloat(editor.selection.start) * beatWidth)
-            .allowsHitTesting(false)
+        if let span = LaneSpan(editor.selection.start, editor.selection.end, beatWidth: beatWidth, visible: visible) {
+            Rectangle()
+                .fill(Color.white.opacity(0.12))
+                .frame(width: span.width, height: height)
+                .offset(x: span.x)
+                .allowsHitTesting(false)
+        }
     }
 }
 
@@ -456,6 +470,8 @@ private struct ChordClipsLayer: View {
     let beatWidth: CGFloat
     let height: CGFloat
     let isEditable: Bool
+    /// The part of the lane on screen: clips are drawn only that much.
+    let visible: ClosedRange<CGFloat>
 
     @Environment(SequenceSession.self) private var session
 
@@ -493,9 +509,13 @@ private struct ChordClipsLayer: View {
                 .gesture(backgroundGesture, including: isEditable ? .all : .none)
 
             ForEach(displayed) { region in
+                // The one being dragged is always drawn, so the drag carries on if it leaves the screen
+                let isDragged = dragged?.id == region.id
+                if let span = LaneSpan(region.range.start, region.range.end, beatWidth: beatWidth,
+                                       visible: isDragged ? -CGFloat.infinity...CGFloat.infinity : visible) {
                 let parsed = editor.analysis.chords[region.id] ?? bySymbol[region.symbol]?.0
                 let scale = editor.analysis.scales[region.id] ?? bySymbol[region.symbol]?.1
-                let clipWidth = max(0, CGFloat(region.range.length) * beatWidth - 2)
+                let clipWidth = max(0, span.width - 2)
                 let handle = min(7, clipWidth / 4)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(parsed?.description ?? region.symbol)
@@ -520,9 +540,11 @@ private struct ChordClipsLayer: View {
                 }
                 .contentShape(Rectangle())
                 .gesture(clipGesture(region, .body), including: isEditable ? .all : .none)
-                .overlay(alignment: .leading) { edgeHandle(region, .start, width: handle) }
-                .overlay(alignment: .trailing) { edgeHandle(region, .end, width: handle) }
-                .offset(x: CGFloat(region.range.start) * beatWidth + 1, y: 30)
+                // Resize handles only on the clip's real edges, not where it's cut off at the screen's edge
+                .overlay(alignment: .leading) { if !span.startCut { edgeHandle(region, .start, width: handle) } }
+                .overlay(alignment: .trailing) { if !span.endCut { edgeHandle(region, .end, width: handle) } }
+                .offset(x: span.x + 1, y: 30)
+                }
             }
         }
         .frame(width: width, height: height, alignment: .topLeading)
@@ -646,6 +668,26 @@ private struct ChordClipsLayer: View {
 
 /// The whole sequence in miniature with the part on screen as a thumb: drag it to scroll, drag its
 /// ends to zoom, click elsewhere to jump there. Double-click to fit the whole sequence.
+/// The part of `start..<end` (beats) that's on screen, plus a margin, in lane x. Long shapes are drawn
+/// only this much, so zooming right in (to single samples) doesn't build views millions of points wide.
+struct LaneSpan {
+    var x: CGFloat
+    var width: CGFloat
+    /// Whether the real start or end is off screen (so it isn't an edge to grab).
+    var startCut: Bool
+    var endCut: Bool
+
+    init?(_ start: Double, _ end: Double, beatWidth: CGFloat, visible: ClosedRange<CGFloat>, margin: CGFloat = 40) {
+        let from = CGFloat(start) * beatWidth, to = CGFloat(end) * beatWidth
+        let left = max(from, visible.lowerBound - margin), right = min(to, visible.upperBound + margin)
+        guard right > left else { return nil }
+        x = left
+        width = right - left
+        startCut = left > from
+        endCut = right < to
+    }
+}
+
 private struct LaneOverview: View {
     let editor: SequenceEditorState
     let lengthInBeats: Double
@@ -820,17 +862,43 @@ private struct WaveformRow: View {
 
         ZStack(alignment: .topLeading) {
             if let peaks = session.peaks {
+                let source = session.sourceAudio
                 Canvas { context, size in
                     let middle = size.height / 2
+                    let y = { (value: Float) in middle - CGFloat(value) * middle * 0.95 }
                     var path = Path()
+                    // Zoomed in, the overview isn't detailed enough: the samples themselves, as each column's
+                    // range, or (closer still) a line through them
+                    var lastLinePoint: CGPoint?
                     for column in stride(from: 0, to: size.width, by: 1) {
                         let x = left + column
                         let start = map.sourceTime(atBeat: Double(x / beatWidth))
                         let end = map.sourceTime(atBeat: Double((x + 1) / beatWidth))
-                        guard end > 0, start < audio.reference.duration, start.isFinite, end.isFinite else { continue }
+                        guard end > 0, start < audio.reference.duration, start.isFinite, end.isFinite else {
+                            lastLinePoint = nil
+                            continue
+                        }
+                        if let source, (end - start) * source.sampleRate < Double(peaks.samplesPerBlock) {
+                            let position = start * source.sampleRate
+                            if (end - start) * source.sampleRate < 1 {
+                                let point = CGPoint(x: column, y: y(Self.sample(source, at: position)))
+                                if let lastLinePoint {
+                                    path.move(to: lastLinePoint)
+                                    path.addLine(to: point)
+                                }
+                                lastLinePoint = point
+                            } else {
+                                let (low, high) = Self.range(source, from: Int(position), to: Int(ceil(end * source.sampleRate)))
+                                path.move(to: CGPoint(x: column, y: y(high)))
+                                path.addLine(to: CGPoint(x: column, y: y(low) + 0.5))
+                                lastLinePoint = nil
+                            }
+                            continue
+                        }
+                        lastLinePoint = nil
                         let (low, high) = peaks.range(from: start, to: end)
-                        path.move(to: CGPoint(x: column, y: middle - CGFloat(high) * middle * 0.95))
-                        path.addLine(to: CGPoint(x: column, y: middle - CGFloat(low) * middle * 0.95 + 0.5))
+                        path.move(to: CGPoint(x: column, y: y(high)))
+                        path.addLine(to: CGPoint(x: column, y: y(low) + 0.5))
                     }
                     context.stroke(path, with: .color(.cyan.opacity(audio.isMuted ? 0.25 : 0.75)), lineWidth: 1)
                 }
@@ -890,6 +958,34 @@ private struct WaveformRow: View {
     
     /// Coordinates for dragging: lane x, fixed while markers move.
     static let space = "warp-row"
+
+    /// The recording at a fractional sample position (channels mixed), interpolated between samples.
+    private static func sample(_ audio: AudioData, at position: Double) -> Float {
+        let index = Int(floor(position))
+        guard index >= 0, index + 1 < audio.frameCount, !audio.channels.isEmpty else { return 0 }
+        let fraction = Float(position - Double(index))
+        var value: Float = 0
+        for channel in audio.channels {
+            value += channel[index] * (1 - fraction) + channel[index + 1] * fraction
+        }
+        return value / Float(audio.channels.count)
+    }
+
+    /// The lowest and highest of the recording's samples (channels mixed) from `start` to `end`.
+    private static func range(_ audio: AudioData, from start: Int, to end: Int) -> (Float, Float) {
+        let lower = max(0, start), upper = min(audio.frameCount, max(end, start + 1))
+        guard lower < upper, !audio.channels.isEmpty else { return (0, 0) }
+        var low: Float = 0, high: Float = 0
+        let scale = 1 / Float(audio.channels.count)
+        for index in lower..<upper {
+            var value: Float = 0
+            for channel in audio.channels { value += channel[index] }
+            value *= scale
+            low = min(low, value)
+            high = max(high, value)
+        }
+        return (low, high)
+    }
     
     /// Stretch: the marker keeps its moment in the audio and moves to a new beat.
     /// Slide (⇧): the marker moves along the audio, which stays where it is.
@@ -973,9 +1069,9 @@ private struct WaveformRow: View {
         dragging = nil
     }
 
-    /// Sixteenth notes (counted from 1.1.1), unless dragging freely.
+    /// The Snap grid (counted from 1.1.1); exactly where it's put with Snap off or ⌥.
     private func snap(_ beat: Double, free: Bool) -> Double {
-        free ? beat : sequence.onGrid(beat, unit: 0.25, .toNearestOrAwayFromZero)
+        free ? beat : sequence.onGrid(beat, unit: editor.snap, .toNearestOrAwayFromZero)
     }
 
     /// Keeps a marker between its neighbours so the audio never runs backwards.
