@@ -184,7 +184,8 @@ struct SpotApp: App {
             }
             
             CommandGroup(before: .toolbar) {
-                Button(ui.isFretboardOnly ? "Show Panel Below Fretboard" : "Fretboard Only") { ui.isFretboardOnly.toggle() }
+                Button(ui.tab == .Tab ? (ui.isFretboardOnly ? "Show Fretboard" : "Tab Only")
+                                      : (ui.isFretboardOnly ? "Show Panel Below Fretboard" : "Fretboard Only")) { ui.isFretboardOnly.toggle() }
                     .keyboardShortcut("f", modifiers: [.command, .shift])
                     .disabled(ui.tab == .Settings)
                 Divider()

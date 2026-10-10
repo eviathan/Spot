@@ -40,7 +40,7 @@ public enum GuitarPro {
             return try readGP7(data)
         }
         if data.starts(with: Array("BCF".utf8)) {
-            throw Error.unsupported("Guitar Pro 6")
+            return try readGP6(data)
         }
         if data.count > 1, String(decoding: data.dropFirst().prefix(18), as: UTF8.self).hasPrefix("FICHIER GUITAR PRO") {
             return try GuitarProBinary.read(data)
@@ -57,6 +57,17 @@ public enum GuitarPro {
             throw Error.damaged("it can't be unzipped")
         }
         guard let gpif = files["Content/score.gpif"] else { throw Error.notGuitarPro }
+        return try GPIF.read(gpif)
+    }
+
+    /// A Guitar Pro 6 file (its own container, with the score as GPIF).
+    public static func readGP6(_ data: Data) throws -> Import {
+        let gpif: Data
+        do {
+            gpif = try GPX.score(in: data)
+        } catch {
+            throw Error.damaged("it can't be unpacked")
+        }
         return try GPIF.read(gpif)
     }
 
@@ -260,6 +271,10 @@ enum GPIF {
             default: break
             }
             beat.tremoloPicking = element.child("Tremolo") != nil
+            // Vibrato on the whole beat (as Guitar Pro 3–5 have it too) goes on its notes
+            if element.property("VibratoWTremBar") != nil {
+                for index in beat.notes.indices { beat.notes[index].vibrato = true }
+            }
             return beat
         }
 

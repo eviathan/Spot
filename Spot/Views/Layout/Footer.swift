@@ -114,7 +114,7 @@ struct Footer: View {
             Button {
                 ui.isFretboardOnly.toggle()
             } label: {
-                Image(systemName: ui.showsFretboardOnly ? "rectangle.split.1x2" : "rectangle.split.1x2.fill")
+                Image(systemName: ui.isFretboardOnly && ui.tab != .Settings ? "rectangle.split.1x2" : "rectangle.split.1x2.fill")
                     .font(.system(size: 17))
                     .foregroundColor(ui.tab == .Settings ? dimmed : .white)
                     .frame(width: 30, height: 30)
@@ -122,7 +122,9 @@ struct Footer: View {
             }
             .buttonStyle(.plain)
             .disabled(ui.tab == .Settings)
-            .help(ui.showsFretboardOnly ? "Show the panel below the fretboard (⇧⌘F)" : "Just the fretboard: hide the panel below it (⇧⌘F)")
+            .help(ui.tab == .Tab
+                  ? (ui.hidesFretboard ? "Show the fretboard (⇧⌘F)" : "Just the tab: hide the fretboard (⇧⌘F)")
+                  : (ui.showsFretboardOnly ? "Show the panel below the fretboard (⇧⌘F)" : "Just the fretboard: hide the panel below it (⇧⌘F)"))
             Spacer()
             Transport()
             Spacer()

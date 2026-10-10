@@ -396,7 +396,7 @@ Suggestions, best first. I'd build **A + B** first and add **C** later.
     - 12e. ✅ Playback over MIDI with the metronome (repeats, endings, tempo changes, bends, slides, vibrato, let ring, palm mute, ghost/dead/accent velocities). Space plays from the start, ⌥Space from the cursor; the playing beat is highlighted and kept in view, and the fretboard shows it. The footer's tempo, tap and time signature edit the tab at the cursor's bar.
     - 12f. ✅ Guitar Pro 7/8 (`.gp`) import and export (zip + GPIF XML). Open… reads .gp as an Untitled tab (drum tracks skipped, with a notice); File ▸ Export as Guitar Pro… writes GP7, checked in Guitar Pro 8. Known gap: chord names don't show in Guitar Pro after export (they survive the round trip back into Spot).
     - 12g. ✅ Guitar Pro 3–5 (`.gp3` `.gp4` `.gp5`) import (binary). Checked against 91 files (alphaTab's GP3–5 test files and a real GP5): every one read to its last byte, and each survives export to GP7 and back. Grace notes and whammy bar aren't kept; bends with more than four points are simplified when exported to GP7.
-    - 12h. Guitar Pro 6 (`.gpx`) import.
+    - 12h. ✅ Guitar Pro 6 (`.gpx`) import: unpacks the BCFZ/BCFS container to the score's GPIF. Checked against 35 GP6 files (all open and survive export to GP7 and back).
     - 12i. Linking a tab to a sequence.
 
 ---

@@ -104,13 +104,15 @@ final class GuitarProTests: XCTestCase {
     func testOldSampleFiles() throws {
         guard let folder = ProcessInfo.processInfo.environment["SPOT_GP_OLD_SAMPLES"] else { throw XCTSkip("No samples") }
         let files = FileManager.default.enumerator(at: URL(fileURLWithPath: folder), includingPropertiesForKeys: nil)!
-            .compactMap { $0 as? URL }.filter { ["gp3", "gp4", "gp5"].contains($0.pathExtension) }
+            .compactMap { $0 as? URL }.filter { ["gp3", "gp4", "gp5", "gpx"].contains($0.pathExtension) }
             .sorted { $0.path < $1.path }
         XCTAssertFalse(files.isEmpty)
         for url in files {
             let data = try Data(contentsOf: url)
             do {
-                let (read, consumed) = try GuitarProBinary.readCounting(data)
+                // (Guitar Pro 6 files are XML inside, so there's nothing to count)
+                let (read, consumed) = url.pathExtension == "gpx" ? (try GuitarPro.read(data), data.count)
+                                                                  : try GuitarProBinary.readCounting(data)
                 let score = read.score
                 let beats = score.tracks.flatMap(\.bars).flatMap(\.voices).flatMap(\.beats)
                 let notes = beats.flatMap(\.notes)

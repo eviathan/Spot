@@ -43,8 +43,10 @@ struct LayoutView: View {
                         .padding(.bottom, 16)
                 }
             } else {
-                InstrumentView()
-                    .frame(maxWidth: .infinity)
+                if !ui.hidesFretboard {
+                    InstrumentView()
+                        .frame(maxWidth: .infinity)
+                }
 
                 TabView ()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)

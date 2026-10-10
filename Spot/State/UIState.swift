@@ -146,12 +146,17 @@ final class UIState {
     var displayRightSidebar: Bool {
         didSet { defaults.set(displayRightSidebar, forKey: "ui.displayRightSidebar") }
     }
-    /// Just the fretboard: the tab's content below it is hidden (except on Settings, which has no fretboard).
+    /// Full screen: just the fretboard, with the tab's content below it hidden (except on Settings, which has no
+    /// fretboard, and on the Tab tab, where it's the fretboard that's hidden, leaving the tab).
     var isFretboardOnly: Bool {
         didSet { defaults.set(isFretboardOnly, forKey: "ui.isFretboardOnly") }
     }
     var showsFretboardOnly: Bool {
-        isFretboardOnly && tab != .Settings
+        isFretboardOnly && tab != .Settings && tab != .Tab
+    }
+    /// The Tab tab's full screen: the tab without the fretboard above it.
+    var hidesFretboard: Bool {
+        isFretboardOnly && tab == .Tab
     }
 
     @ObservationIgnored private let defaults: UserDefaults
