@@ -21,10 +21,10 @@ struct ModeSwitcher: View {
         .buttonStyle(PlainButtonStyle())
         .frame(width: 30, height: 30)
         
-        Button(action: { ui.tab = .Editor }) {
+        Button(action: { ui.tab = .Practice }) {
             Image(systemName: "rectangle.split.3x3")
                 .imageScale(.large)
-                .foregroundColor(ui.tab == .Editor ? .white : unselectedColor)
+                .foregroundColor(ui.tab == .Practice ? .white : unselectedColor)
         }
         .buttonStyle(PlainButtonStyle())
         .frame(width: 30, height: 30)

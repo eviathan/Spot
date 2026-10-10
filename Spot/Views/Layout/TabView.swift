@@ -19,8 +19,8 @@ struct TabView: View {
                     case .Library:
                     LibraryTabView(library: library, geometryProxy: geometryProxy)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    case .Editor:
-                        EditorTabView()
+                    case .Practice:
+                        ChordPracticeTabView()
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     case .Sequence:
                         SequenceTabView()

@@ -10,6 +10,6 @@ import Foundation
 enum TabViewType {
     case Library
     case Sequence
-    case Editor
+    case Practice
     case Settings
 }

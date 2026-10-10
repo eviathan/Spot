@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		64B66CCA6B3B4B7CB4F878E4 /* PracticeFretboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329A369EDF034C528A6FB7FD /* PracticeFretboard.swift */; };
+		D5B741EBBDE6471FA1825889 /* ChordPracticeTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E4B8A18465F411B8134BAC5 /* ChordPracticeTabView.swift */; };
+		F673A4B8610F4359BB384B34 /* PracticeState.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4C197311A5A48C8BE9CC8EE /* PracticeState.swift */; };
 		96BE6CB8EBD54E759D6B1EBD /* SettingsTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 955085C7AF104F578507B6C0 /* SettingsTabView.swift */; };
 		D7D3CDF91DAF42FB85B64025 /* PlaybackController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36EB5C8FA9EE42CA9F4EE49B /* PlaybackController.swift */; };
 		9276EFEB0FA94025A926CFD9 /* AudioSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 503CAFC0C11E4AF493A4F4D9 /* AudioSettings.swift */; };
@@ -26,7 +29,6 @@
 		D37E4C3B2C346E7E00179A19 /* SequenceTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C3A2C346E7E00179A19 /* SequenceTabView.swift */; };
 		D37E4C3D2C346EA600179A19 /* LibraryTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C3C2C346EA600179A19 /* LibraryTabView.swift */; };
 		D37E4C412C34716D00179A19 /* TabViewType.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C402C34716D00179A19 /* TabViewType.swift */; };
-		D37E4C432C34777700179A19 /* EditorTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C422C34777700179A19 /* EditorTabView.swift */; };
 		D37E4C472C34BCA200179A19 /* LibraryMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C462C34BCA200179A19 /* LibraryMenu.swift */; };
 		D37E4C4B2C35944000179A19 /* LibraryDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C4A2C35944000179A19 /* LibraryDetailView.swift */; };
 		D37E4C4D2C359A5100179A19 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C4C2C359A5100179A19 /* Theme.swift */; };
@@ -71,6 +73,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		329A369EDF034C528A6FB7FD /* PracticeFretboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeFretboard.swift; sourceTree = "<group>"; };
+		4E4B8A18465F411B8134BAC5 /* ChordPracticeTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChordPracticeTabView.swift; sourceTree = "<group>"; };
+		D4C197311A5A48C8BE9CC8EE /* PracticeState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeState.swift; sourceTree = "<group>"; };
 		955085C7AF104F578507B6C0 /* SettingsTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTabView.swift; sourceTree = "<group>"; };
 		36EB5C8FA9EE42CA9F4EE49B /* PlaybackController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackController.swift; sourceTree = "<group>"; };
 		503CAFC0C11E4AF493A4F4D9 /* AudioSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSettings.swift; sourceTree = "<group>"; };
@@ -90,7 +95,6 @@
 		D37E4C3A2C346E7E00179A19 /* SequenceTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SequenceTabView.swift; sourceTree = "<group>"; };
 		D37E4C3C2C346EA600179A19 /* LibraryTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryTabView.swift; sourceTree = "<group>"; };
 		D37E4C402C34716D00179A19 /* TabViewType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabViewType.swift; sourceTree = "<group>"; };
-		D37E4C422C34777700179A19 /* EditorTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorTabView.swift; sourceTree = "<group>"; };
 		D37E4C462C34BCA200179A19 /* LibraryMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryMenu.swift; sourceTree = "<group>"; };
 		D37E4C4A2C35944000179A19 /* LibraryDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryDetailView.swift; sourceTree = "<group>"; };
 		D37E4C4C2C359A5100179A19 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
@@ -149,6 +153,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		199F44FE8DA549B9A6AAD79B /* Practice */ = {
+			isa = PBXGroup;
+			children = (
+				329A369EDF034C528A6FB7FD /* PracticeFretboard.swift */,
+			);
+			path = Practice;
+			sourceTree = "<group>";
+		};
 		D34C10DD2C403225004C3E86 /* Data */ = {
 			isa = PBXGroup;
 			children = (
@@ -160,10 +172,10 @@
 		D37E4C392C346E5100179A19 /* TabViews */ = {
 			isa = PBXGroup;
 			children = (
+				4E4B8A18465F411B8134BAC5 /* ChordPracticeTabView.swift */,
 				955085C7AF104F578507B6C0 /* SettingsTabView.swift */,
 				D37E4C3A2C346E7E00179A19 /* SequenceTabView.swift */,
 				D37E4C3C2C346EA600179A19 /* LibraryTabView.swift */,
-				D37E4C422C34777700179A19 /* EditorTabView.swift */,
 			);
 			path = TabViews;
 			sourceTree = "<group>";
@@ -243,6 +255,7 @@
 		D3AA9B6D2BCD9A9300C78DF3 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				199F44FE8DA549B9A6AAD79B /* Practice */,
 				D3F0DD292C370FDB00AFDA6A /* Components */,
 				D37E4C392C346E5100179A19 /* TabViews */,
 				D3AA9B752BCD9FFC00C78DF3 /* Layout */,
@@ -325,6 +338,7 @@
 		DB080E70AAD94BBE9BF02139 /* State */ = {
 			isa = PBXGroup;
 			children = (
+				D4C197311A5A48C8BE9CC8EE /* PracticeState.swift */,
 				36EB5C8FA9EE42CA9F4EE49B /* PlaybackController.swift */,
 				503CAFC0C11E4AF493A4F4D9 /* AudioSettings.swift */,
 				1A0D22CCFF4342079D042040 /* LibraryFile.swift */,
@@ -421,6 +435,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				64B66CCA6B3B4B7CB4F878E4 /* PracticeFretboard.swift in Sources */,
+				D5B741EBBDE6471FA1825889 /* ChordPracticeTabView.swift in Sources */,
+				F673A4B8610F4359BB384B34 /* PracticeState.swift in Sources */,
 				96BE6CB8EBD54E759D6B1EBD /* SettingsTabView.swift in Sources */,
 				D7D3CDF91DAF42FB85B64025 /* PlaybackController.swift in Sources */,
 				9276EFEB0FA94025A926CFD9 /* AudioSettings.swift in Sources */,
@@ -444,7 +461,6 @@
 				D3E653EE2C36238700401B60 /* FuzzyResult.swift in Sources */,
 				D3E653F12C36238700401B60 /* FuzzyResultSegment.swift in Sources */,
 				D3E653E22C36238700401B60 /* Searchable.swift in Sources */,
-				D37E4C432C34777700179A19 /* EditorTabView.swift in Sources */,
 				D3E653E82C36238700401B60 /* Score.swift in Sources */,
 				D37E4C382C34610300179A19 /* ModeSwitcher.swift in Sources */,
 				D37E4C4D2C359A5100179A19 /* Theme.swift in Sources */,

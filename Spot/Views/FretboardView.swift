@@ -7,18 +7,36 @@
 import SwiftUI
 import SpotCore
 
+/// How one note is drawn. The Library and Chord Practice tabs each decide this for themselves.
+struct FretboardMarker: Identifiable {
+    var marker: FretMarker
+    var label: String
+    var ring: Color
+    var fill: Color
+    var text: Color
+    var isVisible = true
+    /// 1 is full size; smaller for notes in the background.
+    var scale: CGFloat = 1
+    /// Right-click offers finger numbers (while drawing a shape).
+    var canSetFinger = false
+
+    var id: FretPosition {
+        marker.position
+    }
+}
+
+/// Draws the neck and a set of markers. What the markers mean is up to the caller.
 struct FretboardView: View {
-    @Environment(SelectionState.self) private var selection
-    @Environment(DisplaySettings.self) private var display
     @Environment(\.theme) private var theme
     @Environment(PlaybackController.self) private var playback
-
+    
     @State private var guitarOpacity: CGFloat = 0.3
-
-    private var fretboard: Fretboard {
-        selection.fretboard
-    }
-
+    
+    let fretboard: Fretboard
+    let markers: [FretboardMarker]
+    var onTap: (FretMarker) -> Void = { _ in }
+    var onSetFinger: (FretMarker, Int?) -> Void = { _, _ in }
+    
     let markerSize: CGFloat = 0.7 // TODO: Calculate this
 
     var body: some View {
@@ -156,53 +174,26 @@ struct FretboardView: View {
 
     func drawMarkers(width: CGFloat, height: CGFloat, fretSpacing: CGFloat, stringSpacing: CGFloat) -> some View {
         let size = min(fretSpacing, stringSpacing) * markerSize
-
-        // While drawing a shape, show the draft and let clicks add or remove notes
-        let isDrawing = selection.shapeDraft != nil
-        let shape = isDrawing ? selection.draftPositions : selection.currentShape?.positions(root: selection.root, on: fretboard)
         
-        let markers = FretMarker.build(fretboard: fretboard,
-                                       root: selection.spelledRoot,
-                                       formula: selection.formula,
-                                       key: selection.key,
-                                       shape: shape)
-        
-        return ForEach(markers) { marker in
-            let isHighlighted = (display.highlightAllPositions && !isDrawing) || marker.isInPosition
-            let isVisible = display.isolatePosition && !isDrawing
-                ? isHighlighted
-                : !display.hideUnrelatedNotes || marker.isInCollection
-            
-            FretMarkerView(marker: marker,
-                           label: label(for: marker),
-                           isHighlighted: isHighlighted,
+        return ForEach(markers) { item in
+            FretMarkerView(item: item,
                            size: size,
                            onSelect: {
+                               // ⌥-click always plays the note
                                if NSEvent.modifierFlags.contains(.option) {
-                                   playback.previewNote(fretboard.midiNote(at: marker.position))
-                               } else if isDrawing {
-                                   selection.toggleDraftNote(at: marker.position)
+                                   playback.previewNote(fretboard.midiNote(at: item.marker.position))
                                } else {
-                                   selection.root = marker.pitchClass
+                                   onTap(item.marker)
                                }
                            },
-                           onSetFinger: isDrawing && marker.isInPosition
-                               ? { selection.setDraftFinger($0, at: marker.position) }
-                               : nil)
-                .position(x: (CGFloat(marker.position.fret) * fretSpacing - fretSpacing / 2) + fretSpacing,
-                          y: y(forString: marker.position.string, stringSpacing: stringSpacing))
-                .opacity(isVisible ? 1 : 0)
+                           onSetFinger: item.canSetFinger ? { onSetFinger(item.marker, $0) } : nil)
+                .position(x: (CGFloat(item.marker.position.fret) * fretSpacing - fretSpacing / 2) + fretSpacing,
+                          y: y(forString: item.marker.position.string, stringSpacing: stringSpacing))
+                .opacity(item.isVisible ? 1 : 0)
+                .allowsHitTesting(item.isVisible)
         }
     }
-
-    private func label(for marker: FretMarker) -> String {
-        switch display.markerLabel {
-        case .interval: return marker.intervalName
-        case .note: return marker.noteName.description
-        case .finger: return marker.finger.map(String.init) ?? marker.intervalName
-        }
-    }
-
+    
     private func calculateStringWidth(forString string: Int, totalStrings: Int, minLineWidth: CGFloat, maxLineWidth: CGFloat, exponent: CGFloat) -> CGFloat {
         let normalizedIndex = CGFloat(string - 1) / CGFloat(totalStrings - 1)
         let width = minLineWidth + (maxLineWidth - minLineWidth) * pow(normalizedIndex, exponent)
@@ -211,35 +202,27 @@ struct FretboardView: View {
 }
 
 private struct FretMarkerView: View {
-    @Environment(\.theme) private var theme
     @State private var isHovered = false
-
-    let marker: FretMarker
-    let label: String
-    let isHighlighted: Bool
+    
+    let item: FretboardMarker
     let size: CGFloat
     let onSelect: () -> Void
     /// Set while drawing a shape: right-click to choose a finger (nil = suggest).
     var onSetFinger: ((Int?) -> Void)? = nil
-
+    
     var body: some View {
-        let baseColor = marker.isOpenString ? theme.openMarkerColor : theme.defaultMarkerColor
-        let markerColor = isHighlighted && marker.isInCollection
-            ? theme.intervalColors[marker.semitonesAboveRoot]
-            : baseColor
-        let fillColor = marker.isInCollection ? Color.black : markerColor
-        let scaledSize = size * (isHovered ? 1.1 : 1.0)
-
+        let scaledSize = size * item.scale * (isHovered ? 1.1 : 1.0)
+        
         // TODO: Adjust this so that the button wrapps the circle instead
         Circle()
-            .stroke(lineWidth: 5)
-            .fill(markerColor)
-            .background(Circle().fill(fillColor))
+            .stroke(lineWidth: 5 * item.scale)
+            .fill(item.ring)
+            .background(Circle().fill(item.fill))
             .frame(width: scaledSize, height: scaledSize)
             .overlay(
-                Text(label)
+                Text(item.label)
                     .font(.caption)
-                    .foregroundColor(marker.isInCollection || marker.isOpenString ? .white : theme.fretboardColor)
+                    .foregroundColor(item.text)
             )
             .onTapGesture(perform: onSelect)
             .onHover { hovering in

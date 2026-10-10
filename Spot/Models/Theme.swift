@@ -14,6 +14,11 @@ class Theme {
     let fretMarkerColor = Color(hue: 0.63, saturation: 0.13, brightness: 0.28, opacity: 0.20)
     let nutColor = Color(hue: 0.75, saturation: 0.01, brightness: 0.80, opacity: 1.00)
     
+    /// Chord Practice colours by what a note does over the chord.
+    let chordToneColor = Color(hue: 0.36, saturation: 0.55, brightness: 0.80, opacity: 1.00)
+    let tensionColor = Color(hue: 0.57, saturation: 0.55, brightness: 0.92, opacity: 1.00)
+    let avoidColor = Color(hue: 0.99, saturation: 0.65, brightness: 0.92, opacity: 1.00)
+    
     let defaultMarkerColor: Color = Color(hue: 0.00, saturation: 0.00, brightness: 0.97, opacity: 1.00)
     let openMarkerColor: Color = Color(hue: 0.00, saturation: 0.00, brightness: 0.3, opacity: 1.00)
     

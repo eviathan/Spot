@@ -20,6 +20,18 @@ public struct FretMarker: Identifiable, Hashable, Sendable {
     public var noteName: SpelledNote
     public var intervalName: String
 
+    public init(position: FretPosition, pitchClass: PitchClass, semitonesAboveRoot: Int, degree: Degree?,
+                isInPosition: Bool, finger: Int?, noteName: SpelledNote, intervalName: String) {
+        self.position = position
+        self.pitchClass = pitchClass
+        self.semitonesAboveRoot = semitonesAboveRoot
+        self.degree = degree
+        self.isInPosition = isInPosition
+        self.finger = finger
+        self.noteName = noteName
+        self.intervalName = intervalName
+    }
+
     public var id: FretPosition {
         position
     }

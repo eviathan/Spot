@@ -20,6 +20,7 @@ struct SpotApp: App {
     @State private var transport: TransportState
     @State private var audioSettings: AudioSettings
     @State private var playback: PlaybackController
+    @State private var practice: PracticeState
 
     init() {
         NSWindow.allowsAutomaticWindowTabbing = false
@@ -42,6 +43,7 @@ struct SpotApp: App {
         _transport = State(initialValue: transport)
         _audioSettings = State(initialValue: audioSettings)
         _playback = State(initialValue: PlaybackController(transport: transport, settings: audioSettings))
+        _practice = State(initialValue: PracticeState(library: library))
     }
 
     var body: some Scene {
@@ -55,6 +57,7 @@ struct SpotApp: App {
                 .environment(transport)
                 .environment(audioSettings)
                 .environment(playback)
+                .environment(practice)
                 .toolbar {
                     Color.clear
                 }
@@ -83,16 +86,26 @@ struct SpotApp: App {
                 Button(transport.isMetronomeOn ? "Metronome Off" : "Metronome On") { transport.isMetronomeOn.toggle() }
                     .keyboardShortcut("m", modifiers: [.command, .shift])
                 Divider()
-                Button("Preview Shape") { previewCurrentShape() }
+                Button(ui.tab == .Practice ? "Preview Chord" : "Preview Shape") { previewCurrentShape() }
                     .keyboardShortcut(.return, modifiers: [.command])
-                    .disabled(selection.currentShape == nil)
             }
             
             CommandMenu("Shape") {
-                Button("Next Shape") { selection.nextShape() }
-                    .keyboardShortcut("]", modifiers: [.command])
-                Button("Previous Shape") { selection.previousShape() }
-                    .keyboardShortcut("[", modifiers: [.command])
+                Button(ui.tab == .Practice ? "Next Voicing" : "Next Shape") {
+                    ui.tab == .Practice ? practice.nextVoicing() : selection.nextShape()
+                }
+                .keyboardShortcut("]", modifiers: [.command])
+                Button(ui.tab == .Practice ? "Previous Voicing" : "Previous Shape") {
+                    ui.tab == .Practice ? practice.previousVoicing() : selection.previousShape()
+                }
+                .keyboardShortcut("[", modifiers: [.command])
+                Divider()
+                Button("Next Chord") { practice.nextChord() }
+                    .keyboardShortcut("]", modifiers: [.command, .shift])
+                    .disabled(ui.tab != .Practice)
+                Button("Previous Chord") { practice.previousChord() }
+                    .keyboardShortcut("[", modifiers: [.command, .shift])
+                    .disabled(ui.tab != .Practice)
                 Divider()
                 Button("New Shape") { selection.startNewShape(copyingCurrent: false) }
                     .disabled(selection.kind == .interval)
@@ -122,6 +135,10 @@ struct SpotApp: App {
     }
     
     private func previewCurrentShape() {
+        if ui.tab == .Practice {
+            playback.preview(practice.chordEvents(clock: transport.clock))
+            return
+        }
         guard let shape = selection.currentShape,
               let placement = shape.placements(root: selection.root, on: selection.fretboard).first else { return }
         playback.preview(Audition.events(for: shape, placement: placement, on: selection.fretboard, clock: transport.clock))
