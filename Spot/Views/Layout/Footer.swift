@@ -70,26 +70,39 @@ struct Footer: View {
         editsSequence ? session.sequence?.beatsPerBar ?? 4 : transport.beatsPerBar
     }
 
+    /// Chords, sections, loops and warp markers are all in beats, so changing this just regroups them into
+    /// bars (and can be undone).
     private func setBeatsPerBar(_ value: Int) {
-        if editsSequence, let editor = session.editor, var sequence = session.sequence {
-            sequence.beatsPerBar = value
-            session.sequence = sequence
-            editor.snap = Double(value)
-            editor.select(beat: 0, extend: false, in: sequence)
+        let value = min(max(value, 2), 7)
+        if editsSequence, let editor = session.editor, let old = session.sequence?.beatsPerBar {
+            guard value != old else { return }
+            session.sequence?.beatsPerBar = value
+            // A grid of a bar stays a bar
+            if editor.snap == Double(old) {
+                editor.snap = Double(value)
+            }
         } else {
             transport.beatsPerBar = value
         }
     }
-
-    /// Chords are on beats, so the time signature can't change under them.
-    private var timeSignatureLocked: Bool {
-        editsSequence && !(session.sequence?.chords.isEmpty ?? true)
-    }
-
+    
     var body: some View {
         HStack {
             Spacer()
             ModeSwitcher()
+            Spacer()
+            Button {
+                ui.isFretboardOnly.toggle()
+            } label: {
+                Image(systemName: ui.showsFretboardOnly ? "rectangle.split.1x2" : "rectangle.split.1x2.fill")
+                    .font(.system(size: 17))
+                    .foregroundColor(ui.tab == .Settings ? dimmed : .white)
+                    .frame(width: 30, height: 30)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(ui.tab == .Settings)
+            .help(ui.showsFretboardOnly ? "Show the panel below the fretboard (⇧⌘F)" : "Just the fretboard: hide the panel below it (⇧⌘F)")
             Spacer()
             Transport()
             Spacer()
@@ -106,6 +119,12 @@ struct Footer: View {
                     tempoLabel
                 }
 
+                RangePicker(data: 2..<8,
+                            onDecrement: { setBeatsPerBar(beatsPerBar - 1) },
+                            onIncrement: { setBeatsPerBar(beatsPerBar + 1) }) { _ in
+                    timeSignatureLabel
+                }
+
                 Button(action: tap) {
                     Image(systemName: "hand.tap")
                         .font(.system(size: 16))
@@ -115,21 +134,6 @@ struct Footer: View {
                 }
                 .buttonStyle(.plain)
                 .help("Tap along with the beat to set the tempo (after four taps)")
-
-                Menu {
-                    ForEach([2, 3, 4, 5, 6, 7], id: \.self) { value in
-                        Button("\(value)/4") { setBeatsPerBar(value) }
-                    }
-                } label: {
-                    Text("\(beatsPerBar)/4")
-                        .font(.system(size: 18))
-                        .foregroundColor(.white)
-                }
-                .menuStyle(.borderlessButton)
-                .menuIndicator(.hidden)
-                .fixedSize()
-                .disabled(timeSignatureLocked)
-                .help(timeSignatureLocked ? "Clear the chords to change the time signature" : "Time signature")
             }
             Spacer()
         }
@@ -171,6 +175,28 @@ struct Footer: View {
                     .frame(minWidth: 50)
             }
         }
+    }
+
+    private var timeSignatureLabel: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "rectangle.split.3x1")
+                .font(.system(size: 14))
+                .foregroundColor(.white)
+            Menu {
+                ForEach(2...7, id: \.self) { value in
+                    Button("\(value)/4") { setBeatsPerBar(value) }
+                }
+            } label: {
+                Text("\(beatsPerBar)/4")
+                    .font(.system(size: 20))
+                    .foregroundColor(.white)
+            }
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .fixedSize()
+            .frame(minWidth: 44)
+        }
+        .help("Time signature: beats in a bar")
     }
 
     private var tempoLabel: some View {

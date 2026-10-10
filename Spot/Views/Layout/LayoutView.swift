@@ -25,11 +25,18 @@ struct LayoutView: View {
                 .frame(maxWidth: .infinity)
 
 
-            InstrumentView()
-                .frame(maxWidth: .infinity)
+            if ui.showsFretboardOnly {
+                // The fretboard on its own, a little taller, in the middle of the space
+                InstrumentView()
+                    .environment(\.fretboardMaxHeight, 480)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                InstrumentView()
+                    .frame(maxWidth: .infinity)
 
-            TabView ()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                TabView ()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
 
             Footer()
                 .frame(maxWidth: .infinity, minHeight: footerHeight, maxHeight: footerHeight)

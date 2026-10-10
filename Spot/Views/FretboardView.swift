@@ -35,6 +35,7 @@ struct FretboardMarker: Identifiable {
 struct FretboardView: View {
     @Environment(\.theme) private var theme
     @Environment(PlaybackController.self) private var playback
+    @Environment(\.fretboardMaxHeight) private var maxHeight
     
     @State private var guitarOpacity: CGFloat = 0.3
     
@@ -66,7 +67,7 @@ struct FretboardView: View {
                 drawMarkers(width: width, height: height, fretSpacing: fretSpacing, stringSpacing: stringSpacing)
             }
             .frame(maxWidth: .infinity)        }
-            .frame(maxWidth: .infinity, maxHeight: 300)
+            .frame(maxWidth: .infinity, maxHeight: maxHeight)
             .padding(0)
     }
 
@@ -257,5 +258,17 @@ private struct FretMarkerView: View {
                     }
                 }
             }
+    }
+}
+
+private struct FretboardMaxHeightKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 300
+}
+
+extension EnvironmentValues {
+    /// How tall a fretboard may grow: taller when it has the window to itself.
+    var fretboardMaxHeight: CGFloat {
+        get { self[FretboardMaxHeightKey.self] }
+        set { self[FretboardMaxHeightKey.self] = newValue }
     }
 }

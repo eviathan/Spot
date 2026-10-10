@@ -129,6 +129,13 @@ final class UIState {
     var displayRightSidebar: Bool {
         didSet { defaults.set(displayRightSidebar, forKey: "ui.displayRightSidebar") }
     }
+    /// Just the fretboard: the tab's content below it is hidden (except on Settings, which has no fretboard).
+    var isFretboardOnly: Bool {
+        didSet { defaults.set(isFretboardOnly, forKey: "ui.isFretboardOnly") }
+    }
+    var showsFretboardOnly: Bool {
+        isFretboardOnly && tab != .Settings
+    }
 
     @ObservationIgnored private let defaults: UserDefaults
 
@@ -136,6 +143,7 @@ final class UIState {
         self.defaults = defaults
         displayLeftSidebar = defaults.object(forKey: "ui.displayLeftSidebar") as? Bool ?? true
         displayRightSidebar = defaults.object(forKey: "ui.displayRightSidebar") as? Bool ?? true
+        isFretboardOnly = defaults.bool(forKey: "ui.isFretboardOnly")
     }
     
     /// Does `action` now, or first asks whether to save an unsaved sequence.
