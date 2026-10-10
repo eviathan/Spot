@@ -26,10 +26,18 @@ struct LayoutView: View {
 
 
             if ui.showsFretboardOnly {
-                // The fretboard on its own, a little taller, in the middle of the space
+                // The fretboard on its own, a little taller, in the middle of the space; on the Sequence tab,
+                // the chord now above it and the next one below
+                let sequenceOpen = ui.tab == .Sequence && session.sequence != nil && session.editor != nil
+                if sequenceOpen, let sequence = session.sequence, let editor = session.editor {
+                    FretboardReadout(sequence: sequence, editor: editor, card: .now)
+                }
                 InstrumentView()
                     .environment(\.fretboardMaxHeight, 480)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                if sequenceOpen, let sequence = session.sequence, let editor = session.editor {
+                    FretboardReadout(sequence: sequence, editor: editor, card: .next)
+                }
             } else {
                 InstrumentView()
                     .frame(maxWidth: .infinity)

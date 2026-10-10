@@ -258,20 +258,7 @@ struct PerformanceHeader: View {
 
     /// One chip per degree: the interval, and the note it makes from `root`.
     private func chips(_ degrees: [Degree], root: SpelledNote, colour: @escaping (Degree) -> Color) -> some View {
-        HStack(spacing: 4) {
-            ForEach(Array(degrees.enumerated()), id: \.offset) { _, degree in
-                VStack(spacing: 0) {
-                    Text(degree.intervalName)
-                        .font(.system(size: 12, weight: .bold))
-                    Text(root.spelling(degree).description)
-                        .font(.system(size: 10))
-                        .opacity(0.75)
-                }
-                .frame(width: 32, height: 28)
-                .background(RoundedRectangle(cornerRadius: 5).fill(colour(degree).opacity(0.16)))
-                .overlay(RoundedRectangle(cornerRadius: 5).stroke(colour(degree), lineWidth: 1.2))
-            }
-        }
+        IntervalChips(degrees: degrees, root: root, colour: colour)
     }
 
     // MARK: Next
@@ -391,5 +378,176 @@ struct ChordBoxView: View {
                 context.fill(Circle().path(in: rect), with: .color(isRoot ? theme.avoidColor : theme.chordToneColor))
             }
         }
+    }
+}
+
+/// One chip per degree: the interval, and the note it makes from `root`, outlined in `colour`.
+struct IntervalChips: View {
+    let degrees: [Degree]
+    let root: SpelledNote
+    let colour: (Degree) -> Color
+    var size: CGFloat = 1
+
+    var body: some View {
+        HStack(spacing: 4 * size) {
+            ForEach(Array(degrees.enumerated()), id: \.offset) { _, degree in
+                VStack(spacing: 0) {
+                    Text(degree.intervalName)
+                        .font(.system(size: 12 * size, weight: .bold))
+                    Text(root.spelling(degree).description)
+                        .font(.system(size: 10 * size))
+                        .opacity(0.75)
+                }
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .frame(width: 32 * size, height: 28 * size)
+                .background(RoundedRectangle(cornerRadius: 5).fill(colour(degree).opacity(0.16)))
+                .overlay(RoundedRectangle(cornerRadius: 5).stroke(colour(degree), lineWidth: 1.2))
+            }
+        }
+    }
+}
+
+/// With the fretboard on its own (Fretboard Only), what to play: the chord now above the fretboard and
+/// the next one below it, each with its scale and both sets of intervals, and when the change comes.
+/// Both cards are the same height, so the fretboard sits in the middle.
+struct FretboardReadout: View {
+    enum Card { case now, next }
+
+    let sequence: ChordSequence
+    let editor: SequenceEditorState
+    let card: Card
+
+    /// Fits the title, the chord and two rows of chips.
+    static let height: CGFloat = 196
+
+    @Environment(PlaybackController.self) private var playback
+    @Environment(TransportState.self) private var transport
+    @Environment(\.theme) private var theme
+
+    var body: some View {
+        let isPlaying = playback.playingSequence == editor.id
+        TimelineView(.animation(minimumInterval: 1 / 30, paused: !isPlaying)) { _ in
+            let position = sequencePosition(editor, playback, transport)
+            let region = sequence.chord(at: max(position, 0))
+            let next = sequence.chord(after: max(position, region?.range.start ?? position))
+            let beatInBar = Int(floor(position)) - Int(floor(position / Double(sequence.beatsPerBar))) * sequence.beatsPerBar
+
+            Group {
+                if card == .now {
+                    cardView(region, accent: .white) {
+                        title("NOW")
+                        if let caption = isPlaying && position < editor.selection.start ? "Count-in" : sequence.section(at: max(position, 0))?.name {
+                            Text(caption).font(.callout).opacity(0.6).lineLimit(1)
+                        }
+                        Spacer(minLength: 8)
+                        HStack(spacing: 7) {
+                            ForEach(0..<sequence.beatsPerBar, id: \.self) { beat in
+                                Circle()
+                                    .fill(isPlaying && beat == beatInBar ? Color.white : Color.white.opacity(0.18))
+                                    .frame(width: beat == 0 ? 13 : 10, height: beat == 0 ? 13 : 10)
+                            }
+                        }
+                    }
+                } else {
+                    cardView(next, accent: nextChordColour) {
+                        title("NEXT").foregroundColor(nextChordColour)
+                        if let next {
+                            let beatsLeft = Int(ceil(next.range.start - position))
+                            Text(beatsLeft == 1 ? "in 1 beat" : "in \(beatsLeft) beats")
+                                .font(.callout.monospacedDigit().weight(.semibold))
+                                .foregroundColor(beatsLeft <= Int(editor.ghostBeats) && isPlaying ? .orange : .white.opacity(0.7))
+                            if let shift = shiftHint(from: region, to: next) {
+                                Label(shift.text, systemImage: shift.up ? "arrow.up.right" : "arrow.down.left")
+                                    .font(.callout)
+                                    .foregroundColor(.orange)
+                                    .lineLimit(1)
+                            }
+                        }
+                        Spacer(minLength: 8)
+                    }
+                }
+            }
+            .frame(height: FretboardReadout.height)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 8)
+        }
+    }
+
+    /// A chord, its scale and both sets of intervals, under a title row.
+    private func cardView<Title: View>(_ region: ChordRegion?, accent: Color, @ViewBuilder title: () -> Title) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                title()
+            }
+            if let region, let chord = editor.analysis.chords[region.id] {
+                let scale = editor.analysis.scales[region.id]
+                let roles = scale.map { ChordScaleMatcher.roles(chord: chord.chord, scale: $0) } ?? [:]
+                HStack(alignment: .firstTextBaseline, spacing: 12) {
+                    Text(chord.description)
+                        .font(.system(size: 36, weight: .bold))
+                        .foregroundColor(accent)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
+                    if let scale {
+                        Text("\(chord.root.description) \(scale.name)")
+                            .font(.title3)
+                            .foregroundColor(accent.opacity(0.8))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                    }
+                }
+                Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 8) {
+                    GridRow {
+                        rowLabel("CHORD")
+                        IntervalChips(degrees: chord.chord.formula.degrees, root: chord.root, colour: { _ in theme.chordToneColor }, size: 1.2)
+                    }
+                    if let scale {
+                        GridRow {
+                            rowLabel("SCALE")
+                            IntervalChips(degrees: scale.formula.degrees, root: chord.root, colour: { degree in
+                                switch roles[degree.pitchClassOffset] ?? .outside {
+                                case .chordTone: return theme.chordToneColor
+                                case .tension: return theme.tensionColor
+                                case .avoid: return theme.avoidColor
+                                case .outside: return theme.openMarkerColor
+                                }
+                            }, size: 1.2)
+                        }
+                    }
+                }
+            } else {
+                Text(region == nil ? "No chord" : region!.symbol)
+                    .font(.system(size: 36, weight: .bold))
+                    .opacity(0.3)
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(RoundedRectangle(cornerRadius: 10).fill(Color.black.opacity(0.25)))
+        .overlay(RoundedRectangle(cornerRadius: 10).stroke(accent.opacity(0.25), lineWidth: 1))
+    }
+
+    private func title(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 12, weight: .heavy))
+            .tracking(1.4)
+            .opacity(0.7)
+    }
+
+    private func rowLabel(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 10, weight: .heavy))
+            .tracking(1.2)
+            .opacity(0.5)
+    }
+
+    /// "Move up to fret 7" when the next chord's position is a stretch away from the current one.
+    private func shiftHint(from current: ChordRegion?, to next: ChordRegion) -> (text: String, up: Bool)? {
+        guard editor.neckView == .followHand, let current,
+              let from = editor.analysis.positions[current.id], let to = editor.analysis.positions[next.id],
+              abs(to.centre - from.centre) >= 2.5 else { return nil }
+        let lowest = to.placement.keys.map(\.fret).filter { $0 > 0 }.min() ?? Int(to.centre)
+        return to.centre > from.centre ? ("Move up to fret \(lowest)", true) : ("Move down to fret \(lowest)", false)
     }
 }
