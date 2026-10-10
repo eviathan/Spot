@@ -241,7 +241,9 @@ final class SequenceSession {
         let editor = SequenceEditorState(library: library)
         editor.snap = Double(sequence.beatsPerBar)
         editor.analyse(sequence)
-        editor.select(beat: 0, extend: false, in: sequence)
+        // Open at the start marker, with the playhead on it
+        editor.select(BeatRange(sequence.startBeat, sequence.startBeat), extend: false, in: sequence)
+        editor.revealOnLayout = sequence.startBeat
         self.editor = editor
         fileURL = url
         isLoading = true

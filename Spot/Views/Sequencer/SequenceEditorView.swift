@@ -66,11 +66,14 @@ private struct LaneEditorBar: View {
                 .frame(width: 96, alignment: .leading)
                 .help("The playhead, or the selected range")
 
+            // Plain buttons, white on the bar's colour
             Button {
                 editor.showsPalette.toggle()
             } label: {
                 Label("Chords", systemImage: "square.grid.3x3")
+                    .foregroundStyle(.white)
             }
+            .buttonStyle(.borderless)
             .help("Pick a chord for the selection (or double-click in the lane)")
             .popover(isPresented: $editor.showsPalette, arrowEdge: .top) {
                 // Changing a chord (e.g. double-clicked): it's highlighted in the palette
@@ -83,12 +86,17 @@ private struct LaneEditorBar: View {
                 }
             }
 
-            Button("Clear") {
-                // The selected range, or the chord at the playhead
-                let range = editor.selection.length > 0 ? editor.selection : sequence.chord(at: editor.selection.start)?.range
-                if let range { sequence.clearChords(in: range) }
+            // Only when there are chords in the selection to clear
+            if editor.selection.length > 0, sequence.chords.contains(where: { $0.range.overlaps(editor.selection) }) {
+                Button {
+                    sequence.clearChords(in: editor.selection)
+                } label: {
+                    Label("Clear", systemImage: "xmark.circle")
+                        .foregroundStyle(.white)
+                }
+                .buttonStyle(.borderless)
+                .help("Remove the chords in the selection")
             }
-            .help("Remove the chords in the selection, or the chord at the playhead")
 
             if let region, let suggestions = editor.analysis.suggestions[region.id] {
                 Picker("Scale", selection: Binding(get: { region.scaleId ?? "" },
@@ -153,7 +161,9 @@ private struct LaneEditorBar: View {
             .frame(maxWidth: 260, alignment: .trailing)
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        // A little more below, to sit level above the footer
+        .padding(.top, 8)
+        .padding(.bottom, 12)
     }
 }
 

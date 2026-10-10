@@ -108,10 +108,17 @@ final class SequenceEditorState {
         return min(40, fit)...400_000
     }
 
+    /// A beat to bring into view once the lane knows how wide it is (e.g. the start marker, on opening).
+    @ObservationIgnored var revealOnLayout: Double?
+
     func setViewport(width: Double, lengthInBeats: Double, beatsPerBar: Int) {
         viewportWidth = width
         laneBeats = max(lengthInBeats, 1)
         laneBeatsPerBar = Double(max(beatsPerBar, 1))
+        if let beat = revealOnLayout, width > 0 {
+            revealOnLayout = nil
+            viewStart = beat - visibleBeats * 0.03
+        }
         clampView()
     }
 
