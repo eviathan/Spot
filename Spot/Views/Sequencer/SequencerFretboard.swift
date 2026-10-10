@@ -181,7 +181,8 @@ struct PerformanceHeader: View {
 
     private func now(_ region: ChordRegion?, position: Double, isPlaying: Bool) -> some View {
         let beatInBar = Int(sequence.barAndBeat(at: position).beat)
-        let caption = isPlaying && position < editor.selection.start ? "Count-in" : sequence.section(at: max(position, 0))?.name
+        // The section (there's no count-in for now, so nothing else goes here)
+        let caption = sequence.section(at: max(position, 0))?.name
 
         return VStack(alignment: .leading, spacing: 5) {
             HStack(spacing: 6) {
@@ -437,7 +438,7 @@ struct FretboardReadout: View {
                 if card == .now {
                     cardView(region, accent: .primary) {
                         title("NOW")
-                        if let caption = isPlaying && position < editor.selection.start ? "Count-in" : sequence.section(at: max(position, 0))?.name {
+                        if let caption = sequence.section(at: max(position, 0))?.name {
                             Text(caption).font(.callout).opacity(0.6).lineLimit(1)
                         }
                         HStack(spacing: 7) {
