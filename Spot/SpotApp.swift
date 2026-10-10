@@ -45,8 +45,11 @@ struct SpotApp: App {
         _audioSettings = State(initialValue: audioSettings)
         let playback = PlaybackController(transport: transport, settings: audioSettings)
         _playback = State(initialValue: playback)
-        _session = State(initialValue: SequenceSession(library: library, playback: playback, transport: transport))
-        _tabSession = State(initialValue: TabSession(playback: playback, transport: transport))
+        let session = SequenceSession(library: library, playback: playback, transport: transport)
+        _session = State(initialValue: session)
+        let tabSession = TabSession(playback: playback, transport: transport)
+        tabSession.sequenceSession = session
+        _tabSession = State(initialValue: tabSession)
     }
 
     var body: some Scene {
@@ -164,10 +167,10 @@ struct SpotApp: App {
                 }
                 .disabled(ui.tab == .Tab ? !tabSession.isOpen : (ui.tab != .Sequence || !session.isOpen))
                 Button(session.sequence?.loop == nil ? "Loop" : "Stop Looping") {
-                    TransportActions.toggleLoop(session: session)
+                    TransportActions.toggleLoop(ui: ui, session: session, tab: tabSession)
                 }
                 .keyboardShortcut("l", modifiers: [.command])
-                .disabled(ui.tab != .Sequence || !session.isOpen)
+                .disabled(!(ui.tab == .Sequence && session.isOpen) && !(ui.tab == .Tab && tabSession.linkedSequence != nil))
                 Button("Stop") {
                     TransportActions.stop(ui: ui, session: session, tab: tabSession, playback: playback)
                 }

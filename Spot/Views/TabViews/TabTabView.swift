@@ -9,6 +9,7 @@ import SpotCore
 /// The Tab tab: the open tab (tablature) file, or a way to start or open one.
 struct TabTabView: View {
     @Environment(TabSession.self) private var session
+    @Environment(SequenceSession.self) private var sequenceSession
     @Environment(UIState.self) private var ui
 
     var body: some View {
@@ -45,6 +46,16 @@ struct TabTabView: View {
                 }
             }
             .controlSize(.large)
+
+            // The open sequence's tab, to work on alongside it
+            if let link = sequenceSession.sequence?.tab, let url = sequenceSession.linkedTabURL {
+                Button {
+                    ui.requestTabAction(.openURL(url), session: session)
+                } label: {
+                    Label("Open “\(link.name)”, linked to \(sequenceSession.displayName)", systemImage: "link")
+                }
+                .buttonStyle(.link)
+            }
 
             if !session.recents.isEmpty {
                 VStack(alignment: .leading, spacing: 6) {
@@ -105,6 +116,14 @@ private struct TabEditorView: View {
                         }
                     }
 
+                    // Linked: one transport with the sequence
+                    if let sequence = session.linkedSequence {
+                        Label("With \(sequence.displayName)", systemImage: "link")
+                            .font(.callout)
+                            .foregroundStyle(.cyan)
+                            .help("This tab is linked to the open sequence, so they play together: Space, ⌥Space, loop (⌘L loops the selected beats), the start marker, end and playhead are the sequence's, and so are tempo and time signature in the footer.")
+                    }
+
                     if score.tracks.count > 1 {
                         Picker("Track", selection: Binding(get: { editor.track }, set: { editor.track = $0; editor.clamp(to: score) })) {
                             ForEach(Array(score.tracks.enumerated()), id: \.element.id) { index, track in
@@ -143,7 +162,12 @@ private struct TabEditorView: View {
                     .focused($isFocused)
                     .simultaneousGesture(TapGesture().onEnded { isFocused = true })
                     .onKeyPress(phases: .down) { press in handle(press) ? .handled : .ignored }
-                    .onAppear { isFocused = true }
+                    .onAppear {
+                        isFocused = true
+                        session.followSequence()
+                    }
+                    .onDisappear { session.stopFollowingSequence() }
+                    .onChange(of: editor.cursor) { session.cursorMoved() }
 
                 Divider()
 

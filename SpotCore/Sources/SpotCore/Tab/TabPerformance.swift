@@ -8,7 +8,8 @@ import Foundation
 /// A tab played out in time: repeats and 1st/2nd endings followed, tempo changes applied, and every note turned
 /// into MIDI, with the techniques done as well as MIDI can (bends, slides and vibrato as pitch bend, palm mute
 /// and dead notes short, ghost notes soft, accents loud, ties held, let ring sustained, harmonics at their pitch).
-/// Times are in seconds from the start.
+/// Times are in seconds from the start, or (`inQuarterNotes`) in quarter notes, for playing along with a sequence
+/// at its tempo.
 public struct TabPerformance: Sendable {
     public enum Message: Hashable, Sendable {
         case noteOn(channel: Int, note: Int, velocity: Int)
@@ -52,7 +53,8 @@ public struct TabPerformance: Sendable {
 
     // MARK: - Making it
 
-    public static func make(_ score: TabScore) -> TabPerformance {
+    /// `inQuarterNotes`: ignore the tab's tempo and time everything in quarter notes (as if at 60 bpm).
+    public static func make(_ score: TabScore, inQuarterNotes: Bool = false) -> TabPerformance {
         let barOrder = playingOrder(score)
         let channelMap = channels(for: score)
         var events: [Event] = []
@@ -76,12 +78,12 @@ public struct TabPerformance: Sendable {
         var sounding: [[Int: Sounding]] = Array(repeating: [:], count: score.tracks.count)
         // Note-off events, added once each note's end is known
         var noteEnds: [Int: Double] = [:]       // index of the noteOn event → end time
-        var tempo = score.tempo
+        var tempo = inQuarterNotes ? 60 : score.tempo
         var time = 0.0
 
         for bar in barOrder {
             let master = score.masterBars[bar]
-            if let change = master.tempo { tempo = change }
+            if !inQuarterNotes, let change = master.tempo { tempo = change }
             let secondsPerTick = 60 / tempo / Double(TabDuration.ticksPerQuarter)
             let barTicks = master.timeSignature.ticks
             let beatSeconds = Double(barTicks / max(master.timeSignature.numerator, 1)) * secondsPerTick

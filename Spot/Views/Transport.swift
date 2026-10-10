@@ -38,11 +38,12 @@ struct Transport: View {
     
     /// Loops the selection, or stops looping.
     func onClickTransportLoop() -> Void {
-        TransportActions.toggleLoop(session: session)
+        TransportActions.toggleLoop(ui: ui, session: session, tab: tabSession)
     }
     
+    /// The sequence's transport: on the Sequence tab, or on the Tab tab with the tab it links.
     private var editsSequence: Bool {
-        ui.tab == .Sequence && session.isOpen
+        session.isOpen && (ui.tab == .Sequence || (ui.tab == .Tab && tabSession.linkedSequence != nil))
     }
     
     private var isLooping: Bool {
@@ -210,16 +211,18 @@ enum TransportActions {
     }
     
     /// Loops the open sequence's selection, or turns the loop off.
-    static func toggleLoop(session: SequenceSession) {
-        session.toggleLoop()
+    /// On the Tab tab with the sequence's tab, the selected beats are looped (or looping turned on or off).
+    static func toggleLoop(ui: UIState, session: SequenceSession, tab: TabSession) {
+        if ui.tab == .Tab, tab.linkedSequence != nil {
+            session.loop(tab.selectionBeats)
+        } else {
+            session.toggleLoop()
+        }
     }
     
     static func toStart(ui: UIState, session: SequenceSession, tab: TabSession, playback: PlaybackController) {
         if ui.tab == .Tab && tab.isOpen {
-            let wasPlaying = tab.isPlaying
-            tab.stopPlaying()
-            tab.editor?.cursor = TabEditorState.Cursor()
-            if wasPlaying { tab.play(fromCursor: false) }
+            tab.returnToStart()
         } else if ui.tab == .Sequence && session.isOpen {
             session.returnToStart()
         } else if playback.transport.isPlaying {

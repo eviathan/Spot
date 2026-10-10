@@ -31,6 +31,8 @@ struct TabLayout {
     var lines: [Line]
 
     static let leftMargin: CGFloat = 40
+    /// As much room on the right as on the left (so the last bar of a line doesn't run under the scroll bar).
+    static let rightMargin: CGFloat = 40
     static let timeSignatureWidth: CGFloat = 24
     static let repeatWidth: CGFloat = 12
 
@@ -51,7 +53,7 @@ struct TabLayout {
     static func make(score: TabScore, track: Int, width: CGFloat, zoom: Double) -> TabLayout {
         guard score.tracks.indices.contains(track) else { return TabLayout(lines: []) }
         let bars = score.tracks[track].bars
-        let available = max(200, width - leftMargin - 16)
+        let available = max(200, width - leftMargin - rightMargin)
 
         // Each bar's natural width
         struct Natural { var index: Int; var header: CGFloat; var beats: [CGFloat]; var empty: Bool }
@@ -159,6 +161,7 @@ struct TabStaffView: View {
             let layout = TabLayout.make(score: score, track: editor.track, width: geometry.size.width, zoom: editor.zoom)
             let metrics = TabMetrics(stringCount: score.tracks.indices.contains(editor.track) ? score.tracks[editor.track].stringCount : 6)
             let playhead = session.playhead
+            let loop = session.loopSpan
             let playingLine = playhead.flatMap { playhead in layout.lines.firstIndex { $0.bars.contains { $0.index == playhead.bar } } }
             ScrollViewReader { scroller in
             ScrollView(.vertical) {
@@ -177,7 +180,7 @@ struct TabStaffView: View {
                     }
                     ForEach(Array(layout.lines.enumerated()), id: \.offset) { index, line in
                         TabLineView(score: score, editor: editor, line: line, metrics: metrics, width: geometry.size.width,
-                                    playhead: index == playingLine ? playhead : nil)
+                                    playhead: index == playingLine ? playhead : nil, loop: loop)
                             .id(index)
                     }
                 }
@@ -203,6 +206,8 @@ private struct TabLineView: View {
     let width: CGFloat
     /// The beat being played, if it's on this line.
     var playhead: TabPosition?
+    /// The linked sequence's loop, as beats of this track.
+    var loop: (start: TabPosition, end: TabPosition)?
 
     private var track: TabTrack? {
         score.tracks.indices.contains(editor.track) ? score.tracks[editor.track] : nil
@@ -535,6 +540,22 @@ private struct TabLineView: View {
             let x = cursor.beat < bar.beats.count ? bar.beats[cursor.beat].x : bar.appendX
             context.fill(Path(roundedRect: CGRect(x: x - 11, y: top - 8, width: 22, height: bottom - top + 16), cornerRadius: 4),
                          with: .color(Color.white.opacity(0.07)))
+        }
+        // The sequence's loop: a band above the staff over the looped beats, like the loop brace
+        if let loop {
+            let looped = bar.beats.filter { slot in
+                let position = TabPosition(bar: bar.index, beat: slot.index)
+                return position >= loop.start && position <= loop.end
+            }
+            if let first = looped.first, let last = looped.last {
+                let loopColour = Color(red: 0.95, green: 0.78, blue: 0.35)
+                let startX = first.index == 0 ? bar.x : first.x - 11
+                let endX = last.index == bar.beats.count - 1 ? bar.x + bar.width : last.x + 11
+                context.fill(Path(CGRect(x: startX, y: top - 8, width: endX - startX, height: bottom - top + 16)),
+                             with: .color(loopColour.opacity(0.08)))
+                context.fill(Path(CGRect(x: startX, y: top - 20, width: endX - startX, height: 3)),
+                             with: .color(loopColour.opacity(0.8)))
+            }
         }
         // The beat being played
         if let playhead, playhead.bar == bar.index, bar.beats.indices.contains(playhead.beat) {

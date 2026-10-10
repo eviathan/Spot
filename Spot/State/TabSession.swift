@@ -136,16 +136,33 @@ final class TabSession {
     @ObservationIgnored private var follower: Timer?
 
     var isPlaying: Bool {
-        playback.isPlayingTab
+        if let sequence = linkedSequence { return sequence.isPlaying }
+        return playback.isPlayingTab
     }
 
     func togglePlay() {
+        if let sequence = linkedSequence {
+            sequence.togglePlay()
+            return
+        }
         isPlaying ? stopPlaying() : play(fromCursor: false)
     }
 
     /// From the start, or from the beat at the cursor. Plays the tab as it is now (edits made while playing are
-    /// heard next time).
+    /// heard next time). Linked to the open sequence, it's the sequence that plays: from its start marker, or from
+    /// the cursor's beat.
     func play(fromCursor: Bool) {
+        if let sequence = linkedSequence {
+            if fromCursor, let beat = cursorBeat {
+                sequence.stopPlayback()
+                sequence.movePlayhead(to: beat)
+                sequence.playSelection()
+            } else {
+                sequence.stopPlayback()
+                sequence.play()
+            }
+            return
+        }
         guard let score, let editor else { return }
         let performance = TabPerformance.make(score)
         self.performance = performance
@@ -158,11 +175,137 @@ final class TabSession {
     }
 
     func stopPlaying() {
+        if let sequence = linkedSequence {
+            sequence.stopPlayback()
+            return
+        }
         if isPlaying {
             playback.stop()
         }
         finishPlaying()
     }
+
+    /// Back to the start (linked: the sequence's start marker), carrying on playing if it was.
+    func returnToStart() {
+        if let sequence = linkedSequence {
+            sequence.returnToStart()
+            if !sequence.isPlaying { syncCursorToSequence() }
+            return
+        }
+        let wasPlaying = isPlaying
+        stopPlaying()
+        editor?.cursor = TabEditorState.Cursor()
+        if wasPlaying { play(fromCursor: false) }
+    }
+
+    // MARK: - Linked to the sequence
+
+    /// The open sequence, set by the app.
+    @ObservationIgnored weak var sequenceSession: SequenceSession? {
+        didSet {
+            sequenceSession?.liveLinkedTab = { [weak self] in
+                guard let self, linkedSequence != nil else { return nil }
+                return score
+            }
+        }
+    }
+
+    /// The open sequence, when this tab is the one it links: the two then share one transport (the sequence's
+    /// play, loop, length, start marker and playhead).
+    var linkedSequence: SequenceSession? {
+        guard let sequenceSession, sequenceSession.sequence?.tab != nil, let linked = sequenceSession.linkedTabFile,
+              let fileURL, score != nil else { return nil }
+        return fileURL.standardizedFileURL.resolvingSymlinksInPath().path == linked.standardizedFileURL.resolvingSymlinksInPath().path
+            ? sequenceSession : nil
+    }
+
+    /// The tab timed in beats, for lining it up with the sequence.
+    @ObservationIgnored private var cachedBeatTiming: (score: TabScore, performance: TabPerformance)?
+    private var beatTiming: TabPerformance? {
+        guard let score else { return nil }
+        if let cached = cachedBeatTiming, cached.score == score { return cached.performance }
+        let performance = TabPerformance.make(score, inQuarterNotes: true)
+        cachedBeatTiming = (score, performance)
+        return performance
+    }
+
+    /// The sequence beat the cursor's beat plays on (the first time round).
+    var cursorBeat: Double? {
+        guard let editor, let link = linkedSequence?.sequence?.tab, let timing = beatTiming else { return nil }
+        return link.startBeat + timing.time(of: editor.position, track: editor.track)
+    }
+
+    /// The beat playing on the track showing at a sequence beat.
+    private func position(atSequenceBeat beat: Double) -> TabPosition? {
+        guard let editor, let link = linkedSequence?.sequence?.tab, let timing = beatTiming,
+              beat >= link.startBeat - 1e-9 else { return nil }
+        return timing.position(of: editor.track, at: beat - link.startBeat).map { TabPosition(bar: $0.bar, beat: $0.beat) }
+    }
+
+    /// The cursor moved: the sequence's playhead goes there too.
+    func cursorMoved() {
+        guard let sequence = linkedSequence, !sequence.isPlaying, let beat = cursorBeat else { return }
+        sequence.movePlayhead(to: beat)
+    }
+
+    /// The cursor goes to where the sequence's playhead is (keeping its string).
+    func syncCursorToSequence() {
+        guard let sequence = linkedSequence, let editor, let beat = sequence.editor?.selection.start,
+              let position = position(atSequenceBeat: beat) else { return }
+        if editor.position != position {
+            editor.cursor = TabEditorState.Cursor(bar: position.bar, beat: position.beat, string: editor.cursor.string)
+            editor.selectionAnchor = nil
+        }
+    }
+
+    /// The sequence's loop, as the beats it covers on the track showing (while looping).
+    var loopSpan: (start: TabPosition, end: TabPosition)? {
+        guard let loop = linkedSequence?.sequence?.loop, let start = position(atSequenceBeat: loop.start) ?? (loop.start < (linkedSequence?.sequence?.tab?.startBeat ?? 0) ? TabPosition(bar: 0, beat: 0) : nil),
+              let end = position(atSequenceBeat: loop.end - 0.01) else { return nil }
+        return (start, end)
+    }
+
+    /// The selected beats as a range of sequence beats, to loop.
+    var selectionBeats: BeatRange? {
+        guard let editor, let selection = editor.selection, let score, let link = linkedSequence?.sequence?.tab,
+              let timing = beatTiming else { return nil }
+        let start = timing.time(of: selection.start, track: editor.track)
+        let lastBeats = score.beats(track: editor.track, bar: selection.end.bar)
+        let lastLength = lastBeats.indices.contains(selection.end.beat)
+            ? Double(lastBeats[selection.end.beat].duration.ticks) / Double(TabDuration.ticksPerQuarter) : 0
+        let end = timing.time(of: selection.end, track: editor.track) + lastLength
+        return BeatRange(link.startBeat + start, link.startBeat + end)
+    }
+
+    /// While the Tab tab shows a linked tab: follow the sequence (the playing beat while it plays; the cursor to
+    /// where it stopped).
+    func followSequence() {
+        sequenceFollower?.invalidate()
+        var wasPlaying = linkedSequence?.isPlaying ?? false
+        sequenceFollower = Timer.scheduledTimer(withTimeInterval: 1.0 / 30, repeats: true) { [weak self] _ in
+            guard let self else { return }
+            guard let sequence = linkedSequence else {
+                if playhead != nil, !playback.isPlayingTab { playhead = nil }
+                return
+            }
+            if sequence.isPlaying {
+                let position = position(atSequenceBeat: transport.position())
+                if position != playhead { playhead = position }
+            } else {
+                if playhead != nil { playhead = nil }
+                if wasPlaying { syncCursorToSequence() }
+            }
+            wasPlaying = sequence.isPlaying
+        }
+        syncCursorToSequence()
+    }
+
+    func stopFollowingSequence() {
+        sequenceFollower?.invalidate()
+        sequenceFollower = nil
+    }
+
+    @ObservationIgnored private var sequenceFollower: Timer?
 
     private func finishPlaying() {
         follower?.invalidate()
@@ -329,6 +472,8 @@ final class TabSession {
 
     private func scoreChanged(from old: TabScore?) {
         if let score { editor?.clamp(to: score) }
+        // Linked: the sequence plays the edit straight away
+        if let score, let sequence = linkedSequence { sequence.useLinkedTab(score) }
         guard !isLoading, let score, score != old else { return }
         recordUndo(from: old, to: score)
         hasUnsavedChanges = true

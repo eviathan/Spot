@@ -248,3 +248,53 @@ final class TabPerformanceTests: XCTestCase {
         XCTAssertEqual(bends.filter { $0.0 > 1.5 && $0.0 < 2 }.map(\.1).max(), TabPerformance.bendValue(cents: 400))
     }
 }
+
+final class TabLinkTests: XCTestCase {
+    /// Two bars of 4/4 repeated, chords Am (twice in a row), C, then G in the bar after.
+    private func score() -> TabScore {
+        var score = TabScore.empty(bars: 3)
+        score.tempo = 90
+        score.masterBars[0].isRepeatStart = true
+        score.masterBars[1].repeatCount = 2
+        score.masterBars[1].tempo = 200
+        var beats = (0..<4).map { _ in TabBeat(duration: TabDuration(.quarter), notes: [TabNote(string: 0, fret: 0)]) }
+        beats[0].chord = "Am"
+        beats[2].chord = "Am"
+        score.tracks[0].bars[0].voices[0].beats = beats
+        var second = beats
+        second[0].chord = "C"
+        second[2].chord = nil
+        score.tracks[0].bars[1].voices[0].beats = second
+        var third = beats
+        third[0].chord = "G"
+        third[2].chord = nil
+        score.tracks[0].bars[2].voices[0].beats = third
+        return score
+    }
+
+    func testQuarterNoteTimingIgnoresTempo() {
+        let performance = TabPerformance.make(score(), inQuarterNotes: true)
+        XCTAssertEqual(performance.length, 20, accuracy: 1e-9) // 5 bars of 4, with the repeat
+        XCTAssertEqual(performance.moments[0].map(\.time).prefix(5), [0, 1, 2, 3, 4])
+        XCTAssertNotEqual(TabPerformance.make(score()).length, 20)
+    }
+
+    func testChordChangesFollowRepeats() {
+        let changes = score().chordChanges(track: 0)
+        XCTAssertEqual(changes.map(\.name), ["Am", "C", "Am", "C", "G"])
+        XCTAssertEqual(changes.map(\.range), [BeatRange(0, 4), BeatRange(4, 8), BeatRange(8, 12), BeatRange(12, 16), BeatRange(16, 20)])
+        XCTAssertEqual(score().chordChanges(track: 3).count, 0)
+    }
+
+    func testSequenceKeepsItsLink() throws {
+        var sequence = ChordSequence()
+        sequence.tab = TabLink(bookmark: nil, lastKnownPath: "/tmp/Song.spottab", fileName: "Song.spottab", track: 1, startBeat: 4, isMuted: true)
+        let read = try JSONDecoder().decode(ChordSequence.self, from: sequence.encoded())
+        XCTAssertEqual(read.tab, sequence.tab)
+        XCTAssertEqual(read.tab?.name, "Song")
+        // Files from before links still open
+        var old = try JSONSerialization.jsonObject(with: sequence.encoded()) as! [String: Any]
+        old["tab"] = nil
+        XCTAssertNil(try JSONDecoder().decode(ChordSequence.self, from: JSONSerialization.data(withJSONObject: old)).tab)
+    }
+}

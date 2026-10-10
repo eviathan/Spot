@@ -16,12 +16,15 @@ enum OpenPanel: Equatable {
     case audio
     case relinkAudio
     case tab
+    /// A tab for the open sequence to play along with.
+    case linkTab
 
     var contentTypes: [UTType] {
         switch self {
         case .library: return [.spotLibrary, .json]
         case .sequence: return [.spotSequence]
         case .tab: return [.spotTab] + UTType.guitarProTypes
+        case .linkTab: return [.spotTab]
         case .audio, .relinkAudio: return [.audio]
         }
     }
@@ -146,10 +149,18 @@ final class UIState {
     var displayRightSidebar: Bool {
         didSet { defaults.set(displayRightSidebar, forKey: "ui.displayRightSidebar") }
     }
-    /// Full screen: just the fretboard, with the tab's content below it hidden (except on Settings, which has no
-    /// fretboard, and on the Tab tab, where it's the fretboard that's hidden, leaving the tab).
+    /// Full screen, for the tab showing (each tab remembers its own): just the fretboard, with the tab's content
+    /// below it hidden (except on Settings, which has no fretboard, and on the Tab tab, where it's the fretboard
+    /// that's hidden, leaving the tab).
     var isFretboardOnly: Bool {
-        didSet { defaults.set(isFretboardOnly, forKey: "ui.isFretboardOnly") }
+        get { expandedTabs.contains("\(tab)") }
+        set {
+            if newValue { expandedTabs.insert("\(tab)") } else { expandedTabs.remove("\(tab)") }
+        }
+    }
+    /// The tabs in their full-screen mode.
+    private var expandedTabs: Set<String> {
+        didSet { defaults.set(Array(expandedTabs).sorted(), forKey: "ui.expandedTabs") }
     }
     var showsFretboardOnly: Bool {
         isFretboardOnly && tab != .Settings && tab != .Tab
@@ -165,7 +176,7 @@ final class UIState {
         self.defaults = defaults
         displayLeftSidebar = defaults.object(forKey: "ui.displayLeftSidebar") as? Bool ?? true
         displayRightSidebar = defaults.object(forKey: "ui.displayRightSidebar") as? Bool ?? true
-        isFretboardOnly = defaults.bool(forKey: "ui.isFretboardOnly")
+        expandedTabs = Set(defaults.stringArray(forKey: "ui.expandedTabs") ?? [])
     }
     
     /// Does `action` now, or first asks whether to save an unsaved tab.

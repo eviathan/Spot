@@ -53,6 +53,9 @@ private struct LaneEditorBar: View {
     let editor: SequenceEditorState
 
     @Environment(SequenceSession.self) private var session
+    @Environment(TabSession.self) private var tabSession
+    @Environment(UIState.self) private var ui
+    @State private var unreadableChords: [String]?
 
     var body: some View {
         @Bindable var editor = editor
@@ -155,6 +158,8 @@ private struct LaneEditorBar: View {
                 }
             }
 
+            tabMenu
+
             if let error = editor.chordError {
                 Label(error, systemImage: "exclamationmark.triangle")
                     .foregroundStyle(.orange)
@@ -195,6 +200,65 @@ private struct LaneEditorBar: View {
 }
 
 extension LaneEditorBar {
+    /// A tab playing along: link one, choose its track and where it starts, mute it, bring in its chord names.
+    @ViewBuilder
+    var tabMenu: some View {
+        let link = sequence.tab
+        let score = session.linkedTab
+        BarMenu(title: "Tab", value: link.map { session.linkedTabMissing ? "\($0.name) (missing)" : $0.name } ?? "None",
+                help: link == nil
+                    ? "Link a tab (.spottab) to play along with the sequence, at its tempo"
+                    : "\(link!.name) plays along\(link!.isMuted ? " (muted)" : ""), from \(barLabel(link!.startBeat))") {
+            if let link {
+                if session.linkedTabMissing {
+                    Button("Locate Tab…") { ui.openPanel = .linkTab }
+                    Divider()
+                }
+                if let score {
+                    Menu("Plays") {
+                        choice("All Tracks", link.track == TabLink.allTracks) { sequence.tab?.track = TabLink.allTracks }
+                        Divider()
+                        ForEach(Array(score.tracks.enumerated()), id: \.offset) { index, track in
+                            choice(track.name, link.track == index) { sequence.tab?.track = index }
+                        }
+                    }
+                }
+                Button("Start at the Playhead (\(barLabel(editor.selection.start)))") { sequence.tab?.startBeat = editor.selection.start }
+                    .help("Where the tab's first bar comes in the sequence: now \(barLabel(link.startBeat))")
+                choice("Mute", link.isMuted) { sequence.tab?.isMuted.toggle() }
+                Divider()
+                Button("Add Its Chord Names to the Sequence") {
+                    let unreadable = session.addChordsFromLinkedTab()
+                    unreadableChords = unreadable.isEmpty ? nil : unreadable
+                }
+                .disabled(!session.linkedTabHasChords)
+                Button("Open in the Tab Editor") {
+                    if let url = session.linkedTabURL {
+                        ui.requestTabAction(.openURL(url), session: tabSession)
+                    }
+                }
+                .disabled(session.linkedTabURL == nil)
+                Button("Link a Different Tab…") { ui.openPanel = .linkTab }
+                Divider()
+                Button("Unlink Tab", role: .destructive) { session.unlinkTab() }
+            } else {
+                Button("Link a Tab…") { ui.openPanel = .linkTab }
+            }
+        }
+        .alert("Some chord names weren't added", isPresented: Binding(get: { unreadableChords != nil },
+                                                                      set: { if !$0 { unreadableChords = nil } })) {
+            Button("OK") { unreadableChords = nil }
+        } message: {
+            Text("Spot couldn't read these as chords: \((unreadableChords ?? []).joined(separator: ", ")). The rest were added.")
+        }
+    }
+
+    /// "bar 3.2" for a beat, counted from the start marker.
+    private func barLabel(_ beat: Double) -> String {
+        let position = sequence.barAndBeat(at: beat)
+        return "bar \(position.bar).\(Int(position.beat) + 1)"
+    }
+
     /// A menu of shapes to choose from, grouped by system and ordered up the neck, with Automatic first.
     /// Its title shows what's in use (picked or not), with its group.
     @ViewBuilder

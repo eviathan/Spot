@@ -112,6 +112,8 @@ public struct ChordSequence: Hashable, Codable, Sendable {
     public var audio: AudioTrack?
     /// Your recordings, oldest first.
     public var takes: [RecordedTake]
+    /// A tab to play along (it stays in its own file).
+    public var tab: TabLink?
     /// Where bar 1 beat 1 is, like Live's start marker: bars, beats and the grid count from here, and
     /// anything before it is in the bars before 1 (−1, −2…). Nothing moves when it does.
     public var startBeat: Double
@@ -130,6 +132,7 @@ public struct ChordSequence: Hashable, Codable, Sendable {
         self.isLooping = false
         self.audio = nil
         self.takes = []
+        self.tab = nil
         self.startBeat = 0
         self.endBeat = nil
     }
@@ -328,7 +331,7 @@ public struct ChordSequence: Hashable, Codable, Sendable {
     // MARK: - Files
 
     enum CodingKeys: String, CodingKey {
-        case version, tempo, beatsPerBar, lengthInBars, key, chords, sections, loopRange, isLooping, audio, takes, startBeat, endBeat
+        case version, tempo, beatsPerBar, lengthInBars, key, chords, sections, loopRange, isLooping, audio, takes, tab, startBeat, endBeat
     }
 
     private enum LegacyKeys: String, CodingKey {
@@ -364,6 +367,7 @@ public struct ChordSequence: Hashable, Codable, Sendable {
         }
         tempo *= practiceRate
         takes = try container.decodeIfPresent([RecordedTake].self, forKey: .takes) ?? []
+        tab = try container.decodeIfPresent(TabLink.self, forKey: .tab)
         startBeat = try container.decodeIfPresent(Double.self, forKey: .startBeat) ?? 0
         endBeat = try container.decodeIfPresent(Double.self, forKey: .endBeat)
     }

@@ -181,6 +181,12 @@ struct LayoutView: View {
             ui.requestSequenceAction(.openURL(url), session: session)
         case .tab:
             ui.requestTabAction(.openURL(url), session: tabSession)
+        case .linkTab:
+            do {
+                try session.linkTab(url)
+            } catch {
+                ui.errorMessage = "Couldn't link that tab: \(error.localizedDescription)"
+            }
         case .audio, .relinkAudio:
             do {
                 try panel == .relinkAudio ? session.relinkAudio(url) : session.importAudio(url)

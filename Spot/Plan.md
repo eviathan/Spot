@@ -397,7 +397,8 @@ Suggestions, best first. I'd build **A + B** first and add **C** later.
     - 12f. ✅ Guitar Pro 7/8 (`.gp`) import and export (zip + GPIF XML). Open… reads .gp as an Untitled tab (drum tracks skipped, with a notice); File ▸ Export as Guitar Pro… writes GP7, checked in Guitar Pro 8. Known gap: chord names don't show in Guitar Pro after export (they survive the round trip back into Spot).
     - 12g. ✅ Guitar Pro 3–5 (`.gp3` `.gp4` `.gp5`) import (binary). Checked against 91 files (alphaTab's GP3–5 test files and a real GP5): every one read to its last byte, and each survives export to GP7 and back. Grace notes and whammy bar aren't kept; bends with more than four points are simplified when exported to GP7.
     - 12h. ✅ Guitar Pro 6 (`.gpx`) import: unpacks the BCFZ/BCFS container to the score's GPIF. Checked against 35 GP6 files (all open and survive export to GP7 and back).
-    - 12i. Linking a tab to a sequence.
+    - 12i. ✅ Linking a tab to a sequence: the sequencer's Tab menu links a .spottab (bookmarked, like the audio), plays it along at the sequence's tempo from a chosen bar (its quarter notes are the sequence's beats; repeats followed), all tracks or one, mutable; re-read each time playback starts, so edits in the tab editor are heard. "Add Its Chord Names to the Sequence" brings in the tab's chords where they come as it plays (one undo; names Spot can't read are listed). "Open in the Tab Editor" opens it.
+    - 12j. ✅ One transport: when the Tab tab has the open sequence's linked tab, Space / ⌥Space (from the cursor) / Stop / Back to Start play the sequence; ⌘L loops the selected beats (or toggles the loop); the tab cursor and the sequence playhead move together; the staff follows playback and shows the loop; the footer's tempo, time signature and position are the sequence's; edits play straight away. Playback runs to the end of the tab if it's later than the sequence's content.
 
 ---
 

@@ -21,6 +21,9 @@ struct SequencePlayback {
     var audioGain: Float = 1
     /// Your recorded takes, played as they were recorded.
     var takes: [TakePlayback] = []
+    /// A linked tab, timed in quarter notes (beats), and the beat it starts on.
+    var tab: TabPerformance?
+    var tabStart: Double = 0
 }
 
 struct TakePlayback {
@@ -93,7 +96,54 @@ final class PlaybackController {
         }
         self.sequence = sequence
         playingSequence = id
+        if let tab = sequence.tab {
+            sendSetup(of: tab, at: HostTime.now)
+        }
         play(from: beat, countIn: countIn)
+    }
+
+    /// A tab's sounds and bend ranges, which have to be in place wherever it starts playing.
+    private func sendSetup(of tab: TabPerformance, at time: UInt64) {
+        guard midiOutput() != nil else { return }
+        for event in tab.events where event.time == 0 {
+            switch event.message {
+            case .program, .controller, .pitchBend: send(event.message, at: time)
+            default: break
+            }
+        }
+    }
+
+    /// Stops every note a tab started, and takes off any bend.
+    private func silence(_ tab: TabPerformance, at time: UInt64? = nil) {
+        guard let midi = midiOutput() else { return }
+        for channel in tab.channels {
+            midi.channel = UInt8(channel)
+            midi.controlChange(123, value: 0, at: time ?? 0)
+            midi.pitchBend(8192, at: time ?? 0)
+        }
+    }
+
+    /// A linked tab's events between two beats.
+    private func scheduleLinkedTab(_ tab: TabPerformance, startingAt start: Double, from: Double, to: Double) {
+        // The first event at or after `from` (events are in time order)
+        var low = 0, high = tab.events.count
+        while low < high {
+            let middle = (low + high) / 2
+            if tab.events[middle].time + start < from - 1e-9 { low = middle + 1 } else { high = middle }
+        }
+        var index = low
+        while index < tab.events.count, tab.events[index].time + start < to - 1e-9 {
+            let event = tab.events[index]
+            index += 1
+            // The sounds and bend ranges were set when playback began
+            if event.time == 0 {
+                switch event.message {
+                case .program, .controller, .pitchBend: continue
+                default: break
+                }
+            }
+            send(event.message, at: transport.hostTime(forBeat: event.time + start))
+        }
     }
 
     /// Plays a tab from `time` seconds in. The clock runs at 60 bpm, so its beats are the tab's seconds.
@@ -169,6 +219,13 @@ final class PlaybackController {
     /// Swaps in an edited sequence (a new render, loop or takes) while playing.
     func update(_ sequence: SequencePlayback, id: UUID) {
         guard playingSequence == id else { return }
+        // The tab muted, unlinked or changed: stop what it was playing (the new one carries on from here)
+        if let old = self.sequence?.tab, sequence.tab == nil || sequence.tab?.events != old.events || sequence.tabStart != self.sequence?.tabStart {
+            silence(old)
+            if let tab = sequence.tab { sendSetup(of: tab, at: HostTime.now) }
+        } else if self.sequence?.tab == nil, let tab = sequence.tab {
+            sendSetup(of: tab, at: HostTime.now)
+        }
         self.sequence = sequence
     }
 
@@ -193,13 +250,9 @@ final class PlaybackController {
     }
     
     func stop() {
-        if let tab, let midi = midiOutput() {
-            // Silence and unbend every channel the tab used
-            for channel in tab.channels {
-                midi.channel = UInt8(channel)
-                midi.controlChange(123, value: 0)
-                midi.pitchBend(8192)
-            }
+        // Silence and unbend every channel a tab used
+        if let tab = tab ?? sequence?.tab {
+            silence(tab)
         }
         tab = nil
         isPlayingTab = false
@@ -303,6 +356,10 @@ final class PlaybackController {
         if let loop = sequence?.loop, loop.length > 0, until >= loop.end, scheduledUntil < loop.end {
             scheduleWindow(from: scheduledUntil, to: loop.end)
             let loopEndTime = transport.hostTime(forBeat: loop.end)
+            // Notes held over the loop end would otherwise never stop
+            if let tab = sequence?.tab {
+                silence(tab, at: loopEndTime)
+            }
             transport.jump(toBeat: loop.start, atHostTime: loopEndTime)
             scheduledUntil = loop.start
             // Any count-in is long over: looping back before where playback started mustn't count as one
@@ -330,6 +387,9 @@ final class PlaybackController {
             return
         }
         scheduleClicks(from: from, to: to)
+        if let sequence, let tab = sequence.tab {
+            scheduleLinkedTab(tab, startingAt: sequence.tabStart, from: from, to: to)
+        }
         if let sequence, let audio = sequence.audio {
             scheduleAudio(audio, gain: sequence.audioGain, loopEnd: sequence.loop?.end, from: from, to: to)
         }

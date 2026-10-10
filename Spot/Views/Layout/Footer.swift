@@ -20,13 +20,14 @@ struct Footer: View {
 
     let dimmed = Color(hue: 0.62, saturation: 0.38, brightness: 0.38, opacity: 1.00)
 
+    /// The sequence's settings: on the Sequence tab, or on the Tab tab with the tab it links (they share them).
     private var editsSequence: Bool {
-        ui.tab == .Sequence && session.isOpen
+        session.isOpen && (ui.tab == .Sequence || (ui.tab == .Tab && tabSession.linkedSequence != nil))
     }
 
     /// On the Tab tab with a tab open, tempo and time signature are the tab's (at the cursor's bar).
     private var editsTab: Bool {
-        ui.tab == .Tab && tabSession.isOpen
+        ui.tab == .Tab && tabSession.isOpen && tabSession.linkedSequence == nil
     }
 
     // MARK: Root / key
