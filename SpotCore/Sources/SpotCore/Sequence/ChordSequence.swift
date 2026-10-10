@@ -82,6 +82,11 @@ public struct ChordSequence: Hashable, Codable, Sendable {
     public var audio: AudioTrack?
     /// Your recordings, oldest first.
     public var takes: [RecordedTake]
+    /// Where bar 1 beat 1 is, like Live's start marker: bars, beats and the grid count from here, and
+    /// anything before it is in the bars before 1 (−1, −2…). Nothing moves when it does.
+    public var startBeat: Double
+    /// Where the song ends (playback stops there); nil to end with the bar the last thing ends in.
+    public var endBeat: Double?
 
     public init(tempo: Double = 100, beatsPerBar: Int = 4, lengthInBars: Int = 16) {
         self.version = ChordSequence.currentVersion
@@ -94,6 +99,8 @@ public struct ChordSequence: Hashable, Codable, Sendable {
         self.loop = nil
         self.audio = nil
         self.takes = []
+        self.startBeat = 0
+        self.endBeat = nil
     }
 
     public var lengthInBeats: Double {
@@ -176,6 +183,37 @@ public struct ChordSequence: Hashable, Codable, Sendable {
         } else if let loop {
             self.loop = BeatRange(loop.start, min(loop.end, end))
         }
+        startBeat = min(startBeat, max(0, end - 1))
+        if let endBeat, endBeat > end || endBeat <= startBeat {
+            self.endBeat = nil
+        }
+    }
+
+    // MARK: - Bars, counted from the start marker
+
+    /// `beat` moved onto the grid of `unit` beats that runs from the start marker.
+    public func onGrid(_ beat: Double, unit: Double, _ rule: FloatingPointRoundingRule = .down) -> Double {
+        guard unit > 0 else { return beat }
+        return startBeat + ((beat - startBeat) / unit + (rule == .down ? 1e-9 : 0)).rounded(rule) * unit
+    }
+
+    /// The bar a beat is in (1 from the start marker; the bars before it are −1, −2…) and the beat within
+    /// that bar (from 0).
+    public func barAndBeat(at beat: Double) -> (bar: Int, beat: Double) {
+        let bar = Double(beatsPerBar)
+        let index = Int(floor((beat - startBeat) / bar + 1e-9))
+        let within = beat - startBeat - Double(index) * bar
+        return (index >= 0 ? index + 1 : index, max(0, within))
+    }
+
+    /// Where playback stops: the end marker, or the end of the bar the last thing ends in.
+    public var songEnd: Double {
+        if let endBeat {
+            return endBeat
+        }
+        let content = contentEnd
+        guard content > startBeat else { return lengthInBeats }
+        return min(lengthInBeats, onGrid(content - 1e-9, unit: Double(beatsPerBar), .up))
     }
 
     /// Where the recording ends on the grid (through its warp markers), if there is one.
@@ -186,7 +224,7 @@ public struct ChordSequence: Hashable, Codable, Sendable {
     /// Where the last thing ends: a chord, a section, a take or the recording.
     public var contentEnd: Double {
         max(chords.last?.range.end ?? 0, sections.last?.range.end ?? 0,
-            takes.map(\.endBeat).max() ?? 0, audioEndBeat ?? 0)
+            takes.map(\.endBeat).max() ?? 0, audioEndBeat ?? 0, endBeat ?? 0)
     }
 
     /// Sizes the sequence to what's in it, plus `spareBars` empty bars to add more (and at least `minimumBars`).
@@ -229,7 +267,7 @@ public struct ChordSequence: Hashable, Codable, Sendable {
     // MARK: - Files
 
     enum CodingKeys: String, CodingKey {
-        case version, tempo, beatsPerBar, lengthInBars, key, chords, sections, loop, audio, takes
+        case version, tempo, beatsPerBar, lengthInBars, key, chords, sections, loop, audio, takes, startBeat, endBeat
     }
 
     private enum LegacyKeys: String, CodingKey {
@@ -259,6 +297,8 @@ public struct ChordSequence: Hashable, Codable, Sendable {
         }
         tempo *= practiceRate
         takes = try container.decodeIfPresent([RecordedTake].self, forKey: .takes) ?? []
+        startBeat = try container.decodeIfPresent(Double.self, forKey: .startBeat) ?? 0
+        endBeat = try container.decodeIfPresent(Double.self, forKey: .endBeat)
     }
 
     public func encoded() throws -> Data {

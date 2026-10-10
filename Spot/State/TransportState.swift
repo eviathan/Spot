@@ -15,6 +15,8 @@ final class TransportState {
     /// Not rounded: a sequence's tempo can be fractional, and the clock has to match its audio exactly.
     private(set) var bpm: Double = 120
     var beatsPerBar = 4
+    /// The beat bar 1 starts on (a sequence's start marker): bars, and the metronome's accents, count from here.
+    var barOrigin: Double = 0
     private(set) var isPlaying = false
     var isRecording = false
     var isMetronomeOn = false

@@ -75,7 +75,9 @@ final class PlaybackController {
         transport.isPlaying ? stop() : play()
     }
 
+    /// The metronome on its own, counting from beat 0.
     func play() {
+        transport.barOrigin = 0
         play(from: 0)
     }
 
@@ -299,14 +301,16 @@ final class PlaybackController {
     }
     
     private func scheduleClicks(from: Double, to: Double) {
+        // Beats (and bar accents) count from the bar origin, i.e. a sequence's 1.1.1.
         // Count-in clicks always sound; after that only when the metronome is on
-        let wanted = Metronome.clicks(from: from, to: to, beatsPerBar: transport.beatsPerBar)
-            .filter { transport.isMetronomeOn || Double($0.beat) < countInEnd }
+        let origin = transport.barOrigin
+        let wanted = Metronome.clicks(from: from - origin, to: to - origin, beatsPerBar: transport.beatsPerBar)
+            .filter { transport.isMetronomeOn || Double($0.beat) + origin < countInEnd }
         guard !wanted.isEmpty, let clicks = clickPlayer() else { return }
 
         clicks.volume = Float(settings.metronomeVolume)
         for click in wanted {
-            clicks.click(accent: click.isAccent, atHostTime: transport.hostTime(forBeat: Double(click.beat)))
+            clicks.click(accent: click.isAccent, atHostTime: transport.hostTime(forBeat: Double(click.beat) + origin))
         }
     }
     

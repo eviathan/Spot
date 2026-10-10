@@ -180,7 +180,7 @@ struct PerformanceHeader: View {
     // MARK: Now
 
     private func now(_ region: ChordRegion?, position: Double, isPlaying: Bool) -> some View {
-        let beatInBar = Int(floor(position)) - Int(floor(position / Double(sequence.beatsPerBar))) * sequence.beatsPerBar
+        let beatInBar = Int(sequence.barAndBeat(at: position).beat)
         let caption = isPlaying && position < editor.selection.start ? "Count-in" : sequence.section(at: max(position, 0))?.name
 
         return VStack(alignment: .leading, spacing: 5) {
@@ -431,7 +431,7 @@ struct FretboardReadout: View {
             let position = sequencePosition(editor, playback, transport)
             let region = sequence.chord(at: max(position, 0))
             let next = sequence.chord(after: max(position, region?.range.start ?? position))
-            let beatInBar = Int(floor(position)) - Int(floor(position / Double(sequence.beatsPerBar))) * sequence.beatsPerBar
+            let beatInBar = Int(sequence.barAndBeat(at: position).beat)
 
             Group {
                 if card == .now {

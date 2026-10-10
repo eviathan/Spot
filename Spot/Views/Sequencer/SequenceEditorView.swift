@@ -46,7 +46,7 @@ private struct LaneEditorBar: View {
         let section = sequence.section(at: editor.selection.start)
 
         HStack(spacing: 12) {
-            Text(editor.describe(editor.selection, beatsPerBar: sequence.beatsPerBar))
+            Text(editor.describe(editor.selection, in: sequence))
                 .font(.system(.callout, design: .monospaced).weight(.semibold))
                 .lineLimit(1)
                 .frame(width: 96, alignment: .leading)

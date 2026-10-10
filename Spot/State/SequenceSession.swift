@@ -445,15 +445,15 @@ final class SequenceSession {
         isPlaying ? stopPlayback() : play()
     }
     
-    /// Plays from the start of the selection (the playhead), with a count-in, and carries on to the end.
+    /// Plays from the start marker (1.1.1), with a count-in, and carries on to the end marker.
     func play() {
         guard let sequence, let editor, !isPlaying else { return }
         playRangeEnd = nil
-        start(sequence, editor: editor, from: editor.selection.start, countIn: true)
+        start(sequence, editor: editor, from: sequence.startBeat, countIn: true)
     }
 
-    /// Plays the selected range and stops at its end (⌥Space). While playing it doesn't stop: it jumps
-    /// back to the start of the selection and carries on from there. With just a playhead, it's Play.
+    /// Plays from the playhead (⌥Space); with a range selected, just that range, stopping at its end.
+    /// While playing it doesn't stop: it jumps back to the playhead and carries on from there.
     func playSelection() {
         guard let sequence, let editor else { return }
         let selection = editor.selection
@@ -479,6 +479,7 @@ final class SequenceSession {
     /// The clock runs at the sequence's tempo, and the recording is sped up or slowed down from its own to match.
     private func applyTempo(_ sequence: ChordSequence) {
         transport.setBPM(sequence.tempo)
+        transport.barOrigin = sequence.startBeat
         playback.setAudioRate(sequence.audio.map { sequence.tempo / $0.tempo } ?? 1)
     }
 
@@ -489,7 +490,7 @@ final class SequenceSession {
         playback.play(playbackData(sequence, editor: editor), from: beat, id: editor.id, countIn: false)
     }
 
-    /// Stops; Play starts from the selection again.
+    /// Stops. Play starts from 1.1.1 again (⌥Space from the playhead).
     func stopPlayback() {
         stopRecording()
         playRangeEnd = nil
@@ -499,11 +500,12 @@ final class SequenceSession {
     }
     
     /// Back to bar 1.
+    /// Back to 1.1.1 (the start marker).
     func returnToStart() {
         let wasPlaying = isPlaying
         stopPlayback()
         if let sequence {
-            editor?.select(beat: 0, extend: false, in: sequence)
+            editor?.select(BeatRange(sequence.startBeat, sequence.startBeat), extend: false, in: sequence)
         }
         if wasPlaying {
             play()
@@ -516,10 +518,10 @@ final class SequenceSession {
         if let end = playRangeEnd {
             data.length = min(data.length, end)
             data.loop = nil
-        } else if !isRecording, sequence.contentEnd > 0 {
-            // Stop at the end of the bar the content ends in, not after the spare bars (unless recording into them)
-            let bar = Double(sequence.beatsPerBar)
-            data.length = min(sequence.lengthInBeats, ceil(sequence.contentEnd / bar - 1e-9) * bar)
+        } else if !isRecording {
+            // Stop at the end marker, or the end of the bar the content ends in, not after the spare bars
+            // (unless recording into them)
+            data.length = min(sequence.lengthInBeats, sequence.songEnd)
         }
         if let audio = sequence.audio, !audio.isMuted, rendered?.tempo == audio.tempo {
             data.audio = rendered

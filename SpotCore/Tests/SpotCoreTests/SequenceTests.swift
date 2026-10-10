@@ -135,3 +135,45 @@ final class SequenceLengthTests: XCTestCase {
         XCTAssertEqual(sequence.lengthInBars, 16)
     }
 }
+
+final class StartAndEndMarkerTests: XCTestCase {
+    func testBarsCountFromTheStartMarker() {
+        var sequence = ChordSequence(beatsPerBar: 4, lengthInBars: 16)
+        XCTAssertTrue(sequence.barAndBeat(at: 5) == (2, 1))
+
+        // 1.1.1 a bar and a half in (a pickup before it)
+        sequence.startBeat = 6
+        XCTAssertTrue(sequence.barAndBeat(at: 6) == (1, 0))
+        XCTAssertTrue(sequence.barAndBeat(at: 11) == (2, 1))
+        XCTAssertTrue(sequence.barAndBeat(at: 5) == (-1, 3), "the bar before 1 is −1")
+        XCTAssertTrue(sequence.barAndBeat(at: 0) == (-2, 2))
+
+        // The grid runs from it
+        XCTAssertEqual(sequence.onGrid(9, unit: 4), 6)
+        XCTAssertEqual(sequence.onGrid(9, unit: 4, .up), 10)
+        XCTAssertEqual(sequence.onGrid(3, unit: 4), 2)
+        XCTAssertEqual(sequence.onGrid(7.3, unit: 0.25, .toNearestOrAwayFromZero), 7.25)
+        XCTAssertEqual(sequence.onGrid(7.3, unit: 0), 7.3, "no grid")
+    }
+
+    func testTheSongEnds() {
+        var sequence = ChordSequence(beatsPerBar: 4, lengthInBars: 16)
+        sequence.startBeat = 2
+        sequence.setChord("C", in: BeatRange(2, 11))
+        XCTAssertEqual(sequence.songEnd, 14, "the end of the bar (from 1.1.1) the last chord ends in")
+
+        sequence.endBeat = 30
+        XCTAssertEqual(sequence.songEnd, 30)
+        sequence.fitLength()
+        XCTAssertGreaterThanOrEqual(sequence.lengthInBeats, 30, "the sequence makes room for the end marker")
+
+        // Saved and read back
+        let decoded = try? JSONDecoder().decode(ChordSequence.self, from: sequence.encoded())
+        XCTAssertEqual(decoded?.startBeat, 2)
+        XCTAssertEqual(decoded?.endBeat, 30)
+
+        // Shortening past the end marker drops it
+        sequence.setLength(bars: 4)
+        XCTAssertNil(sequence.endBeat)
+    }
+}

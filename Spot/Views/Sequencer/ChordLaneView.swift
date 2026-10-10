@@ -19,6 +19,27 @@ struct ChordLaneView: View {
 
     /// The height the lane has to fill.
     @State private var availableHeight: CGFloat = 0
+    /// The start or end marker as it's being dragged, so the grid follows it.
+    @State private var markerDrag: (marker: SongMarker, beat: Double)?
+    /// Where the pointer is over the lane, for the right-click menu. Kept in a plain object so moving
+    /// the mouse doesn't redraw the lane (which made zooming and dragging stall).
+    @State private var pointer = PointerPosition()
+
+    private final class PointerPosition {
+        var beat: Double = 0
+    }
+
+    private enum SongMarker { case start, end }
+    static let contentSpace = "lane-content"
+    private let markerColour = Color(red: 0.36, green: 0.82, blue: 0.62)
+
+    /// 1.1.1 and the end, following a drag in progress.
+    private var origin: Double {
+        markerDrag?.marker == .start ? markerDrag!.beat : sequence.startBeat
+    }
+    private var songEnd: Double {
+        markerDrag?.marker == .end ? markerDrag!.beat : sequence.songEnd
+    }
 
     /// Sections and chords, the recording's row (empty until there is one), and a row of takes when there are any.
     private var laneHeight: CGFloat {
@@ -171,28 +192,38 @@ struct ChordLaneView: View {
             ChordClipsLayer(sequence: sequence, editor: editor, beatWidth: beatWidth,
                             height: waveformTop, isEditable: !isPlaying)
 
-            // Bar lines and numbers (only those on screen)
-            let firstBar = max(0, Int(visible.lowerBound / editor.barWidth))
-            let lastBar = min(sequence.lengthInBars, Int(visible.upperBound / editor.barWidth) + 1)
-            ForEach(firstBar..<max(firstBar, lastBar), id: \.self) { bar in
-                let x = CGFloat(bar) * editor.barWidth
-                Rectangle()
-                    .fill(Color.white.opacity(0.35))
-                    .frame(width: 1, height: laneHeight - 18)
-                    .offset(x: x, y: 0)
-                    .allowsHitTesting(false)
-                ForEach(1..<max(1, sequence.beatsPerBar), id: \.self) { beat in
+            // Bar lines and numbers (only those on screen), counted from 1.1.1: the bars before it are −1, −2…
+            let bpb = Double(sequence.beatsPerBar)
+            let firstBar = Int(floor((Double(visible.lowerBound / beatWidth) - origin) / bpb))
+            let lastBar = Int(ceil((Double(visible.upperBound / beatWidth) - origin) / bpb))
+            ForEach(firstBar..<max(firstBar, lastBar + 1), id: \.self) { bar in
+                let barStart = origin + Double(bar) * bpb
+                let x = CGFloat(barStart) * beatWidth
+                if barStart >= -0.001 && barStart <= sequence.lengthInBeats {
                     Rectangle()
-                        .fill(Color.white.opacity(0.1))
-                        .frame(width: 1, height: laneHeight - 48)
-                        .offset(x: x + CGFloat(beat) * beatWidth, y: 30)
+                        .fill(Color.white.opacity(0.35))
+                        .frame(width: 1, height: laneHeight - 18)
+                        .offset(x: x, y: 0)
                         .allowsHitTesting(false)
+                    // Bar 1 is labelled by the 1.1.1 flag
+                    if bar != 0 {
+                        Text("\(bar >= 0 ? bar + 1 : bar)")
+                            .font(.caption2)
+                            .opacity(bar < 0 ? 0.4 : 0.6)
+                            .offset(x: x + 4, y: laneHeight - 16)
+                            .allowsHitTesting(false)
+                    }
                 }
-                Text("\(bar + 1)")
-                    .font(.caption2)
-                    .opacity(0.6)
-                    .offset(x: x + 4, y: laneHeight - 16)
-                    .allowsHitTesting(false)
+                ForEach(1..<max(1, sequence.beatsPerBar), id: \.self) { beat in
+                    let beatAt = barStart + Double(beat)
+                    if beatAt >= 0 && beatAt <= sequence.lengthInBeats {
+                        Rectangle()
+                            .fill(Color.white.opacity(0.1))
+                            .frame(width: 1, height: laneHeight - 48)
+                            .offset(x: CGFloat(beatAt) * beatWidth, y: 30)
+                            .allowsHitTesting(false)
+                    }
+                }
             }
 
             if let audio = sequence.audio {
@@ -220,9 +251,117 @@ struct ChordLaneView: View {
                 }
             }
         }
+        .overlay(alignment: .topLeading) { songMarkers(width: width) }
         .frame(width: width, height: laneHeight, alignment: .topLeading)
         .contentShape(Rectangle())
         .gesture(laneClick)
+        .coordinateSpace(name: ChordLaneView.contentSpace)
+        .onContinuousHover(coordinateSpace: .named(ChordLaneView.contentSpace)) { phase in
+            if case .active(let point) = phase {
+                pointer.beat = Double(point.x / beatWidth)
+            }
+        }
+        .contextMenu {
+            Button("Set 1.1.1 Here") { setStart(snappedStart(pointer.beat, free: false)) }
+            Button("Set End Here") { setEnd(sequence.onGrid(pointer.beat, unit: editor.snap, .toNearestOrAwayFromZero)) }
+            Button("Automatic End") { session.sequence?.endBeat = nil }
+                .disabled(sequence.endBeat == nil)
+        }
+    }
+
+    // MARK: - Start (1.1.1) and end markers
+
+    /// The area before 1.1.1 and after the end, shaded, and a flag for each in the bar-number strip.
+    /// Drag a flag to move it (⌥ for free); right-click anywhere in the lane to set either there.
+    private func songMarkers(width: CGFloat) -> some View {
+        let startX = CGFloat(origin) * beatWidth
+        let endX = CGFloat(songEnd) * beatWidth
+        let isAutomaticEnd = sequence.endBeat == nil && markerDrag?.marker != .end
+        return ZStack(alignment: .topLeading) {
+            Rectangle()
+                .fill(Color.black.opacity(0.28))
+                .frame(width: max(0, startX), height: laneHeight)
+                .allowsHitTesting(false)
+            Rectangle()
+                .fill(Color.black.opacity(0.28))
+                .frame(width: max(0, width - endX), height: laneHeight)
+                .offset(x: endX)
+                .allowsHitTesting(false)
+            Rectangle()
+                .fill(markerColour.opacity(0.8))
+                .frame(width: 1.5, height: laneHeight)
+                .offset(x: startX)
+                .allowsHitTesting(false)
+            Rectangle()
+                .fill(markerColour.opacity(isAutomaticEnd ? 0.35 : 0.8))
+                .frame(width: 1.5, height: laneHeight)
+                .offset(x: endX - 1.5)
+                .allowsHitTesting(false)
+
+            markerFlag("start", marker: .start, faded: false)
+                .offset(x: startX, y: laneHeight - 18)
+                .help("Where bar 1 beat 1 is: bars, beats and the grid count from here. Drag it (it sticks to warp markers; ⌥ for free), or right-click in the lane: Set 1.1.1 Here.")
+            markerFlag("End", marker: .end, faded: isAutomaticEnd)
+                .offset(x: endX - 34, y: laneHeight - 18)
+                .contextMenu {
+                    Button("Automatic End") { session.sequence?.endBeat = nil }
+                        .disabled(sequence.endBeat == nil)
+                }
+                .help(isAutomaticEnd
+                      ? "Where playback stops: for now, the end of the bar the last thing ends in. Drag it to set the end yourself."
+                      : "Where playback stops. Drag to move it; right-click for Automatic End.")
+        }
+    }
+
+    private func markerFlag(_ title: String, marker: SongMarker, faded: Bool) -> some View {
+        Text(title)
+            .font(.system(size: 10, weight: .bold, design: .monospaced))
+            .foregroundColor(.black)
+            .frame(width: 34, height: 16)
+            .background(RoundedRectangle(cornerRadius: 3).fill(markerColour.opacity(faded ? 0.5 : 1)))
+            .contentShape(Rectangle())
+            .onHover { inside in
+                if inside { NSCursor.resizeLeftRight.push() } else { NSCursor.pop() }
+            }
+            .gesture(DragGesture(minimumDistance: 1, coordinateSpace: .named(ChordLaneView.contentSpace))
+                .onChanged { value in
+                    let free = NSEvent.modifierFlags.contains(.option)
+                    let original = marker == .start ? sequence.startBeat : sequence.songEnd
+                    let beat = original + Double(value.translation.width / beatWidth)
+                    switch marker {
+                    case .start:
+                        markerDrag = (.start, min(max(0, snappedStart(beat, free: free)), sequence.songEnd - 1))
+                    case .end:
+                        let end = free ? beat : sequence.onGrid(beat, unit: editor.snap, .toNearestOrAwayFromZero)
+                        markerDrag = (.end, min(max(end, sequence.startBeat + 1), sequence.lengthInBeats))
+                    }
+                }
+                .onEnded { _ in
+                    if let markerDrag {
+                        markerDrag.marker == .start ? setStart(markerDrag.beat) : setEnd(markerDrag.beat)
+                    }
+                    markerDrag = nil
+                })
+    }
+
+    /// 1.1.1 goes on a warp marker if one's close (that's usually the downbeat), otherwise on a sixteenth.
+    private func snappedStart(_ beat: Double, free: Bool) -> Double {
+        guard !free else { return beat }
+        if let marker = sequence.audio?.warpMarkers.map(\.beat).min(by: { abs($0 - beat) < abs($1 - beat) }),
+           CGFloat(abs(marker - beat)) * beatWidth <= 10 {
+            return marker
+        }
+        return sequence.onGrid(beat, unit: 0.25, .toNearestOrAwayFromZero)
+    }
+
+    private func setStart(_ beat: Double) {
+        guard let sequence = session.sequence else { return }
+        session.sequence?.startBeat = min(max(0, beat), sequence.songEnd - 1)
+    }
+
+    private func setEnd(_ beat: Double) {
+        guard let sequence = session.sequence else { return }
+        session.sequence?.endBeat = min(max(beat, sequence.startBeat + 1), sequence.lengthInBeats)
     }
 
     /// Clicking anywhere that doesn't have its own job places the playhead (selects by the grid);
@@ -481,13 +620,15 @@ private struct ChordClipsLayer: View {
         return onGrid(beat)
     }
 
+    /// The grid runs from 1.1.1 (the start marker).
     private func onGrid(_ beat: Double) -> Double {
-        editor.snap > 0 ? (beat / editor.snap).rounded() * editor.snap : beat
+        sequence.onGrid(beat, unit: editor.snap, .toNearestOrAwayFromZero)
     }
 
-    /// The other chords' edges, and the ends of the sequence.
+    /// The other chords' edges, the start and end markers, and the ends of the sequence.
     private func magnetEdges(excluding id: UUID) -> [Double] {
-        sequence.chords.filter { $0.id != id }.flatMap { [$0.range.start, $0.range.end] } + [0, sequence.lengthInBeats]
+        sequence.chords.filter { $0.id != id }.flatMap { [$0.range.start, $0.range.end] }
+            + [0, sequence.lengthInBeats, sequence.startBeat, sequence.songEnd]
     }
 }
 
@@ -706,6 +847,8 @@ private struct WaveformRow: View {
                             session.sequence?.audio?.removeMarker(marker.id)
                         })
                         .contextMenu {
+                            Button("Set 1.1.1 Here") { session.sequence?.startBeat = max(0, marker.beat) }
+                            Divider()
                             Button("Delete Warp Marker") { session.sequence?.audio?.removeMarker(marker.id) }
                                 .disabled(liveMarkers.count <= 1)
                         }
@@ -818,9 +961,9 @@ private struct WaveformRow: View {
         dragging = nil
     }
 
-    /// Sixteenth notes, unless dragging freely.
+    /// Sixteenth notes (counted from 1.1.1), unless dragging freely.
     private func snap(_ beat: Double, free: Bool) -> Double {
-        free ? beat : (beat * 4).rounded() / 4
+        free ? beat : sequence.onGrid(beat, unit: 0.25, .toNearestOrAwayFromZero)
     }
 
     /// Keeps a marker between its neighbours so the audio never runs backwards.

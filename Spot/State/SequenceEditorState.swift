@@ -249,8 +249,8 @@ final class SequenceEditorState {
     /// Puts the playhead at `beat` (on the grid line before it, or exactly there with the grid off),
     /// or extends the selection from where it was to there.
     func select(beat: Double, extend: Bool, in sequence: ChordSequence) {
-        let onGrid = snap > 0 ? floor(beat / snap + 1e-9) * snap : beat
-        let point = max(0, min(onGrid, sequence.lengthInBeats))
+        // The grid runs from 1.1.1 (the start marker)
+        let point = max(0, min(sequence.onGrid(beat, unit: snap), sequence.lengthInBeats))
         if extend {
             selection = BeatRange(min(selectionAnchor, point), max(selectionAnchor, point))
         } else {
@@ -277,8 +277,8 @@ final class SequenceEditorState {
         var start = min(first, second)
         var end = max(first, second)
         if unit > 0 {
-            start = floor(start / unit) * unit
-            end = ceil(end / unit) * unit
+            start = sequence.onGrid(start, unit: unit)
+            end = sequence.onGrid(end - 1e-9, unit: unit, .up)
         }
         start = max(0, start)
         end = min(sequence.lengthInBeats, max(end, start + (unit > 0 ? unit : 1.0 / 16)))
@@ -317,21 +317,24 @@ final class SequenceEditorState {
         return true
     }
 
-    func describe(_ range: BeatRange, beatsPerBar: Int) -> String {
-        let bpb = Double(beatsPerBar)
+    /// The playhead as bar.beat (with the sixteenth when it's between beats), or a range of bars, counted
+    /// from 1.1.1 (bars before it are −1, −2…).
+    func describe(_ range: BeatRange, in sequence: ChordSequence) -> String {
+        let position = { (beat: Double) -> (bar: Int, beat: Int, sixteenth: Int) in
+            let place = sequence.barAndBeat(at: beat)
+            let sixteenth = Int(((place.beat - floor(place.beat)) * 4).rounded())
+            return (place.bar, Int(place.beat) + 1, sixteenth > 0 && sixteenth < 4 ? sixteenth + 1 : 0)
+        }
         guard range.length > 0 else {
-            // A playhead: bar.beat, with sixteenths if it's between beats
-            let beatInBar = range.start.truncatingRemainder(dividingBy: bpb)
-            let sixteenth = Int(((beatInBar - floor(beatInBar)) * 4).rounded())
-            return "\(Int(range.start / bpb) + 1).\(Int(beatInBar) + 1)" + (sixteenth > 0 && sixteenth < 4 ? ".\(sixteenth + 1)" : "")
+            let at = position(range.start)
+            return "\(at.bar).\(at.beat)" + (at.sixteenth > 0 ? ".\(at.sixteenth)" : "")
         }
-        let firstBar = Int(range.start / bpb) + 1
-        let lastBar = Int((range.end - 0.001) / bpb) + 1
-        let wholeBars = range.start.truncatingRemainder(dividingBy: bpb) == 0 && range.end.truncatingRemainder(dividingBy: bpb) == 0
-        if wholeBars {
-            return firstBar == lastBar ? "Bar \(firstBar)" : "Bars \(firstBar)–\(lastBar)"
+        let start = sequence.barAndBeat(at: range.start), end = sequence.barAndBeat(at: range.end)
+        let lastBar = sequence.barAndBeat(at: range.end - 0.001).bar
+        if start.beat < 0.001 && end.beat < 0.001 {
+            return start.bar == lastBar ? "Bar \(start.bar)" : "Bars \(start.bar)–\(lastBar)"
         }
-        let beat = { (b: Double) in "\(Int(b / bpb) + 1).\(Int(b.truncatingRemainder(dividingBy: bpb)) + 1)" }
-        return "\(beat(range.start)) – \(beat(range.end - 0.001))"
+        let from = position(range.start), to = position(range.end - 0.001)
+        return "\(from.bar).\(from.beat) – \(to.bar).\(to.beat)"
     }
 }

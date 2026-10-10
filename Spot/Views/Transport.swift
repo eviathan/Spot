@@ -92,7 +92,7 @@ struct Transport: View {
         }
         .buttonStyle(PlainButtonStyle())
         .frame(width: 30, height: 30)
-        .help("Play from the playhead, or stop (space). ⌥Space plays just the selection.")
+        .help("Play from 1.1.1, or stop (space). ⌥Space plays from the playhead (or just the selected range).")
         
         Button(action: onClickTransportStop)
         {
@@ -133,7 +133,7 @@ private struct PositionDisplay: View {
     
     var body: some View {
         TimelineView(.animation(minimumInterval: 1 / 30, paused: !transport.isPlaying)) { context in
-            let position = transport.clock.barAndBeat(transport.position())
+            let position = transport.clock.barAndBeat(transport.position() - transport.barOrigin)
             Text(transport.isPlaying ? "\(position.bar).\(position.beat)" : "1.1")
                 .font(.system(size: 16, design: .monospaced))
                 .foregroundColor(transport.isPlaying && position.bar < 1 ? .orange : .white)
@@ -152,7 +152,7 @@ private struct PositionDisplay: View {
 /// Play/pause, stop and back-to-start, shared by the footer, the Playback menu and the space bar.
 /// On the Sequence tab they control the open sequence; elsewhere, the metronome transport.
 enum TransportActions {
-    /// Space: play from the playhead (the start of the selection), or stop.
+    /// Space: play from the start marker (1.1.1), or stop.
     static func playPause(ui: UIState, session: SequenceSession, playback: PlaybackController) {
         if session.isPlaying || (ui.tab == .Sequence && session.isOpen && !playback.transport.isPlaying) {
             session.togglePlay()
@@ -161,7 +161,8 @@ enum TransportActions {
         }
     }
 
-    /// ⌥Space: play the selected range and stop at its end; while playing, jump back to its start.
+    /// ⌥Space: play from the playhead (a selected range on its own, stopping at its end); while playing,
+    /// jump back to the playhead.
     static func playSelection(ui: UIState, session: SequenceSession, playback: PlaybackController) {
         if session.isPlaying || (ui.tab == .Sequence && session.isOpen && !playback.transport.isPlaying) {
             session.playSelection()
@@ -205,7 +206,7 @@ enum TransportActions {
         }
         // The selected range, or the bar the playhead is in
         let bar = Double(sequence.beatsPerBar)
-        let start = floor(editor.selection.start / bar) * bar
+        let start = sequence.onGrid(editor.selection.start, unit: bar)
         session.sequence?.loop = editor.selection.length > 0 ? editor.selection : BeatRange(start, min(start + bar, sequence.lengthInBeats))
     }
     
