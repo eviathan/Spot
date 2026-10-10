@@ -85,7 +85,8 @@ public struct AudioTrack: Hashable, Codable, Sendable {
 /// Converts between beats and seconds in the recording, following the warp markers.
 ///
 /// With no markers the recording starts on beat 1 at the sequence tempo. One marker shifts it.
-/// Between markers time is stretched evenly; beyond the outer ones, the nearest section's speed carries on.
+/// Between markers time is stretched evenly. Beyond the outermost markers the audio isn't stretched:
+/// it plays at its own speed against the sequence tempo, just moved along with the marker.
 public struct WarpMap: Sendable {
     public let markers: [WarpMarker]
     public let tempo: Double
@@ -110,6 +111,12 @@ public struct WarpMap: Sendable {
         case 1:
             return markers[0].sourceTime + (beat - markers[0].beat) * secondsPerBeat
         default:
+            if beat <= markers.first!.beat {
+                return markers.first!.sourceTime + (beat - markers.first!.beat) * secondsPerBeat
+            }
+            if beat >= markers.last!.beat {
+                return markers.last!.sourceTime + (beat - markers.last!.beat) * secondsPerBeat
+            }
             let (a, b) = segment(where: { beat < $0.beat })
             let slope = (b.sourceTime - a.sourceTime) / (b.beat - a.beat)
             return a.sourceTime + (beat - a.beat) * slope
@@ -123,14 +130,19 @@ public struct WarpMap: Sendable {
         case 1:
             return markers[0].beat + (time - markers[0].sourceTime) / secondsPerBeat
         default:
+            if time <= markers.first!.sourceTime {
+                return markers.first!.beat + (time - markers.first!.sourceTime) / secondsPerBeat
+            }
+            if time >= markers.last!.sourceTime {
+                return markers.last!.beat + (time - markers.last!.sourceTime) / secondsPerBeat
+            }
             let (a, b) = segment(where: { time < $0.sourceTime })
             let slope = (b.beat - a.beat) / (b.sourceTime - a.sourceTime)
             return a.beat + (time - a.sourceTime) * slope
         }
     }
 
-    /// The pair of markers to interpolate between: the section containing the point,
-    /// or the first/last section when it's outside them.
+    /// The pair of markers either side of a point between the first and last marker.
     private func segment(where isBefore: (WarpMarker) -> Bool) -> (WarpMarker, WarpMarker) {
         let next = markers.firstIndex(where: isBefore) ?? markers.count
         let upper = min(max(next, 1), markers.count - 1)

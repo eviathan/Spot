@@ -22,13 +22,37 @@ final class WarpMapTests: XCTestCase {
         let map = WarpMap(markers: markers, tempo: 120)
         XCTAssertEqual(map.sourceTime(atBeat: 2), 2)        // halfway between the first two
         XCTAssertEqual(map.sourceTime(atBeat: 6), 3.5)      // the recording speeds up after beat 4
-        XCTAssertEqual(map.sourceTime(atBeat: -2), 0)       // before the first: first section's speed
-        XCTAssertEqual(map.sourceTime(atBeat: 12), 5)       // after the last: last section's speed
+        XCTAssertEqual(map.sourceTime(atBeat: -2), 0)       // before the first: not stretched (0.5 s per beat at 120)
+        XCTAssertEqual(map.sourceTime(atBeat: 12), 6)       // after the last: not stretched either
+        XCTAssertEqual(map.stretch(atBeat: 10), 1, accuracy: 1e-6)
         for beat in stride(from: -4.0, through: 12, by: 0.5) {
             XCTAssertEqual(map.beat(atSourceTime: map.sourceTime(atBeat: beat)), beat, accuracy: 1e-9)
         }
         XCTAssertEqual(map.stretch(atBeat: 1), 1, accuracy: 1e-6)   // 4 beats over 2 s at 120 bpm
         XCTAssertEqual(map.stretch(atBeat: 5), 2, accuracy: 1e-6)   // 4 beats over 1 s: slowed to fit
+    }
+
+    /// Moving a marker only stretches the audio between it and its neighbours; beyond the last marker
+    /// the audio just moves along with it at its own speed.
+    func testMovingTheLastMarkerDoesNotStretchTheTail() {
+        let before = WarpMap(markers: [WarpMarker(sourceTime: 0, beat: 0), WarpMarker(sourceTime: 2, beat: 4)], tempo: 120)
+        let after = WarpMap(markers: [WarpMarker(sourceTime: 0, beat: 0), WarpMarker(sourceTime: 2, beat: 6)], tempo: 120)
+        // One second of audio after the last marker is still two beats long
+        XCTAssertEqual(before.beat(atSourceTime: 3) - before.beat(atSourceTime: 2), 2, accuracy: 1e-9)
+        XCTAssertEqual(after.beat(atSourceTime: 3) - after.beat(atSourceTime: 2), 2, accuracy: 1e-9)
+        // ...but it starts two beats later, along with the marker
+        XCTAssertEqual(after.beat(atSourceTime: 3) - before.beat(atSourceTime: 3), 2, accuracy: 1e-9)
+        // Between the markers, the audio is stretched to fill six beats instead of four
+        XCTAssertEqual(after.stretch(atBeat: 3), 1.5, accuracy: 1e-6)
+
+        // Moving a middle marker leaves everything outside its neighbours alone
+        let three = [WarpMarker(sourceTime: 0, beat: 0), WarpMarker(sourceTime: 2, beat: 4), WarpMarker(sourceTime: 4, beat: 8)]
+        var moved = three
+        moved[1].beat = 5
+        let a = WarpMap(markers: three, tempo: 120), b = WarpMap(markers: moved, tempo: 120)
+        for beat in [-2.0, 0, 8, 10, 16] {
+            XCTAssertEqual(a.sourceTime(atBeat: beat), b.sourceTime(atBeat: beat), accuracy: 1e-9, "beat \(beat)")
+        }
     }
 
     func testMarkersMustKeepTimeMovingForwards() {
