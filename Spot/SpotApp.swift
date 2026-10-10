@@ -113,20 +113,33 @@ struct SpotApp: App {
             }
             
             CommandMenu("Playback") {
-                Button(transport.isPlaying ? "Stop" : "Play") {
-                    if ui.tab == .Sequence && session.isOpen && !transport.isPlaying {
-                        session.togglePlay()
-                    } else {
-                        playback.togglePlay()
-                    }
+                Button(transport.isPlaying ? "Pause" : "Play") {
+                    TransportActions.playPause(ui: ui, session: session, playback: playback)
                 }
                 .keyboardShortcut("p", modifiers: [.command])
+                Button("Stop") {
+                    TransportActions.stop(ui: ui, session: session, playback: playback)
+                }
+                .keyboardShortcut(".", modifiers: [.command])
+                Button("Back to Start") {
+                    TransportActions.toStart(ui: ui, session: session, playback: playback)
+                }
                 Button(transport.isMetronomeOn ? "Metronome Off" : "Metronome On") { transport.isMetronomeOn.toggle() }
                     .keyboardShortcut("m", modifiers: [.command, .shift])
                 Divider()
                 Button(ui.tab == .Practice ? "Preview Chord" : "Preview Shape") { previewCurrentShape() }
                     .keyboardShortcut(.return, modifiers: [.command])
                     .disabled(ui.tab == .Sequence)
+            }
+            
+            CommandGroup(before: .toolbar) {
+                Button("Zoom In") { session.editor?.zoom(by: 1.5) }
+                    .keyboardShortcut("=", modifiers: [.command])
+                    .disabled(ui.tab != .Sequence || !session.isOpen)
+                Button("Zoom Out") { session.editor?.zoom(by: 1 / 1.5) }
+                    .keyboardShortcut("-", modifiers: [.command])
+                    .disabled(ui.tab != .Sequence || !session.isOpen)
+                Divider()
             }
             
             CommandMenu("Shape") {

@@ -144,3 +144,41 @@ public struct WarpMap: Sendable {
         return (delta * secondsPerBeat) / max(seconds, 1e-9)
     }
 }
+
+/// Something you recorded over the sequence, saved in the package's `takes` folder.
+public struct RecordedTake: Identifiable, Hashable, Codable, Sendable {
+    public var id: UUID
+    public var name: String
+    /// File name inside the package's `takes` folder.
+    public var fileName: String
+    /// Where the first sample lands on the grid.
+    public var startBeat: Double
+    /// Seconds.
+    public var duration: Double
+    /// The tempo it was played at (including practice speed), to play back in time at other speeds.
+    public var tempo: Double
+    public var isMuted: Bool
+    /// Decibels.
+    public var gain: Double
+
+    public init(id: UUID = UUID(), name: String, fileName: String, startBeat: Double, duration: Double, tempo: Double,
+                isMuted: Bool = false, gain: Double = 0) {
+        self.id = id
+        self.name = name
+        self.fileName = fileName
+        self.startBeat = startBeat
+        self.duration = duration
+        self.tempo = tempo
+        self.isMuted = isMuted
+        self.gain = gain
+    }
+
+    public var endBeat: Double {
+        startBeat + duration * tempo / 60
+    }
+
+    /// Seconds into the take that line up with `beat`.
+    public func offset(atBeat beat: Double) -> Double {
+        (beat - startBeat) * 60 / tempo
+    }
+}

@@ -6,28 +6,67 @@
 import AVFoundation
 import CStretch
 
-/// Audio rendered onto the grid: frame 0 is beat 0 at `tempo`.
+/// Audio rendered onto the grid at `tempo`: frame 0 is `startBeat` (negative when the recording
+/// starts before bar 1).
 public struct RenderedAudio: Sendable {
     public var audio: AudioData
     public var tempo: Double
+    public var startBeat: Double
+
+    public init(audio: AudioData, tempo: Double, startBeat: Double = 0) {
+        self.audio = audio
+        self.tempo = tempo
+        self.startBeat = startBeat
+    }
 
     public var framesPerBeat: Double {
         audio.sampleRate * 60 / tempo
     }
 
-    /// A playable buffer for the beats `from..<to`.
+    public var endBeat: Double {
+        startBeat + Double(audio.frameCount) / framesPerBeat
+    }
+
+    public func frame(atBeat beat: Double) -> Int {
+        Int(((beat - startBeat) * framesPerBeat).rounded())
+    }
+
+    /// A playable buffer for the beats `from..<to` (silence outside what was rendered).
     public func buffer(fromBeat from: Double, toBeat to: Double) -> AVAudioPCMBuffer? {
-        let start = Int((from * framesPerBeat).rounded())
-        let end = Int((to * framesPerBeat).rounded())
-        return audio.buffer(frames: start..<end)
+        audio.buffer(frames: frame(atBeat: from)..<frame(atBeat: to))
+    }
+
+    /// Replaces part of this render with a re-rendered `segment` (same tempo), crossfading at its edges
+    /// so there are no clicks where the new audio joins the old.
+    public mutating func splice(_ segment: RenderedAudio, crossfade: Int = 256) {
+        let offset = frame(atBeat: segment.startBeat)
+        let count = segment.audio.frameCount
+        for channel in audio.channels.indices where channel < segment.audio.channels.count {
+            for index in 0..<count {
+                let target = offset + index
+                guard target >= 0, target < audio.frameCount else { continue }
+                let fromEdge = min(index, count - 1 - index)
+                let mix = fromEdge < crossfade ? Float(fromEdge) / Float(crossfade) : 1
+                audio.channels[channel][target] = audio.channels[channel][target] * (1 - mix)
+                    + segment.audio.channels[channel][index] * mix
+            }
+        }
     }
 }
 
 /// Lines a recording up with the beat grid by time-stretching it (without changing pitch), following a warp map.
 public enum WarpRenderer {
-    /// Renders `beats` beats of the grid at `tempo`. Calls `progress` with 0...1 and stops early if it returns false.
+    /// Renders `beats` beats of the grid at `tempo`, from beat 0.
     public static func render(_ source: AudioData, map: WarpMap, tempo: Double, beats: Double,
                               progress: (Double) -> Bool = { _ in true }) -> RenderedAudio? {
+        render(source, map: map, tempo: tempo, from: 0, to: beats, progress: progress)
+    }
+
+    /// Renders the grid from beat `from` to beat `to` at `tempo`. Calls `progress` with 0...1 and stops
+    /// early if it returns false.
+    public static func render(_ source: AudioData, map: WarpMap, tempo: Double, from startBeat: Double, to endBeat: Double,
+                              progress: (Double) -> Bool = { _ in true }) -> RenderedAudio? {
+        let beats = endBeat - startBeat
         let channelCount = source.channels.count
         let sampleRate = source.sampleRate
         guard channelCount > 0, beats > 0, let stretch = cstretch_create(Int32(channelCount), Float(sampleRate)) else {
@@ -42,7 +81,7 @@ public enum WarpRenderer {
 
         /// Which input sample should be at the processing point when output frame `frame` is produced.
         func inputPosition(forOutputFrame frame: Int) -> Int {
-            let beat = Double(frame) / sampleRate * tempo / 60
+            let beat = startBeat + Double(frame) / sampleRate * tempo / 60
             return Int((map.sourceTime(atBeat: beat) * sampleRate).rounded())
         }
 
@@ -120,6 +159,6 @@ public enum WarpRenderer {
             }
         }
 
-        return RenderedAudio(audio: AudioData(channels: output, sampleRate: sampleRate), tempo: tempo)
+        return RenderedAudio(audio: AudioData(channels: output, sampleRate: sampleRate), tempo: tempo, startBeat: startBeat)
     }
 }

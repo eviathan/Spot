@@ -119,10 +119,16 @@ private struct ScaleSuggestionList: View {
     @Environment(PracticeState.self) private var practice
 
     var body: some View {
-        let chord = practice.current!
+        // The progression can become empty while typing; this list may redraw before its parent hides it
+        if let chord = practice.current {
+            list(for: chord)
+        }
+    }
+
+    private func list(for chord: ChordSymbol) -> some View {
         let chosen = practice.scale?.id
 
-        VStack(alignment: .leading, spacing: 0) {
+        return VStack(alignment: .leading, spacing: 0) {
             Text("Scales over \(chord.description)")
                 .font(.headline)
                 .padding(12)

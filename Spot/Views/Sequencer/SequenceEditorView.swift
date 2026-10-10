@@ -181,12 +181,29 @@ private struct SequenceFileBar: View {
             .menuStyle(.borderlessButton)
             .fixedSize()
             
-            Picker("Show next chord", selection: Binding(get: { editor.ghostBeats }, set: { editor.ghostBeats = $0 })) {
-                Text("1 beat early").tag(1.0)
-                Text("2 beats early").tag(2.0)
-                Text("1 bar early").tag(Double(sequence.beatsPerBar))
+            Menu("View") {
+                Picker("Neck", selection: Binding(get: { editor.neckView }, set: { editor.neckView = $0 })) {
+                    Text("Follow Hand").tag(SequenceEditorState.NeckView.followHand)
+                    Text("Whole Neck").tag(SequenceEditorState.NeckView.wholeNeck)
+                }
+                .pickerStyle(.inline)
+                Menu("Start Around Fret \(editor.handFret)") {
+                    ForEach([1, 3, 5, 7, 9, 12], id: \.self) { fret in
+                        Button("Fret \(fret)") { editor.handFret = fret }
+                    }
+                }
+                .disabled(editor.neckView != .followHand)
+                Divider()
+                Toggle("Next Chord Box", isOn: Binding(get: { editor.showsNextDiagram }, set: { editor.showsNextDiagram = $0 }))
+                Picker("Show Next Chord", selection: Binding(get: { editor.ghostBeats }, set: { editor.ghostBeats = $0 })) {
+                    Text("1 Beat Early").tag(1.0)
+                    Text("2 Beats Early").tag(2.0)
+                    Text("1 Bar Early").tag(Double(sequence.beatsPerBar))
+                }
             }
-            .frame(width: 260)
+            .menuStyle(.borderlessButton)
+            .fixedSize()
+            .help("Follow Hand shows one position per chord, each close to the last; click a fret to move your hand there")
             
             Spacer()
         }
@@ -206,6 +223,11 @@ private struct AudioBar: View {
     
     var body: some View {
         HStack(spacing: 16) {
+            if session.isRecording {
+                Label("Recording", systemImage: "record.circle")
+                    .foregroundStyle(.red)
+                    .font(.callout.weight(.semibold))
+            }
             Image(systemName: "waveform")
             
             if let audio = sequence.audio {

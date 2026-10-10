@@ -29,6 +29,14 @@ final class AudioSettings {
     var countInBars: Int {
         didSet { defaults.set(countInBars, forKey: "audio.countInBars") }
     }
+    /// Record from this device; nil for the system's default input.
+    var inputDeviceID: UInt32? {
+        didSet { defaults.set(inputDeviceID.map { Int($0) }, forKey: "audio.inputDeviceID") }
+    }
+    /// Extra milliseconds to move takes earlier, on top of the latency the device reports.
+    var recordingOffsetMs: Double {
+        didSet { defaults.set(recordingOffsetMs, forKey: "audio.recordingOffsetMs") }
+    }
 
     @ObservationIgnored private let defaults: UserDefaults
 
@@ -39,5 +47,7 @@ final class AudioSettings {
         previewVelocity = defaults.object(forKey: "audio.previewVelocity") as? Int ?? 90
         metronomeVolume = defaults.object(forKey: "audio.metronomeVolume") as? Double ?? 0.7
         countInBars = defaults.object(forKey: "audio.countInBars") as? Int ?? 1
+        inputDeviceID = (defaults.object(forKey: "audio.inputDeviceID") as? Int).map { UInt32($0) }
+        recordingOffsetMs = defaults.object(forKey: "audio.recordingOffsetMs") as? Double ?? 0
     }
 }

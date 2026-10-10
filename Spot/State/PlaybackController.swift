@@ -20,6 +20,17 @@ struct SequencePlayback {
     /// The recording, already lined up with the grid.
     var audio: RenderedAudio?
     var audioGain: Float = 1
+    /// Your recorded takes, played as they were recorded.
+    var takes: [TakePlayback] = []
+}
+
+struct TakePlayback {
+    var id: UUID
+    var url: URL
+    var startBeat: Double
+    /// The tempo it was played at.
+    var tempo: Double
+    var volume: Float
 }
 
 @Observable
@@ -40,6 +51,7 @@ final class PlaybackController {
     @ObservationIgnored private var scheduledUntil: Double = 0
     /// Clicks before this beat are the count-in, and sound even with the metronome off.
     @ObservationIgnored private var countInEnd: Double = 0
+    @ObservationIgnored private var countInStart: Double = 0
     @ObservationIgnored private var sequence: SequencePlayback?
     /// Notes already sounding at this beat start here too (playing from the middle of a chord, or looping).
     @ObservationIgnored private var carryInBeat: Double?
@@ -49,6 +61,8 @@ final class PlaybackController {
     /// Audio is queued up to this beat; nil until the first slice has started.
     @ObservationIgnored private var audioCursor: Double?
     @ObservationIgnored private var audioRate: Double = 1
+    @ObservationIgnored private var takePlayers: [UUID: TakePlayer] = [:]
+    @ObservationIgnored private var takesStarted = false
 
     private let lookahead = 0.1
     private let startLatency = 0.05
@@ -70,14 +84,14 @@ final class PlaybackController {
         play(from: 0)
     }
 
-    /// Plays a sequence's backing from `beat`, after the count-in.
-    func play(_ sequence: SequencePlayback, from beat: Double, id: UUID) {
+    /// Plays a sequence's backing from `beat`, after the count-in (skipped when resuming from a pause).
+    func play(_ sequence: SequencePlayback, from beat: Double, id: UUID, countIn: Bool = true) {
         if transport.isPlaying {
             stop()
         }
         self.sequence = sequence
         playingSequence = id
-        play(from: beat)
+        play(from: beat, countIn: countIn)
     }
 
     /// Swaps in edited backing while playing; anything already sent still sounds.
@@ -86,13 +100,16 @@ final class PlaybackController {
         self.sequence = sequence
     }
 
-    private func play(from beat: Double) {
-        let countIn = Double(settings.countInBars * transport.beatsPerBar)
+    private func play(from beat: Double, countIn useCountIn: Bool = true) {
+        // A count-in is clicks, so it only happens with the metronome on
+        let countIn = useCountIn && transport.isMetronomeOn ? Double(settings.countInBars * transport.beatsPerBar) : 0
         transport.start(atBeat: beat - countIn, hostTime: HostTime.adding(startLatency, to: HostTime.now))
         scheduledUntil = beat - countIn
+        countInStart = beat - countIn
         countInEnd = beat
         carryInBeat = beat
         audioCursor = nil
+        takesStarted = false
         startTimer()
     }
 
@@ -108,6 +125,7 @@ final class PlaybackController {
         sounding.removeAll()
         track?.stop()
         audioCursor = nil
+        stopTakes()
         transport.stop()
         clicks?.stop()
         midiOutput()?.allNotesOff()
@@ -202,6 +220,10 @@ final class PlaybackController {
             if audioCursor != nil {
                 audioCursor = loop.start
             }
+            if takesStarted {
+                stopTakes()
+                startTakes(fromBeat: loop.start, atHostTime: loopEndTime)
+            }
             carryInBeat = loop.start
             until = transport.position(at: horizon)
         }
@@ -219,14 +241,43 @@ final class PlaybackController {
         if let sequence, let audio = sequence.audio {
             scheduleAudio(audio, gain: sequence.audioGain, loopEnd: sequence.loop?.end, to: to)
         }
+        if sequence != nil, !takesStarted, countInEnd < to {
+            takesStarted = true
+            startTakes(fromBeat: countInEnd, atHostTime: transport.hostTime(forBeat: countInEnd))
+        }
+    }
+    
+    /// Starts every take that's playing at `beat` (or later), at the right point in each.
+    private func startTakes(fromBeat beat: Double, atHostTime hostTime: UInt64) {
+        guard let takes = sequence?.takes else { return }
+        for take in takes {
+            do {
+                let player = try takePlayers[take.id] ?? TakePlayer(url: take.url)
+                takePlayers[take.id] = player
+                // At practice speed the clock runs slower than the take was played; slow the take to match
+                let rate = Float(Double(transport.bpm) / take.tempo)
+                if beat >= take.startBeat {
+                    try player.play(from: (beat - take.startBeat) * 60 / take.tempo, atHostTime: hostTime, rate: rate, volume: take.volume)
+                } else {
+                    try player.play(from: 0, atHostTime: transport.hostTime(forBeat: take.startBeat), rate: rate, volume: take.volume)
+                }
+            } catch {
+                problem = "Couldn't play a recorded take: \(error.localizedDescription)"
+            }
+        }
+    }
+    
+    private func stopTakes() {
+        takePlayers.values.forEach { $0.stop() }
     }
     
     /// Queues the recording in one-beat slices. The first starts at an exact time when the count-in ends;
     /// the rest follow on back to back, so loops and slices join without gaps.
     private func scheduleAudio(_ audio: RenderedAudio, gain: Float, loopEnd: Double?, to: Double) {
         if audioCursor == nil {
-            guard countInEnd < to else { return }
-            let first = countInEnd
+            // From the very start, audio before bar 1 (a pickup) plays during the count-in
+            let first = countInEnd <= 0.001 ? max(countInStart, min(audio.startBeat, countInEnd)) : countInEnd
+            guard first < to else { return }
             let end = min(floor(first) + 1, loopEnd ?? .infinity)
             guard let slice = audio.buffer(fromBeat: first, toBeat: end) else { return }
             let player = track ?? TrackPlayer()

@@ -51,6 +51,8 @@ enum SequenceAction: Equatable {
     case openURL(URL)
     case openRecent(SequenceSession.Recent)
     case close
+    /// Start recording once the sequence has been saved (takes live in its package).
+    case startRecording
 }
 
 struct PendingImport: Identifiable {
@@ -161,6 +163,8 @@ final class UIState {
                 tab = .Sequence
             case .close:
                 session.close()
+            case .startRecording:
+                try session.startRecording()
             }
         } catch {
             errorMessage = "Couldn't open the sequence: \(error.localizedDescription)"

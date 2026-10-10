@@ -59,10 +59,19 @@ final class SequenceSession {
     var showsAnalysis = true
     @ObservationIgnored private var analysisTask: Task<Void, Never>?
     
+    private(set) var isRecording = false
+    @ObservationIgnored private var recorder: InputRecorder?
+    @ObservationIgnored private var recordingFile: (url: URL, name: String, tempo: Double)?
+    
     @ObservationIgnored private var sourceAudio: AudioData?
     @ObservationIgnored private var audioURL: URL?
     @ObservationIgnored private var renderTask: Task<Void, Never>?
     @ObservationIgnored private var renderDelay: DispatchWorkItem?
+    /// What still needs re-rendering: everything, or just a stretch between warp markers.
+    @ObservationIgnored private var pendingFullRender = false
+    @ObservationIgnored private var pendingRenderRange: BeatRange?
+    /// What the render in progress is doing, put back into `pending…` if it gets cancelled.
+    @ObservationIgnored private var inFlight: (full: Bool, range: BeatRange?)?
     @ObservationIgnored private var taps: [Date] = []
 
     @ObservationIgnored private var autosave: DispatchWorkItem?
@@ -200,19 +209,90 @@ final class SequenceSession {
         remember(url)
     }
 
-    /// What Save As writes.
+    /// What Save As writes, including any recorded takes.
     var document: SequenceDocument? {
-        sequence.map { SequenceDocument(sequence: $0) }
+        guard let sequence else { return nil }
+        var extras: [String: FileWrapper] = [:]
+        if let folder = takesFolder, let takes = try? FileWrapper(url: folder) {
+            extras["takes"] = takes
+        }
+        return SequenceDocument(sequence: sequence, extraFiles: extras)
+    }
+    
+    // MARK: - Recording
+    
+    /// Where takes are saved: inside the `.spot` package (so the sequence needs a file first).
+    var takesFolder: URL? {
+        fileURL?.appendingPathComponent("takes", isDirectory: true)
+    }
+    
+    /// Starts recording a new take, and starts playback (with the count-in) if it isn't playing.
+    func startRecording() throws {
+        guard !isRecording, let folder = takesFolder, let sequence else { return }
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        
+        var number = sequence.takes.count + 1
+        var url = folder.appendingPathComponent("Take \(number).caf")
+        while FileManager.default.fileExists(atPath: url.path) {
+            number += 1
+            url = folder.appendingPathComponent("Take \(number).caf")
+        }
+        
+        let recorder = self.recorder ?? InputRecorder()
+        self.recorder = recorder
+        try recorder.setDevice(playback.settings.inputDeviceID)
+        try recorder.start(writingTo: url)
+        recordingFile = (url, "Take \(number)", sequence.tempo * sequence.practiceRate)
+        isRecording = true
+        if !isPlaying {
+            play()
+        }
+    }
+    
+    /// Finishes the take and puts it on the grid where its first sound was heard.
+    func stopRecording() {
+        guard isRecording, let recorder, let file = recordingFile else { return }
+        isRecording = false
+        recordingFile = nil
+        guard let result = recorder.stop() else {
+            try? FileManager.default.removeItem(at: file.url)
+            return
+        }
+        // The first sample was captured `latency` after it was played
+        let latency = recorder.inputLatency + playback.settings.recordingOffsetMs / 1000
+        let soundedAt = HostTime.adding(-latency, to: result.startHostTime)
+        let startBeat = transport.isPlaying ? transport.position(at: soundedAt) : (editor?.selection.start ?? 0)
+        sequence?.takes.append(RecordedTake(name: file.name, fileName: file.url.lastPathComponent, startBeat: startBeat,
+                                            duration: result.duration, tempo: file.tempo))
+    }
+    
+    func removeTake(_ id: UUID) {
+        guard let take = sequence?.takes.first(where: { $0.id == id }) else { return }
+        sequence?.takes.removeAll { $0.id == id }
+        if let folder = takesFolder {
+            try? FileManager.default.removeItem(at: folder.appendingPathComponent(take.fileName))
+        }
+    }
+    
+    func setTakeMuted(_ id: UUID, _ muted: Bool) {
+        guard let index = sequence?.takes.firstIndex(where: { $0.id == id }) else { return }
+        sequence?.takes[index].isMuted = muted
     }
 
     private func sequenceChanged(from old: ChordSequence?) {
         guard !isLoading, let sequence, sequence != old else { return }
         editor?.analyse(sequence)
         
-        // The rendered audio depends on the markers, tempo and length
-        if sequence.audio?.warpMarkers != old?.audio?.warpMarkers || sequence.tempo != old?.tempo
-            || sequence.lengthInBars != old?.lengthInBars || sequence.beatsPerBar != old?.beatsPerBar {
+        // The rendered audio depends on the markers, tempo and length. Moving one marker only changes the
+        // audio between its neighbours, so just that stretch is re-rendered (quickly).
+        if sequence.tempo != old?.tempo || sequence.lengthInBars != old?.lengthInBars || sequence.beatsPerBar != old?.beatsPerBar {
             scheduleRender()
+        } else if let markers = sequence.audio?.warpMarkers, markers != old?.audio?.warpMarkers {
+            if let range = SequenceSession.affectedRange(old: old?.audio?.warpMarkers ?? [], new: markers) {
+                scheduleRender(range: range, delay: 0.02)
+            } else {
+                scheduleRender(delay: 0.05)
+            }
         }
         if isPlaying, let editor {
             playback.update(playbackData(sequence, editor: editor), id: editor.id)
@@ -271,16 +351,50 @@ final class SequenceSession {
 
     // MARK: - Playing
 
+    /// Play, or pause where it is.
     func togglePlay() {
-        guard let sequence, let editor else { return }
+        isPlaying ? pause() : play()
+    }
+    
+    /// Plays from where it paused, otherwise from the selection (with a count-in).
+    func play() {
+        guard let sequence, let editor, !isPlaying else { return }
+        // Practice speed slows everything: the clock, the backing and the audio
+        transport.setBPM(Int((sequence.tempo * sequence.practiceRate).rounded()))
+        transport.beatsPerBar = sequence.beatsPerBar
+        playback.setAudioRate(sequence.practiceRate)
+        let resume = editor.pausedAt
+        playback.play(playbackData(sequence, editor: editor), from: resume ?? editor.selection.start, id: editor.id,
+                      countIn: resume == nil)
+    }
+    
+    func pause() {
+        guard isPlaying, let editor else { return }
+        stopRecording()
+        let position = transport.position()
+        playback.stop()
+        // Pausing during the count-in goes back to where it would have started
+        editor.pausedAt = position >= editor.selection.start ? position : nil
+    }
+    
+    /// Stops and goes back to the selection.
+    func stopPlayback() {
+        stopRecording()
         if isPlaying {
             playback.stop()
-        } else {
-            // Practice speed slows everything: the clock, the backing and the audio
-            transport.setBPM(Int((sequence.tempo * sequence.practiceRate).rounded()))
-            transport.beatsPerBar = sequence.beatsPerBar
-            playback.setAudioRate(sequence.practiceRate)
-            playback.play(playbackData(sequence, editor: editor), from: editor.selection.start, id: editor.id)
+        }
+        editor?.pausedAt = nil
+    }
+    
+    /// Back to bar 1.
+    func returnToStart() {
+        let wasPlaying = isPlaying
+        stopPlayback()
+        if let sequence {
+            editor?.select(beat: 0, extend: false, in: sequence)
+        }
+        if wasPlaying {
+            play()
         }
     }
     
@@ -289,6 +403,12 @@ final class SequenceSession {
         if let audio = sequence.audio, !audio.isMuted, rendered?.tempo == sequence.tempo {
             data.audio = rendered
             data.audioGain = Float(pow(10, audio.gain / 20))
+        }
+        if let folder = takesFolder {
+            data.takes = sequence.takes.filter { !$0.isMuted }.map { take in
+                TakePlayback(id: take.id, url: folder.appendingPathComponent(take.fileName), startBeat: take.startBeat,
+                             tempo: take.tempo, volume: Float(pow(10, take.gain / 20)))
+            }
         }
         return data
     }
@@ -400,6 +520,9 @@ final class SequenceSession {
     
     private func unloadAudio() {
         renderTask?.cancel()
+        inFlight = nil
+        pendingFullRender = false
+        pendingRenderRange = nil
         analysisTask?.cancel()
         analysis = nil
         analysisProgress = nil
@@ -415,8 +538,31 @@ final class SequenceSession {
         }
     }
     
-    /// Re-renders the warped audio shortly after the last change, cancelling any render in progress.
-    private func scheduleRender(delay: Double = 0.4) {
+    /// The beats whose audio changes when warp markers go from `old` to `new`; nil if it could be anywhere
+    /// (an outer marker moved, so the stretch beyond it changes too, or there are fewer than two markers).
+    static func affectedRange(old: [WarpMarker], new: [WarpMarker]) -> BeatRange? {
+        let changed = Set(old).symmetricDifference(Set(new))
+        guard !changed.isEmpty else { return BeatRange(0, 0) }
+        guard old.count >= 2, new.count >= 2 else { return nil }
+        var low = Double.infinity, high = -Double.infinity
+        for markers in [old, new] {
+            let sorted = markers.sorted { $0.beat < $1.beat }
+            for (index, marker) in sorted.enumerated() where changed.contains(marker) {
+                guard index > 0, index < sorted.count - 1 else { return nil }
+                low = min(low, sorted[index - 1].beat)
+                high = max(high, sorted[index + 1].beat)
+            }
+        }
+        return low <= high ? BeatRange(low, high) : nil
+    }
+    
+    /// Re-renders the warped audio shortly after the last change: all of it, or only `range`.
+    private func scheduleRender(range: BeatRange? = nil, delay: Double = 0.4) {
+        if let range {
+            pendingRenderRange = pendingRenderRange.map { BeatRange(min($0.start, range.start), max($0.end, range.end)) } ?? range
+        } else {
+            pendingFullRender = true
+        }
         renderDelay?.cancel()
         let work = DispatchWorkItem { [weak self] in self?.render() }
         renderDelay = work
@@ -424,17 +570,49 @@ final class SequenceSession {
     }
     
     private func render() {
+        // A render still running hasn't delivered; fold its work back in before replacing it
+        if let inFlight {
+            if inFlight.full { pendingFullRender = true }
+            if let range = inFlight.range {
+                pendingRenderRange = pendingRenderRange.map { BeatRange(min($0.start, range.start), max($0.end, range.end)) } ?? range
+            }
+        }
         renderTask?.cancel()
         guard let source = sourceAudio, let sequence, let audio = sequence.audio else { return }
         let map = audio.map(tempo: sequence.tempo)
         let tempo = sequence.tempo
-        let beats = sequence.lengthInBeats
-        renderProgress = 0
+        let end = sequence.lengthInBeats
+        // Include anything recorded before bar 1, so it can play during the count-in
+        let start = min(0, floor(map.beat(atSourceTime: 0)))
+        
+        let canSplice = !pendingFullRender && pendingRenderRange != nil && rendered.map {
+            $0.tempo == tempo && $0.startBeat == start && abs($0.endBeat - end) < 0.01
+        } == true
+        let job: (full: Bool, range: BeatRange?) = canSplice ? (false, pendingRenderRange) : (true, nil)
+        pendingFullRender = false
+        pendingRenderRange = nil
+        inFlight = job
         
         let owner = WeakSession(self)
+        if let range = job.range, let base = rendered {
+            // Just the stretch that changed (with a little either side), spliced into the existing render
+            let from = max(start, range.start - 0.5), to = min(end, range.end + 0.5)
+            renderTask = Task.detached(priority: .userInitiated) {
+                guard let segment = WarpRenderer.render(source, map: map, tempo: tempo, from: from, to: to,
+                                                        progress: { _ in !Task.isCancelled }),
+                      !Task.isCancelled else { return }
+                var spliced = base
+                spliced.splice(segment)
+                let updated = spliced
+                await MainActor.run { owner.session?.finishRender(updated) }
+            }
+            return
+        }
+        
+        renderProgress = 0
         renderTask = Task.detached(priority: .userInitiated) {
             var lastReport = Date.distantPast
-            let result = WarpRenderer.render(source, map: map, tempo: tempo, beats: beats) { progress in
+            let result = WarpRenderer.render(source, map: map, tempo: tempo, from: start, to: end) { progress in
                 if Task.isCancelled { return false }
                 if Date().timeIntervalSince(lastReport) > 0.1 {
                     lastReport = Date()
@@ -523,6 +701,7 @@ final class SequenceSession {
     }
     
     private func finishRender(_ result: RenderedAudio) {
+        inFlight = nil
         rendered = result
         renderProgress = nil
         if isPlaying, let sequence, let editor {

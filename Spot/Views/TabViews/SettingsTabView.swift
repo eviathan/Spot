@@ -12,6 +12,7 @@ struct SettingsTabView: View {
     @Environment(PlaybackController.self) private var playback
 
     @State private var destinations: [MIDIDestination] = []
+    @State private var inputs: [AudioInputDevice] = []
 
     var body: some View {
         @Bindable var settings = settings
@@ -61,10 +62,35 @@ struct SettingsTabView: View {
                     Text("1 bar").tag(1)
                     Text("2 bars").tag(2)
                 }
+                .help("Counts in before playback starts, when the metronome is on")
             } header: {
                 Text("Metronome")
             }
 
+            Section {
+                HStack {
+                    Picker("Record from", selection: $settings.inputDeviceID) {
+                        Text("System default input").tag(UInt32?.none)
+                        ForEach(inputs) { device in
+                            Text("\(device.name) (\(device.channelCount) ch)").tag(UInt32?.some(device.id))
+                        }
+                    }
+                    Button("Refresh") { inputs = AudioDevices.inputs() }
+                }
+                LabeledContent("Latency offset") {
+                    Slider(value: $settings.recordingOffsetMs, in: -100...100, step: 1)
+                    Text("\(Int(settings.recordingOffsetMs)) ms")
+                        .monospacedDigit()
+                        .frame(width: 60)
+                }
+                Text("Takes are moved earlier by the latency the device reports. If they still sound late against the track, increase the offset; if early, decrease it.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            } header: {
+                Text("Recording")
+            }
+            
             if let problem = playback.problem {
                 Section {
                     Label(problem, systemImage: "exclamationmark.triangle")
@@ -75,6 +101,9 @@ struct SettingsTabView: View {
         .formStyle(.grouped)
         .frame(maxWidth: 640)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .onAppear { destinations = playback.midiDestinations() }
+        .onAppear {
+            destinations = playback.midiDestinations()
+            inputs = AudioDevices.inputs()
+        }
     }
 }

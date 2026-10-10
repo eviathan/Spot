@@ -17,6 +17,23 @@ final class SequenceEditorState {
         var scales: [UUID: ScaleDefinition] = [:]
         var suggestions: [UUID: [ScaleSuggestion]] = [:]
         var key: Key?
+        /// Where to play each chord's scale, chosen to stay near the previous position.
+        var positions: [UUID: NeckPosition] = [:]
+    }
+    
+    /// A scale shape placed on the neck for one chord.
+    struct NeckPosition {
+        var name: String
+        var placement: [FretPosition: ShapeNote]
+        /// Average fret of the shape, i.e. where the hand is.
+        var centre: Double
+    }
+    
+    enum NeckView {
+        /// Each chord's scale across the whole neck.
+        case wholeNeck
+        /// One position per chord, moving as little as possible from chord to chord.
+        case followHand
     }
 
     /// Identifies this window to the playback controller.
@@ -24,7 +41,11 @@ final class SequenceEditorState {
     let library: LibraryStore
     let fretboard = Fretboard()
 
-    var selection = BeatRange(0, 4)
+    var selection = BeatRange(0, 4) {
+        didSet { pausedAt = nil }
+    }
+    /// Where playback paused; Play carries on from here. Cleared by Stop or by selecting somewhere else.
+    var pausedAt: Double?
     /// Selection size in beats: a bar, half a bar or a beat.
     var snap: Double = 4
     private var selectionAnchor: Double = 0
@@ -35,6 +56,24 @@ final class SequenceEditorState {
     var sectionName = ""
     /// How many beats before a change the next chord starts to show on the fretboard.
     var ghostBeats: Double = 2
+    var neckView: NeckView = .followHand {
+        didSet { refreshPositions() }
+    }
+    /// Where the hand starts: the first chord's position is the one nearest this fret.
+    var handFret: Int = 5 {
+        didSet { refreshPositions() }
+    }
+    /// Show a small diagram of the next chord in its position.
+    var showsNextDiagram = true
+    /// Lane zoom: how wide a bar is, in points.
+    var barWidth: Double = 140
+    
+    func zoom(by factor: Double) {
+        barWidth = min(max(barWidth * factor, 40), 1_200)
+    }
+    
+    @ObservationIgnored private var lastSequence: ChordSequence?
+    @ObservationIgnored private var shapeCache: [String: [Shape]] = [:]
 
     private(set) var analysis = Analysis()
 
@@ -67,7 +106,50 @@ final class SequenceEditorState {
                 previous = (scale, chord.root.pitchClass)
             }
         }
+        result.positions = positions(for: sequence, chords: result.chords, scales: result.scales)
         analysis = result
+        lastSequence = sequence
+    }
+    
+    private func refreshPositions() {
+        guard let lastSequence else { return }
+        analysis.positions = positions(for: lastSequence, chords: analysis.chords, scales: analysis.scales)
+    }
+    
+    /// Walks through the chords picking, for each, the scale position nearest the hand, then moving the hand there.
+    private func positions(for sequence: ChordSequence, chords: [UUID: ChordSymbol],
+                           scales: [UUID: ScaleDefinition]) -> [UUID: NeckPosition] {
+        var result: [UUID: NeckPosition] = [:]
+        var hand = Double(handFret)
+        for region in sequence.chords {
+            guard let chord = chords[region.id], let scale = scales[region.id] else { continue }
+            let candidates = scaleShapes(scale).flatMap { shape in
+                shape.placements(root: chord.root.pitchClass, on: fretboard).map { (shape, $0) }
+            }
+            let best = candidates.min { lhs, rhs in
+                abs(centre(lhs.1) - hand) < abs(centre(rhs.1) - hand)
+            }
+            guard let (shape, placement) = best else { continue }
+            let position = NeckPosition(name: "\(shape.system), \(shape.name)", placement: placement, centre: centre(placement))
+            result[region.id] = position
+            hand = position.centre
+        }
+        return result
+    }
+    
+    private func centre(_ placement: [FretPosition: ShapeNote]) -> Double {
+        let frets = placement.keys.map(\.fret)
+        return Double(frets.reduce(0, +)) / Double(max(frets.count, 1))
+    }
+    
+    private func scaleShapes(_ scale: ScaleDefinition) -> [Shape] {
+        let key = "\(scale.id):\(scale.formula)"
+        if let cached = shapeCache[key] {
+            return cached
+        }
+        let shapes = library.userShapes(for: scale.id, tuningId: fretboard.tuning.id) + ShapeGenerator.scalePositions(scale, fretboard: fretboard)
+        shapeCache[key] = shapes
+        return shapes
     }
 
     func playback(for sequence: ChordSequence) -> SequencePlayback {

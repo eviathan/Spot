@@ -14,34 +14,24 @@ struct Transport: View {
     @Environment(SequenceSession.self) private var session
     @Environment(UIState.self) private var ui
     
-    /// On the Sequence tab, play the open sequence.
-    private var playsSequence: Bool {
-        ui.tab == .Sequence && session.isOpen
-    }
-   
     func onClickTransport() -> Void {
         
     }
     
-    /// Back to the start (with the count-in again) if playing.
     func onClickTransportRestart() -> Void {
-        if transport.isPlaying {
-            let wasSequence = session.isPlaying
-            playback.stop()
-            wasSequence ? session.togglePlay() : playback.play()
-        }
+        TransportActions.toStart(ui: ui, session: session, playback: playback)
     }
     
     func onClickTransportPlay() -> Void {
-        if playsSequence && !transport.isPlaying {
-            session.togglePlay()
-        } else {
-            playback.togglePlay()
-        }
+        TransportActions.playPause(ui: ui, session: session, playback: playback)
+    }
+    
+    func onClickTransportStop() -> Void {
+        TransportActions.stop(ui: ui, session: session, playback: playback)
     }
     
     func onClickTransportRecord() -> Void {
-        transport.isRecording.toggle()
+        TransportActions.record(ui: ui, session: session)
     }
     
     func onClickTransportLoop() -> Void {
@@ -65,12 +55,14 @@ struct Transport: View {
         
         Button(action: onClickTransportRecord)
         {
-            Image(systemName: transport.isRecording ? "smallcircle.fill.circle.fill" : "circle.fill")
+            Image(systemName: session.isRecording ? "smallcircle.fill.circle.fill" : "circle.fill")
                 .imageScale(.large)
-                .foregroundColor(transport.isRecording ? Color(red:0.83, green:0.38, blue:0.42) : .white)
+                .foregroundColor(session.isRecording ? Color(red:0.83, green:0.38, blue:0.42) : .white)
         }
         .buttonStyle(PlainButtonStyle())
         .frame(width: 30, height: 30)
+        .help(ui.tab == .Sequence && session.isOpen ? "Record a take over the sequence" : "Open a sequence to record over it")
+        .disabled(!(ui.tab == .Sequence && session.isOpen))
         
         Button(action: onClickTransportRestart)
         {
@@ -79,15 +71,26 @@ struct Transport: View {
         }
         .buttonStyle(PlainButtonStyle())
         .frame(width: 30, height: 30)
+        .help("Back to bar 1")
         
         Button(action: onClickTransportPlay)
         {
-            Image(systemName: transport.isPlaying ? "stop.fill" : "play.fill")
+            Image(systemName: transport.isPlaying ? "pause.fill" : "play.fill")
                 .imageScale(.large)
 //                .foregroundColor(transport.isRecording ? Color(red:0.83, green:0.38, blue:0.42) : transport.isPlaying ? Color(red:0.69, green:0.85, blue:0.60) : .white)
         }
         .buttonStyle(PlainButtonStyle())
         .frame(width: 30, height: 30)
+        .help("Play / pause (space)")
+        
+        Button(action: onClickTransportStop)
+        {
+            Image(systemName: "stop.fill")
+                .imageScale(.large)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .frame(width: 30, height: 30)
+        .help("Stop and go back to the selection")
         
         Button(action: onClickTransport)
         {
@@ -131,4 +134,69 @@ private struct PositionDisplay: View {
     return Transport()
         .environment(transport)
         .environment(PlaybackController(transport: transport, settings: AudioSettings()))
+}
+
+/// Play/pause, stop and back-to-start, shared by the footer, the Playback menu and the space bar.
+/// On the Sequence tab they control the open sequence; elsewhere, the metronome transport.
+enum TransportActions {
+    static func playPause(ui: UIState, session: SequenceSession, playback: PlaybackController) {
+        if session.isPlaying || (ui.tab == .Sequence && session.isOpen && !playback.transport.isPlaying) {
+            session.togglePlay()
+        } else {
+            playback.togglePlay()
+        }
+    }
+    
+    static func stop(ui: UIState, session: SequenceSession, playback: PlaybackController) {
+        if session.isOpen {
+            session.stopPlayback()
+        }
+        if playback.transport.isPlaying {
+            playback.stop()
+        }
+    }
+    
+    /// Starts or stops recording a take. A sequence that hasn't been saved is saved first (takes live in its file).
+    static func record(ui: UIState, session: SequenceSession) {
+        guard ui.tab == .Sequence, session.isOpen else { return }
+        if session.isRecording {
+            session.stopRecording()
+        } else if session.fileURL == nil {
+            ui.sequenceActionAfterSave = .startRecording
+            ui.isSavingSequenceAs = true
+        } else {
+            do {
+                try session.startRecording()
+            } catch {
+                ui.errorMessage = "Couldn't start recording: \(error.localizedDescription)"
+            }
+        }
+    }
+    
+    static func toStart(ui: UIState, session: SequenceSession, playback: PlaybackController) {
+        if ui.tab == .Sequence && session.isOpen {
+            session.returnToStart()
+        } else if playback.transport.isPlaying {
+            playback.stop()
+            playback.play()
+        }
+    }
+}
+
+/// The space bar toggles play/pause anywhere in the window, except while typing in a text field.
+enum SpaceBarMonitor {
+    private static var monitor: Any?
+    
+    static func install(_ action: @escaping () -> Void) {
+        guard monitor == nil else { return }
+        monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            let modifiers = event.modifierFlags.intersection([.command, .option, .control, .shift])
+            let isTyping = NSApp.keyWindow?.firstResponder is NSText
+            guard event.keyCode == 49, modifiers.isEmpty, !isTyping, !event.isARepeat else {
+                return event
+            }
+            action()
+            return nil
+        }
+    }
 }

@@ -94,6 +94,8 @@ public struct ChordSequence: Hashable, Codable, Sendable {
     public var audio: AudioTrack?
     /// Practice speed: 1 is full tempo, 0.5 half. Slows audio and backing together.
     public var practiceRate: Double
+    /// Your recordings, oldest first.
+    public var takes: [RecordedTake]
 
     public init(tempo: Double = 100, beatsPerBar: Int = 4, lengthInBars: Int = 16) {
         self.version = ChordSequence.currentVersion
@@ -107,6 +109,7 @@ public struct ChordSequence: Hashable, Codable, Sendable {
         self.backing = .pad
         self.audio = nil
         self.practiceRate = 1
+        self.takes = []
     }
 
     public var lengthInBeats: Double {
@@ -210,7 +213,7 @@ public struct ChordSequence: Hashable, Codable, Sendable {
     // MARK: - Files
 
     enum CodingKeys: String, CodingKey {
-        case version, tempo, beatsPerBar, lengthInBars, key, chords, sections, loop, backing, audio, practiceRate
+        case version, tempo, beatsPerBar, lengthInBars, key, chords, sections, loop, backing, audio, practiceRate, takes
     }
 
     public init(from decoder: Decoder) throws {
@@ -230,6 +233,7 @@ public struct ChordSequence: Hashable, Codable, Sendable {
         backing = try container.decodeIfPresent(BackingStyle.self, forKey: .backing) ?? .pad
         audio = try container.decodeIfPresent(AudioTrack.self, forKey: .audio)
         practiceRate = try container.decodeIfPresent(Double.self, forKey: .practiceRate) ?? 1
+        takes = try container.decodeIfPresent([RecordedTake].self, forKey: .takes) ?? []
     }
 
     public func encoded() throws -> Data {

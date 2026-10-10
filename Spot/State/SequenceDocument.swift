@@ -19,9 +19,12 @@ struct SequenceDocument: FileDocument {
     static let sequenceFilename = "sequence.json"
 
     var sequence: ChordSequence
-
-    init(sequence: ChordSequence = ChordSequence()) {
+    /// Other things to put in the package (recorded takes), by name.
+    var extraFiles: [String: FileWrapper] = [:]
+    
+    init(sequence: ChordSequence = ChordSequence(), extraFiles: [String: FileWrapper] = [:]) {
         self.sequence = sequence
+        self.extraFiles = extraFiles
     }
 
     init(configuration: ReadConfiguration) throws {
@@ -40,6 +43,10 @@ struct SequenceDocument: FileDocument {
             package.removeFileWrapper(old)
         }
         package.addRegularFile(withContents: try sequence.encoded(), preferredFilename: SequenceDocument.sequenceFilename)
+        for (name, wrapper) in extraFiles where package.fileWrappers?[name] == nil {
+            wrapper.preferredFilename = name
+            package.addFileWrapper(wrapper)
+        }
         return package
     }
 }

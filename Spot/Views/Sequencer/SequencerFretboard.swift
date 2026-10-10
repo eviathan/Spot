@@ -8,7 +8,7 @@ import SpotCore
 
 /// Where the playhead is in a sequence window: the live position while it plays, otherwise the selection.
 func sequencePosition(_ editor: SequenceEditorState, _ playback: PlaybackController, _ transport: TransportState) -> Double {
-    playback.playingSequence == editor.id ? transport.position() : editor.selection.start
+    playback.playingSequence == editor.id ? transport.position() : (editor.pausedAt ?? editor.selection.start)
 }
 
 /// The current chord and its scale, with the next chord fading in just before it arrives.
@@ -26,7 +26,8 @@ struct SequencerFretboard: View {
         TimelineView(.animation(minimumInterval: 1 / 30, paused: !isPlaying)) { context in
             FretboardView(fretboard: editor.fretboard,
                           markers: markers(at: sequencePosition(editor, playback, transport), time: context.date),
-                          onTap: { marker in playback.previewNote(editor.fretboard.midiNote(at: marker.position)) })
+                          // Clicking a fret moves the hand there (⌥-click plays the note)
+                          onTap: { marker in editor.handFret = max(1, marker.position.fret) })
         }
     }
 
@@ -51,6 +52,11 @@ struct SequencerFretboard: View {
                 ghost = 1 - beatsLeft / editor.ghostBeats
             }
         }
+        // Following the hand: only the chosen position for each chord, rather than the whole neck
+        let currentPlacement = analysis.positions[region.id]?.placement
+        let nextPlacement = nextRegion.flatMap { analysis.positions[$0.id]?.placement }
+        let followsHand = editor.neckView == .followHand && currentPlacement != nil
+        
         let nextTones = Set(nextChord.map { $0.chord.formula.pitchClasses(from: $0.root.pitchClass) } ?? [])
         // Where to land: the next chord's 3rd and 7th
         let targets = Set(nextChord.map { next in
@@ -67,7 +73,9 @@ struct SequencerFretboard: View {
             let pitchClass = fretboard.pitchClass(at: position)
             let offset = pitchClass.semitones(above: chord.root.pitchClass)
             let role = roles[offset] ?? .outside
-            let isNextTone = ghost > 0 && nextTones.contains(pitchClass)
+            let inCurrent = !followsHand || currentPlacement?[position] != nil
+            let inNext = !followsHand || nextPlacement?[position] != nil
+            let isNextTone = ghost > 0 && nextTones.contains(pitchClass) && inNext
 
             // Notes only in the next chord are named from its root
             let degree: Degree?
@@ -87,12 +95,16 @@ struct SequencerFretboard: View {
             let label = display.markerLabel == .note ? marker.noteName.description : marker.intervalName
 
             switch role {
-            case .chordTone:
+            case .chordTone where inCurrent:
                 return FretboardMarker(marker: marker, label: label, ring: roleColour(.chordTone), fill: .black, text: .white,
                                        halo: isNextTone ? Color.white.opacity(ghost) : nil)
+            case .chordTone:
+                // Chord tones elsewhere on the neck, faint, for orientation
+                return FretboardMarker(marker: marker, label: label, ring: roleColour(.chordTone), fill: .black, text: .white,
+                                       scale: 0.55, opacity: 0.35)
             case .tension, .avoid:
                 return FretboardMarker(marker: marker, label: label, ring: roleColour(role), fill: theme.defaultMarkerColor,
-                                       text: theme.fretboardColor, scale: 0.8,
+                                       text: theme.fretboardColor, isVisible: inCurrent || isNextTone, scale: 0.8,
                                        halo: isNextTone ? theme.chordToneColor.opacity(ghost) : nil)
             case .outside:
                 return FretboardMarker(marker: marker, label: label, ring: theme.chordToneColor, fill: .black.opacity(0.4),
@@ -166,6 +178,19 @@ struct NowNextView: View {
                                 .font(.callout)
                                 .foregroundColor(beatsLeft <= Int(editor.ghostBeats) && isPlaying ? .orange : .white.opacity(0.7))
                         }
+                        if let shift = shiftHint(from: region, to: next) {
+                            Label(shift.text, systemImage: shift.up ? "arrow.up.right" : "arrow.down.left")
+                                .font(.caption)
+                                .foregroundColor(.orange)
+                        }
+                    }
+                    
+                    if editor.showsNextDiagram, let chord = editor.analysis.chords[next.id],
+                       let placement = editor.analysis.positions[next.id]?.placement {
+                        ChordBoxView(placement: placement, chordTones: Set(chord.chord.formula.pitchClasses(from: chord.root.pitchClass)),
+                                     root: chord.root.pitchClass, fretboard: editor.fretboard)
+                            .frame(width: 130, height: 64)
+                            .help("The next chord's notes in the position to play it")
                     }
                 }
                 Spacer()
@@ -175,7 +200,69 @@ struct NowNextView: View {
         }
     }
 
+    /// "Move up to fret 7" when the next chord's position is a stretch away from the current one.
+    private func shiftHint(from current: ChordRegion?, to next: ChordRegion) -> (text: String, up: Bool)? {
+        guard editor.neckView == .followHand, let current,
+              let from = editor.analysis.positions[current.id], let to = editor.analysis.positions[next.id],
+              abs(to.centre - from.centre) >= 2.5 else { return nil }
+        let lowest = to.placement.keys.map(\.fret).filter { $0 > 0 }.min() ?? Int(to.centre)
+        return to.centre > from.centre ? ("Move up to fret \(lowest)", true) : ("Move down to fret \(lowest)", false)
+    }
+    
     private func display(_ region: ChordRegion) -> String {
         editor.analysis.chords[region.id]?.description ?? region.symbol
+    }
+}
+
+/// A small fretboard window (high string at the top, like the main one) with a chord's notes in one position.
+struct ChordBoxView: View {
+    let placement: [FretPosition: ShapeNote]
+    let chordTones: Set<PitchClass>
+    let root: PitchClass
+    let fretboard: Fretboard
+    
+    @Environment(\.theme) private var theme
+    
+    var body: some View {
+        let notes = placement.keys.filter { chordTones.contains(fretboard.pitchClass(at: $0)) }
+        let fretted = notes.map(\.fret).filter { $0 > 0 }
+        let first = max(1, (fretted.min() ?? 1))
+        let span = max(4, (fretted.max() ?? first) - first + 1)
+        
+        Canvas { context, size in
+            let strings = fretboard.stringCount
+            let labelWidth: CGFloat = 18
+            let width = size.width - labelWidth
+            let fretWidth = width / CGFloat(span)
+            let stringGap = size.height / CGFloat(strings)
+            let y = { (string: Int) in (CGFloat(strings - 1 - string) + 0.5) * stringGap }
+            
+            for string in 0..<strings {
+                var line = Path()
+                line.move(to: CGPoint(x: labelWidth, y: y(string)))
+                line.addLine(to: CGPoint(x: size.width, y: y(string)))
+                context.stroke(line, with: .color(.white.opacity(0.35)), lineWidth: 1)
+            }
+            for fret in 0...span {
+                var line = Path()
+                let x = labelWidth + CGFloat(fret) * fretWidth
+                line.move(to: CGPoint(x: x, y: y(strings - 1)))
+                line.addLine(to: CGPoint(x: x, y: y(0)))
+                context.stroke(line, with: .color(.white.opacity(fret == 0 && first == 1 ? 0.9 : 0.35)), lineWidth: fret == 0 && first == 1 ? 3 : 1)
+            }
+            context.draw(Text("\(first)").font(.system(size: 9)).foregroundColor(.white.opacity(0.7)),
+                         at: CGPoint(x: labelWidth / 2, y: size.height / 2))
+            
+            let dot = min(fretWidth, stringGap) * 0.8
+            for note in notes {
+                let x: CGFloat = note.fret == 0
+                    ? labelWidth - 6
+                    : labelWidth + (CGFloat(note.fret - first) + 0.5) * fretWidth
+                guard note.fret == 0 || (note.fret >= first && note.fret < first + span) else { continue }
+                let rect = CGRect(x: x - dot / 2, y: y(note.string) - dot / 2, width: dot, height: dot)
+                let isRoot = fretboard.pitchClass(at: note) == root
+                context.fill(Circle().path(in: rect), with: .color(isRoot ? theme.avoidColor : theme.chordToneColor))
+            }
+        }
     }
 }

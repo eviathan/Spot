@@ -1,5 +1,6 @@
 import XCTest
 @testable import SpotCore
+import AVFoundation
 
 final class WarpMapTests: XCTestCase {
     func testNoMarkersFollowsTempo() {
@@ -119,5 +120,110 @@ final class AudioDataTests: XCTestCase {
         _ = WarpRenderer.render(source, map: WarpMap(markers: [], tempo: 120), tempo: 100, beats: 50)
         let elapsed = Date().timeIntervalSince(start)
         print("RENDER 30 s stereo in \(String(format: "%.2f", elapsed)) s")
+    }
+}
+
+final class PartialRenderTests: XCTestCase {
+    private func clicks(at times: [Double], seconds: Double) -> AudioData {
+        var samples = [Float](repeating: 0, count: Int(seconds * 44_100))
+        for i in samples.indices { samples[i] = Float(sin(Double(i) * 0.05) * 0.02) }
+        for time in times {
+            let start = Int(time * 44_100)
+            for i in start..<min(start + 80, samples.count) { samples[i] = 0.9 }
+        }
+        return AudioData(channels: [samples], sampleRate: 44_100)
+    }
+
+    private func onsets(_ rendered: RenderedAudio) -> [Double] {
+        var result: [Double] = []
+        var i = 0
+        let samples = rendered.audio.channels[0]
+        while i < samples.count {
+            if abs(samples[i]) > 0.5 {
+                result.append(rendered.startBeat + Double(i) / rendered.framesPerBeat)
+                i += 4_410
+            } else {
+                i += 1
+            }
+        }
+        return result
+    }
+
+    func testRendersBeforeBarOne() throws {
+        // A pickup half a second before the first marker: it lands on beat -1 at 120 bpm
+        let source = clicks(at: [0.2, 0.7, 1.2], seconds: 3)
+        let map = WarpMap(markers: [WarpMarker(sourceTime: 0.7, beat: 0)], tempo: 120)
+        let rendered = try XCTUnwrap(WarpRenderer.render(source, map: map, tempo: 120, from: -2, to: 4))
+        XCTAssertEqual(rendered.startBeat, -2)
+        let beats = onsets(rendered)
+        XCTAssertEqual(beats.count, 3)
+        for (found, expected) in zip(beats, [-1.0, 0, 1]) {
+            XCTAssertEqual(found, expected, accuracy: 0.02)
+        }
+        // Buffers are addressed in beats, wherever the render starts
+        let buffer = try XCTUnwrap(rendered.buffer(fromBeat: 0, toBeat: 1))
+        XCTAssertEqual(Int(buffer.frameLength), 22_050)
+        let start = UnsafeBufferPointer(start: buffer.floatChannelData![0], count: 1_100)
+        XCTAssertGreaterThan(start.map(abs).max()!, 0.5, "the click on beat 0 is at the start of the buffer")
+    }
+
+    func testSpliceMatchesAFullRender() throws {
+        let source = clicks(at: [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5], seconds: 4.5)
+        let before = WarpMap(markers: [WarpMarker(sourceTime: 0, beat: 0), WarpMarker(sourceTime: 2, beat: 4)], tempo: 120)
+        var rendered = try XCTUnwrap(WarpRenderer.render(source, map: before, tempo: 120, from: 0, to: 8))
+
+        // Move the second marker: only beats 0..8 around it change; re-render that stretch and splice it in
+        let after = WarpMap(markers: [WarpMarker(sourceTime: 0, beat: 0), WarpMarker(sourceTime: 2, beat: 3)], tempo: 120)
+        let segment = try XCTUnwrap(WarpRenderer.render(source, map: after, tempo: 120, from: 0, to: 8))
+        rendered.splice(segment)
+        let full = try XCTUnwrap(WarpRenderer.render(source, map: after, tempo: 120, from: 0, to: 8))
+
+        let a = onsets(rendered), b = onsets(full)
+        XCTAssertEqual(a.count, b.count)
+        for (x, y) in zip(a, b) {
+            XCTAssertEqual(x, y, accuracy: 0.01)
+        }
+        // The click that was at 2 s now sits on beat 3
+        XCTAssertTrue(a.contains { abs($0 - 3) < 0.02 }, "\(a)")
+    }
+}
+
+final class RecordingTests: XCTestCase {
+    func testTakeWriterRecordsTimingAndLength() throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("take-\(UUID()).caf")
+        defer { try? FileManager.default.removeItem(at: url) }
+        let format = try XCTUnwrap(AVAudioFormat(standardFormatWithSampleRate: 48_000, channels: 1))
+        let writer = try TakeWriter(url: url, format: format)
+
+        let firstTime = HostTime.adding(1, to: HostTime.now)
+        for block in 0..<10 {
+            let buffer = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 4_800))
+            buffer.frameLength = 4_800
+            for i in 0..<4_800 { buffer.floatChannelData![0][i] = block == 3 ? 0.5 : 0.01 }
+            let time = AVAudioTime(hostTime: HostTime.adding(Double(block) * 0.1, to: firstTime))
+            try writer.write(buffer, at: time)
+        }
+        XCTAssertEqual(writer.startHostTime, firstTime)
+        XCTAssertEqual(writer.duration, 1, accuracy: 0.001)
+        XCTAssertEqual(writer.level, 0.01, accuracy: 0.001)
+
+        let file = try AVAudioFile(forReading: url)
+        XCTAssertEqual(file.length, 48_000)
+    }
+
+    func testTakePlacement() throws {
+        // Recorded at 90 bpm (120 at 75%), starting on beat 8
+        let take = RecordedTake(name: "Take 1", fileName: "Take 1.caf", startBeat: 8, duration: 4, tempo: 90)
+        XCTAssertEqual(take.endBeat, 14)
+        XCTAssertEqual(take.offset(atBeat: 11), 2)
+
+        var sequence = ChordSequence()
+        sequence.takes = [take]
+        XCTAssertEqual(try JSONDecoder().decode(ChordSequence.self, from: sequence.encoded()).takes, [take])
+    }
+
+    func testListsInputDevicesWithoutCrashing() {
+        // Contents depend on the machine; every listed device must have inputs
+        XCTAssertTrue(AudioDevices.inputs().allSatisfy { $0.channelCount > 0 })
     }
 }

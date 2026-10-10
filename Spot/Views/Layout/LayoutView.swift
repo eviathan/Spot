@@ -12,6 +12,7 @@ struct LayoutView: View {
     @Environment(UIState.self) private var ui
     @Environment(LibraryStore.self) private var library
     @Environment(SequenceSession.self) private var session
+    @Environment(PlaybackController.self) private var playback
 
     let headerHeight: CGFloat = 52
     let footerHeight: CGFloat = 50
@@ -35,6 +36,11 @@ struct LayoutView: View {
         }
         .edgesIgnoringSafeArea(.all)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onAppear {
+            SpaceBarMonitor.install { [ui, session, playback] in
+                TransportActions.playPause(ui: ui, session: session, playback: playback)
+            }
+        }
         .sheet(item: $ui.definitionEditor) { request in
             DefinitionEditorView(request: request)
         }
