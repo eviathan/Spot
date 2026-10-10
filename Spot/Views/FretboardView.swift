@@ -19,6 +19,10 @@ struct FretboardMarker: Identifiable {
     var scale: CGFloat = 1
     /// Right-click offers finger numbers (while drawing a shape).
     var canSetFinger = false
+    /// An extra ring outside the marker, e.g. for notes shared with the next chord.
+    var halo: Color? = nil
+    /// Below 1 to fade a note in or out.
+    var opacity: Double = 1
 
     var id: FretPosition {
         marker.position
@@ -189,7 +193,7 @@ struct FretboardView: View {
                            onSetFinger: item.canSetFinger ? { onSetFinger(item.marker, $0) } : nil)
                 .position(x: (CGFloat(item.marker.position.fret) * fretSpacing - fretSpacing / 2) + fretSpacing,
                           y: y(forString: item.marker.position.string, stringSpacing: stringSpacing))
-                .opacity(item.isVisible ? 1 : 0)
+                .opacity(item.isVisible ? item.opacity : 0)
                 .allowsHitTesting(item.isVisible)
         }
     }
@@ -217,6 +221,13 @@ private struct FretMarkerView: View {
         Circle()
             .stroke(lineWidth: 5 * item.scale)
             .fill(item.ring)
+            .overlay {
+                if let halo = item.halo {
+                    Circle()
+                        .stroke(halo, lineWidth: 2)
+                        .padding(-5)
+                }
+            }
             .background(Circle().fill(item.fill))
             .frame(width: scaledSize, height: scaledSize)
             .overlay(

@@ -12,20 +12,36 @@ import SpotCore
 /// Nothing is sent far ahead of time, because some MIDI receivers act on messages as soon as they
 /// arrive rather than at their timestamp. A timer sends whatever falls due in the next `lookahead`
 /// seconds, stamped with the exact time it should sound.
+/// A sequence's backing ready to play: notes in beats, plus where it ends or loops.
+struct SequencePlayback {
+    var notes: [BeatNote]
+    var length: Double
+    var loop: BeatRange?
+}
+
 @Observable
 final class PlaybackController {
     let transport: TransportState
     let settings: AudioSettings
     /// Set when MIDI or audio couldn't start, for the Settings tab to show.
     private(set) var problem: String?
+    /// Which sequence window is playing, if any.
+    private(set) var playingSequence: UUID?
 
     @ObservationIgnored private var midi: MIDIOutput?
     @ObservationIgnored private var clicks: ClickPlayer?
     @ObservationIgnored private var timer: DispatchSourceTimer?
     /// MIDI messages waiting to be sent, kept in time order.
     @ObservationIgnored private var pending: [(time: UInt64, note: Int, velocity: Int?)] = []
-    /// Clicks are scheduled up to (but not including) this beat.
-    @ObservationIgnored private var clicksScheduledUntil: Double = 0
+    /// Clicks and sequence notes are scheduled up to (but not including) this beat.
+    @ObservationIgnored private var scheduledUntil: Double = 0
+    /// Clicks before this beat are the count-in, and sound even with the metronome off.
+    @ObservationIgnored private var countInEnd: Double = 0
+    @ObservationIgnored private var sequence: SequencePlayback?
+    /// Notes already sounding at this beat start here too (playing from the middle of a chord, or looping).
+    @ObservationIgnored private var carryInBeat: Double?
+    /// Sequence notes sounding now, by note number, so a loop or stop can cut them off.
+    @ObservationIgnored private var sounding: [Int: Int] = [:]
 
     private let lookahead = 0.1
     private let startLatency = 0.05
@@ -44,13 +60,38 @@ final class PlaybackController {
     }
 
     func play() {
+        play(from: 0)
+    }
+
+    /// Plays a sequence's backing from `beat`, after the count-in.
+    func play(_ sequence: SequencePlayback, from beat: Double, id: UUID) {
+        if transport.isPlaying {
+            stop()
+        }
+        self.sequence = sequence
+        playingSequence = id
+        play(from: beat)
+    }
+
+    /// Swaps in edited backing while playing; anything already sent still sounds.
+    func update(_ sequence: SequencePlayback, id: UUID) {
+        guard playingSequence == id else { return }
+        self.sequence = sequence
+    }
+
+    private func play(from beat: Double) {
         let countIn = Double(settings.countInBars * transport.beatsPerBar)
-        transport.start(atBeat: -countIn, hostTime: HostTime.adding(startLatency, to: HostTime.now))
-        clicksScheduledUntil = -countIn
+        transport.start(atBeat: beat - countIn, hostTime: HostTime.adding(startLatency, to: HostTime.now))
+        scheduledUntil = beat - countIn
+        countInEnd = beat
+        carryInBeat = beat
         startTimer()
     }
 
     func stop() {
+        sequence = nil
+        playingSequence = nil
+        sounding.removeAll()
         transport.stop()
         clicks?.stop()
         midiOutput()?.allNotesOff()
@@ -109,7 +150,11 @@ final class PlaybackController {
         let horizon = HostTime.adding(lookahead, to: HostTime.now)
 
         if transport.isPlaying {
-            scheduleClicks(until: horizon)
+            schedule(until: horizon)
+            if transport.isPlaying, let sequence, sequence.loop == nil, transport.position() >= sequence.length {
+                stop()
+                return
+            }
         }
 
         if !pending.isEmpty, let midi = midiOutput() {
@@ -127,19 +172,73 @@ final class PlaybackController {
         stopTimerIfIdle()
     }
 
-    private func scheduleClicks(until horizon: UInt64) {
-        let until = transport.position(at: horizon)
-        defer { clicksScheduledUntil = max(clicksScheduledUntil, until) }
-
+    private func schedule(until horizon: UInt64) {
+        var until = transport.position(at: horizon)
+        
+        // Reaching the end of a loop: play up to it, then move the clock back to the loop start at that moment
+        if let loop = sequence?.loop, loop.length > 0, until >= loop.end, scheduledUntil < loop.end {
+            scheduleWindow(from: scheduledUntil, to: loop.end)
+            let loopEndTime = transport.hostTime(forBeat: loop.end)
+            releaseSounding(at: loopEndTime)
+            transport.jump(toBeat: loop.start, atHostTime: loopEndTime)
+            scheduledUntil = loop.start
+            carryInBeat = loop.start
+            until = transport.position(at: horizon)
+        }
+        
+        scheduleWindow(from: scheduledUntil, to: until)
+        scheduledUntil = max(scheduledUntil, until)
+    }
+    
+    private func scheduleWindow(from: Double, to: Double) {
+        guard to > from else { return }
+        scheduleClicks(from: from, to: to)
+        if let sequence, let midi = midiOutput() {
+            scheduleNotes(sequence, from: from, to: to, midi: midi)
+        }
+    }
+    
+    private func scheduleClicks(from: Double, to: Double) {
         // Count-in clicks always sound; after that only when the metronome is on
-        let wanted = Metronome.clicks(from: clicksScheduledUntil, to: until, beatsPerBar: transport.beatsPerBar)
-            .filter { transport.isMetronomeOn || $0.beat < 0 }
+        let wanted = Metronome.clicks(from: from, to: to, beatsPerBar: transport.beatsPerBar)
+            .filter { transport.isMetronomeOn || Double($0.beat) < countInEnd }
         guard !wanted.isEmpty, let clicks = clickPlayer() else { return }
 
         clicks.volume = Float(settings.metronomeVolume)
         for click in wanted {
             clicks.click(accent: click.isAccent, atHostTime: transport.hostTime(forBeat: Double(click.beat)))
         }
+    }
+    
+    private func scheduleNotes(_ sequence: SequencePlayback, from: Double, to: Double, midi: MIDIOutput) {
+        midi.channel = UInt8(max(1, min(16, settings.midiChannel)) - 1)
+        var ons: [(beat: Double, note: BeatNote)] = []
+        
+        if let carry = carryInBeat, carry >= from, carry < to {
+            ons += sequence.notes.filter { $0.start < carry && $0.end > carry }.map { (carry, $0) }
+            carryInBeat = nil
+        }
+        // Nothing sounds during the count-in, even if the count-in overlaps earlier chords
+        ons += sequence.notes.filter { $0.start >= max(from, countInEnd) && $0.start < to }.map { ($0.start, $0) }
+        
+        for (beat, note) in ons {
+            midi.noteOn(note.note, velocity: note.velocity, at: transport.hostTime(forBeat: beat))
+            sounding[note.note, default: 0] += 1
+        }
+        for note in sequence.notes where note.end >= from && note.end < to && (sounding[note.note] ?? 0) > 0 {
+            midi.noteOff(note.note, at: transport.hostTime(forBeat: note.end))
+            sounding[note.note]! -= 1
+        }
+    }
+    
+    private func releaseSounding(at time: UInt64) {
+        guard let midi = midiOutput() else { return }
+        for (note, count) in sounding where count > 0 {
+            for _ in 0..<count {
+                midi.noteOff(note, at: time)
+            }
+        }
+        sounding.removeAll()
     }
 
     // MARK: - Devices, created on first use

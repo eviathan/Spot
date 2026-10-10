@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		79DFE9711A8547148E42448F /* SequencerFretboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4E0F9177ADE40C580A9F01D /* SequencerFretboard.swift */; };
+		338BE742F89C4425A22C4E28 /* ChordLaneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6F6126529154F0C8B1B2F43 /* ChordLaneView.swift */; };
+		3353A71836F941CD949F82C5 /* SequenceWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C870F6A12AF5433F9A576E48 /* SequenceWindow.swift */; };
+		AB26BEBF3A294C63BC21DA51 /* SequenceEditorState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F46EF17E845942AE9217E36C /* SequenceEditorState.swift */; };
+		E82D8C1A06F24A67B5218D0D /* SequenceDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B10EFD464274E03AA280694 /* SequenceDocument.swift */; };
 		64B66CCA6B3B4B7CB4F878E4 /* PracticeFretboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329A369EDF034C528A6FB7FD /* PracticeFretboard.swift */; };
 		D5B741EBBDE6471FA1825889 /* ChordPracticeTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E4B8A18465F411B8134BAC5 /* ChordPracticeTabView.swift */; };
 		F673A4B8610F4359BB384B34 /* PracticeState.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4C197311A5A48C8BE9CC8EE /* PracticeState.swift */; };
@@ -33,7 +38,6 @@
 		D37E4C4B2C35944000179A19 /* LibraryDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C4A2C35944000179A19 /* LibraryDetailView.swift */; };
 		D37E4C4D2C359A5100179A19 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37E4C4C2C359A5100179A19 /* Theme.swift */; };
 		D3AA9B5B2BCD982E00C78DF3 /* SpotApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B5A2BCD982E00C78DF3 /* SpotApp.swift */; };
-		D3AA9B5D2BCD982E00C78DF3 /* SpotDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B5C2BCD982E00C78DF3 /* SpotDocument.swift */; };
 		D3AA9B612BCD983000C78DF3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D3AA9B602BCD983000C78DF3 /* Assets.xcassets */; };
 		D3AA9B642BCD983000C78DF3 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D3AA9B632BCD983000C78DF3 /* Preview Assets.xcassets */; };
 		D3AA9B6F2BCD9AAA00C78DF3 /* LayoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AA9B6E2BCD9AAA00C78DF3 /* LayoutView.swift */; };
@@ -73,6 +77,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		E4E0F9177ADE40C580A9F01D /* SequencerFretboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SequencerFretboard.swift; sourceTree = "<group>"; };
+		E6F6126529154F0C8B1B2F43 /* ChordLaneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChordLaneView.swift; sourceTree = "<group>"; };
+		C870F6A12AF5433F9A576E48 /* SequenceWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SequenceWindow.swift; sourceTree = "<group>"; };
+		F46EF17E845942AE9217E36C /* SequenceEditorState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SequenceEditorState.swift; sourceTree = "<group>"; };
+		7B10EFD464274E03AA280694 /* SequenceDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SequenceDocument.swift; sourceTree = "<group>"; };
 		329A369EDF034C528A6FB7FD /* PracticeFretboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeFretboard.swift; sourceTree = "<group>"; };
 		4E4B8A18465F411B8134BAC5 /* ChordPracticeTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChordPracticeTabView.swift; sourceTree = "<group>"; };
 		D4C197311A5A48C8BE9CC8EE /* PracticeState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeState.swift; sourceTree = "<group>"; };
@@ -100,7 +109,6 @@
 		D37E4C4C2C359A5100179A19 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		D3AA9B572BCD982E00C78DF3 /* Spot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Spot.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D3AA9B5A2BCD982E00C78DF3 /* SpotApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotApp.swift; sourceTree = "<group>"; };
-		D3AA9B5C2BCD982E00C78DF3 /* SpotDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotDocument.swift; sourceTree = "<group>"; };
 		D3AA9B602BCD983000C78DF3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D3AA9B632BCD983000C78DF3 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		D3AA9B652BCD983000C78DF3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -153,6 +161,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		C3213DDB4B114AF1BF4F2FDD /* Sequencer */ = {
+			isa = PBXGroup;
+			children = (
+				C870F6A12AF5433F9A576E48 /* SequenceWindow.swift */,
+				E6F6126529154F0C8B1B2F43 /* ChordLaneView.swift */,
+				E4E0F9177ADE40C580A9F01D /* SequencerFretboard.swift */,
+			);
+			path = Sequencer;
+			sourceTree = "<group>";
+		};
 		199F44FE8DA549B9A6AAD79B /* Practice */ = {
 			isa = PBXGroup;
 			children = (
@@ -235,7 +253,6 @@
 				D3E1F5442BCDDA7F00167D43 /* Models */,
 				D3AA9B6D2BCD9A9300C78DF3 /* Views */,
 				D3AA9B5A2BCD982E00C78DF3 /* SpotApp.swift */,
-				D3AA9B5C2BCD982E00C78DF3 /* SpotDocument.swift */,
 				D3AA9B602BCD983000C78DF3 /* Assets.xcassets */,
 				D3AA9B652BCD983000C78DF3 /* Info.plist */,
 				D3AA9B662BCD983000C78DF3 /* Spot.entitlements */,
@@ -255,6 +272,7 @@
 		D3AA9B6D2BCD9A9300C78DF3 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				C3213DDB4B114AF1BF4F2FDD /* Sequencer */,
 				199F44FE8DA549B9A6AAD79B /* Practice */,
 				D3F0DD292C370FDB00AFDA6A /* Components */,
 				D37E4C392C346E5100179A19 /* TabViews */,
@@ -338,6 +356,8 @@
 		DB080E70AAD94BBE9BF02139 /* State */ = {
 			isa = PBXGroup;
 			children = (
+				F46EF17E845942AE9217E36C /* SequenceEditorState.swift */,
+				7B10EFD464274E03AA280694 /* SequenceDocument.swift */,
 				D4C197311A5A48C8BE9CC8EE /* PracticeState.swift */,
 				36EB5C8FA9EE42CA9F4EE49B /* PlaybackController.swift */,
 				503CAFC0C11E4AF493A4F4D9 /* AudioSettings.swift */,
@@ -435,6 +455,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				79DFE9711A8547148E42448F /* SequencerFretboard.swift in Sources */,
+				338BE742F89C4425A22C4E28 /* ChordLaneView.swift in Sources */,
+				3353A71836F941CD949F82C5 /* SequenceWindow.swift in Sources */,
+				AB26BEBF3A294C63BC21DA51 /* SequenceEditorState.swift in Sources */,
+				E82D8C1A06F24A67B5218D0D /* SequenceDocument.swift in Sources */,
 				64B66CCA6B3B4B7CB4F878E4 /* PracticeFretboard.swift in Sources */,
 				D5B741EBBDE6471FA1825889 /* ChordPracticeTabView.swift in Sources */,
 				F673A4B8610F4359BB384B34 /* PracticeState.swift in Sources */,
@@ -477,7 +502,6 @@
 				D37E4C362C33FCBC00179A19 /* Transport.swift in Sources */,
 				D3AA9B6F2BCD9AAA00C78DF3 /* LayoutView.swift in Sources */,
 				D37E4C412C34716D00179A19 /* TabViewType.swift in Sources */,
-				D3AA9B5D2BCD982E00C78DF3 /* SpotDocument.swift in Sources */,
 				D3E653EB2C36238700401B60 /* Fuse.swift in Sources */,
 				D3AA9B5B2BCD982E00C78DF3 /* SpotApp.swift in Sources */,
 				D3E653E62C36238700401B60 /* String+.swift in Sources */,

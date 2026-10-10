@@ -66,11 +66,12 @@ struct SpotApp: App {
         .windowStyle(.hiddenTitleBar)
         .windowToolbarStyle(UnifiedWindowToolbarStyle(showsTitle: false))
         .commands {
-            CommandGroup(replacing: .newItem) {
+            // File > New (⌘N) and Open (⌘O) come from the sequence documents below
+            CommandGroup(after: .newItem) {
                 Button("New Scale…") { ui.definitionEditor = .new(.scale) }
-                    .keyboardShortcut("n", modifiers: [.command])
+                    .keyboardShortcut("n", modifiers: [.command, .option])
                 Button("New Chord…") { ui.definitionEditor = .new(.chord) }
-                    .keyboardShortcut("n", modifiers: [.command, .shift])
+                    .keyboardShortcut("n", modifiers: [.command, .option, .shift])
             }
             
             CommandGroup(replacing: .importExport) {
@@ -80,15 +81,8 @@ struct SpotApp: App {
                     .keyboardShortcut("e", modifiers: [.command, .shift])
             }
             
-            CommandMenu("Playback") {
-                Button(transport.isPlaying ? "Stop" : "Play") { playback.togglePlay() }
-                    .keyboardShortcut("p", modifiers: [.command])
-                Button(transport.isMetronomeOn ? "Metronome Off" : "Metronome On") { transport.isMetronomeOn.toggle() }
-                    .keyboardShortcut("m", modifiers: [.command, .shift])
-                Divider()
-                Button(ui.tab == .Practice ? "Preview Chord" : "Preview Shape") { previewCurrentShape() }
-                    .keyboardShortcut(.return, modifiers: [.command])
-            }
+            PlaybackCommands(transport: transport, playback: playback, previewLabel: ui.tab == .Practice ? "Preview Chord" : "Preview Shape",
+                             preview: previewCurrentShape)
             
             CommandMenu("Shape") {
                 Button(ui.tab == .Practice ? "Next Voicing" : "Next Shape") {
@@ -125,13 +119,26 @@ struct SpotApp: App {
                 Button("Toggle Highlight All Shapes") {
                     display.highlightAllPositions.toggle()
                 }
-                .keyboardShortcut("O", modifiers: [.command])
+                .keyboardShortcut("o", modifiers: [.command, .option])
                 Button("Cycle Labels (Interval / Note / Finger)") {
                     display.markerLabel = display.markerLabel.next
                 }
                 .keyboardShortcut("L", modifiers: [.command])
             }
        }
+        
+        DocumentGroup(newDocument: SequenceDocument()) { file in
+            SequenceWindow(document: file.$document, library: library)
+                .environment(library)
+                .environment(selection)
+                .environment(display)
+                .environment(ui)
+                .environment(transport)
+                .environment(audioSettings)
+                .environment(playback)
+                .environment(practice)
+        }
+        .modelContainer(container)
     }
     
     private func previewCurrentShape() {
@@ -142,5 +149,34 @@ struct SpotApp: App {
         guard let shape = selection.currentShape,
               let placement = shape.placements(root: selection.root, on: selection.fretboard).first else { return }
         playback.preview(Audition.events(for: shape, placement: placement, on: selection.fretboard, clock: transport.clock))
+    }
+}
+
+/// Play/Stop acts on the focused sequence window if there is one, otherwise the plain transport.
+struct PlaybackCommands: Commands {
+    let transport: TransportState
+    let playback: PlaybackController
+    let previewLabel: String
+    let preview: () -> Void
+    
+    @FocusedValue(\.sequenceActions) private var sequenceActions
+    
+    var body: some Commands {
+        CommandMenu("Playback") {
+            Button(transport.isPlaying ? "Stop" : "Play") {
+                if let sequenceActions {
+                    sequenceActions.togglePlay()
+                } else {
+                    playback.togglePlay()
+                }
+            }
+            .keyboardShortcut("p", modifiers: [.command])
+            Button(transport.isMetronomeOn ? "Metronome Off" : "Metronome On") { transport.isMetronomeOn.toggle() }
+                .keyboardShortcut("m", modifiers: [.command, .shift])
+            Divider()
+            Button(previewLabel, action: preview)
+                .keyboardShortcut(.return, modifiers: [.command])
+                .disabled(sequenceActions != nil)
+        }
     }
 }
