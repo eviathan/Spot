@@ -177,3 +177,39 @@ final class StartAndEndMarkerTests: XCTestCase {
         XCTAssertNil(sequence.endBeat)
     }
 }
+
+final class ShapePickTests: XCTestCase {
+    func testPicksAreKeptAndForgotten() throws {
+        var sequence = ChordSequence()
+        sequence.setChord("Dm7", in: BeatRange(0, 4))
+        let id = try XCTUnwrap(sequence.chords.first?.id)
+        let voicing = ShapePick(shapeId: "drop2.1", fret: 5)
+        let position = ShapePick(shapeId: "caged.e", fret: 5)
+        sequence.pick(id, voicing: .some(voicing), position: .some(position))
+        XCTAssertEqual(sequence.chords[0].voicing, voicing)
+
+        // Saved with the file; older files without them still open
+        let decoded = try JSONDecoder().decode(ChordSequence.self, from: sequence.encoded())
+        XCTAssertEqual(decoded.chords[0].position, position)
+        let old = #"{"version": 1, "tempo": 100, "beatsPerBar": 4, "lengthInBars": 4, "chords": [{"id": "6F9619FF-8B86-D011-B42D-00CF4FC964FF", "range": {"start": 0, "end": 4}, "symbol": "C"}]}"#
+        XCTAssertNil(try JSONDecoder().decode(ChordSequence.self, from: Data(old.utf8)).chords[0].voicing)
+
+        // Moving the chord keeps them
+        var moved = sequence.chords[0]
+        moved.range = BeatRange(4, 8)
+        sequence.place(moved)
+        XCTAssertEqual(sequence.chords[0].voicing, voicing)
+
+        // A new scale forgets the position; a new chord forgets both
+        sequence.update(id, scaleId: .some("builtin.scale.dorian"))
+        XCTAssertNil(sequence.chords[0].position)
+        XCTAssertEqual(sequence.chords[0].voicing, voicing)
+        sequence.update(id, symbol: "G7")
+        XCTAssertNil(sequence.chords[0].voicing)
+
+        // Clearing a pick
+        sequence.pick(id, voicing: .some(voicing))
+        sequence.pick(id, voicing: .some(nil))
+        XCTAssertNil(sequence.chords[0].voicing)
+    }
+}

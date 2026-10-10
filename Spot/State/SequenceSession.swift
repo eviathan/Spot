@@ -496,6 +496,19 @@ final class SequenceSession {
         playback.setAudioRate(sequence.audio.map { sequence.tempo / $0.tempo } ?? 1)
     }
 
+    /// Steps the voicing of the chord at the playhead along its options (up or down the neck), picking it.
+    func cycleVoicing(by step: Int) {
+        guard let editor, let sequence, let region = sequence.chord(at: editor.selection.start),
+              let chord = editor.analysis.chords[region.id] else { return }
+        let options = editor.voicingOptions(for: chord)
+        guard !options.isEmpty else { return }
+        let current = editor.analysis.positions[region.id]?.voicing.flatMap { voicing in
+            options.firstIndex { $0.pick == voicing.pick }
+        }
+        let next = ((current ?? (step > 0 ? -1 : 0)) + step + options.count) % options.count
+        self.sequence?.pick(region.id, voicing: .some(options[next].pick))
+    }
+
     /// Moves playback to `beat` while playing (clicking in the lane), without a count-in.
     func seek(to beat: Double) {
         guard isPlaying, !isRecording, let sequence, let editor else { return }

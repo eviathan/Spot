@@ -194,12 +194,20 @@ struct SpotApp: App {
             }
             
             CommandMenu("Shape") {
-                Button(ui.tab == .Practice ? "Next Voicing" : "Next Shape") {
-                    ui.tab == .Practice ? practice.nextVoicing() : selection.nextShape()
+                Button(ui.tab == .Library ? "Next Shape" : "Next Voicing") {
+                    switch ui.tab {
+                    case .Practice: practice.nextVoicing()
+                    case .Sequence: session.cycleVoicing(by: 1)
+                    default: selection.nextShape()
+                    }
                 }
                 .keyboardShortcut("]", modifiers: [.command])
-                Button(ui.tab == .Practice ? "Previous Voicing" : "Previous Shape") {
-                    ui.tab == .Practice ? practice.previousVoicing() : selection.previousShape()
+                Button(ui.tab == .Library ? "Previous Shape" : "Previous Voicing") {
+                    switch ui.tab {
+                    case .Practice: practice.previousVoicing()
+                    case .Sequence: session.cycleVoicing(by: -1)
+                    default: selection.previousShape()
+                    }
                 }
                 .keyboardShortcut("[", modifiers: [.command])
                 Divider()

@@ -44,14 +44,16 @@ struct SequencerFretboard: View {
         let roles = scale.map { ChordScaleMatcher.roles(chord: chord.chord, scale: $0) }
             ?? Dictionary(uniqueKeysWithValues: (0..<12).map { ($0, chord.chord.formula.pitchClassOffsets.contains($0) ? NoteRole.chordTone : .outside) })
 
-        // Following the hand: only the chosen position for each chord, rather than the whole neck
-        let currentPlacement = analysis.positions[region.id]?.placement
-        let followsHand = editor.neckView == .followHand && currentPlacement != nil
+        // Following the hand: only the chosen voicing and scale shape for each chord, rather than the whole neck
+        let current = analysis.positions[region.id]
+        let currentPlacement = current?.placement
+        let currentVoicing = current?.voicing?.placement
+        let followsHand = editor.neckView == .followHand && current != nil
 
         // The next chord: where the hand goes for it, its notes named from its own root, and stronger as it nears
         let nextRegion = sequence.chord(after: max(position, region.range.start))
         let nextChord = nextRegion.flatMap { analysis.chords[$0.id] }
-        let nextPlacement = nextRegion.flatMap { analysis.positions[$0.id]?.placement }
+        let nextNeck = nextRegion.flatMap { analysis.positions[$0.id] }
         var nearness = 0.0
         if let nextRegion {
             let beatsLeft = nextRegion.range.start - position
@@ -72,18 +74,26 @@ struct SequencerFretboard: View {
             let pitchClass = fretboard.pitchClass(at: position)
             let offset = pitchClass.semitones(above: chord.root.pitchClass)
             let role = roles[offset] ?? .outside
-            let inCurrent = !followsHand || currentPlacement?[position] != nil
+            let inVoicing = currentVoicing?[position] != nil
+            let inCurrent = !followsHand || currentPlacement?[position] != nil || inVoicing
 
             let degree = chordDegrees[offset] ?? scaleDegrees[offset].map(ChordScaleMatcher.tensionName)
             let marker = FretMarker(position: position, pitchClass: pitchClass, semitonesAboveRoot: offset,
                                     degree: degree, isInPosition: true, finger: nil,
                                     noteName: degree.map(chord.root.spelling) ?? key.spell(pitchClass),
                                     intervalName: degree?.intervalName ?? Degree.chromaticIntervalName(offset))
-            let label = display.markerLabel == .note ? marker.noteName.description : marker.intervalName
+            // Fingers come from the voicing for its notes, otherwise from the scale shape
+            let finger = (currentVoicing?[position] ?? currentPlacement?[position])?.finger
+            let label: String
+            switch display.markerLabel {
+            case .note: label = marker.noteName.description
+            case .finger: label = finger.map { $0 == 0 ? "0" : "\($0)" } ?? marker.intervalName
+            case .interval: label = marker.intervalName
+            }
 
             // In the next chord or its scale? Only where the hand goes for it (everywhere only if there's no position for it)
             var next: (label: String, isTarget: Bool, isChordTone: Bool)?
-            if let nextChord, nextPlacement.map({ $0[position] != nil }) ?? true {
+            if let nextChord, nextNeck.map({ $0.placement[position] != nil || $0.voicing?.placement[position] != nil }) ?? true {
                 let nextOffset = pitchClass.semitones(above: nextChord.root.pitchClass)
                 let name = { (degree: Degree) in
                     display.markerLabel == .note ? nextChord.root.spelling(degree).description : degree.intervalName
@@ -102,6 +112,10 @@ struct SequencerFretboard: View {
             let sharedDashed = next.map { !$0.isChordTone } ?? false
 
             switch role {
+            case .chordTone where inVoicing:
+                // The voicing: filled, so the grip stands out within the scale
+                return FretboardMarker(marker: marker, label: label, ring: roleColour(.chordTone), fill: roleColour(.chordTone),
+                                       text: .black, halo: sharedRing, haloDashed: sharedDashed)
             case .chordTone where inCurrent:
                 return FretboardMarker(marker: marker, label: label, ring: roleColour(.chordTone), fill: .black, text: .white,
                                        halo: sharedRing, haloDashed: sharedDashed)
@@ -320,7 +334,7 @@ struct PerformanceHeader: View {
         guard editor.neckView == .followHand, let current,
               let from = editor.analysis.positions[current.id], let to = editor.analysis.positions[next.id],
               abs(to.centre - from.centre) >= 2.5 else { return nil }
-        let lowest = to.placement.keys.map(\.fret).filter { $0 > 0 }.min() ?? Int(to.centre)
+        let lowest = (to.voicing?.placement ?? to.placement).keys.map(\.fret).filter { $0 > 0 }.min() ?? Int(to.centre)
         return to.centre > from.centre ? ("Move up to fret \(lowest)", true) : ("Move down to fret \(lowest)", false)
     }
 
@@ -548,7 +562,7 @@ struct FretboardReadout: View {
         guard editor.neckView == .followHand, let current,
               let from = editor.analysis.positions[current.id], let to = editor.analysis.positions[next.id],
               abs(to.centre - from.centre) >= 2.5 else { return nil }
-        let lowest = to.placement.keys.map(\.fret).filter { $0 > 0 }.min() ?? Int(to.centre)
+        let lowest = (to.voicing?.placement ?? to.placement).keys.map(\.fret).filter { $0 > 0 }.min() ?? Int(to.centre)
         return to.centre > from.centre ? ("Move up to fret \(lowest)", true) : ("Move down to fret \(lowest)", false)
     }
 }

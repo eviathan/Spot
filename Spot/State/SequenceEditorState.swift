@@ -21,12 +21,53 @@ final class SequenceEditorState {
         var positions: [UUID: NeckPosition] = [:]
     }
     
-    /// A scale shape placed on the neck for one chord.
+    /// Where to play one chord: a voicing of the chord, and the scale shape around it.
     struct NeckPosition {
         var name: String
+        /// The scale shape.
         var placement: [FretPosition: ShapeNote]
-        /// Average fret of the shape, i.e. where the hand is.
+        /// Where the hand is: the voicing's frets, or the scale's if there's no voicing.
         var centre: Double
+        var voicing: ShapeOption?
+        var position: ShapeOption?
+    }
+
+    /// A shape placed at one spot on the neck, to choose from.
+    struct ShapeOption: Identifiable {
+        var shape: Shape
+        var placement: [FretPosition: ShapeNote]
+        var pick: ShapePick
+        /// Average fretted fret (open strings left out, so open chords count as first position).
+        var centre: Double
+        var id: String { "\(pick.shapeId)@\(pick.fret)" }
+
+        /// e.g. "Drop 2 · Root position · fret 5", "CAGED · E shape · frets 5–8".
+        var label: String {
+            "\(shape.system) · \(shortLabel)"
+        }
+
+        /// Without the system: "E shape · frets 5–8".
+        var shortLabel: String {
+            let frets = placement.keys.map(\.fret)
+            let low = frets.filter { $0 > 0 }.min() ?? 0, high = frets.max() ?? 0
+            let where_ = low == high ? "fret \(low)" : (low == 0 ? "open–\(high)" : "frets \(low)–\(high)")
+            // Generated names can start with the system ("Drop 3 · Root position"): it's shown separately
+            var name = shape.name
+            for separator in [" · ", ", ", " "] where name.hasPrefix(shape.system + separator) {
+                name = String(name.dropFirst(shape.system.count + separator.count))
+                break
+            }
+            return "\(name) · \(where_)"
+        }
+
+        init(shape: Shape, placement: [FretPosition: ShapeNote]) {
+            self.shape = shape
+            self.placement = placement
+            let frets = placement.keys.map(\.fret)
+            let fretted = frets.filter { $0 > 0 }
+            pick = ShapePick(shapeId: shape.id, fret: fretted.min() ?? 0)
+            centre = fretted.isEmpty ? 0 : Double(fretted.reduce(0, +)) / Double(fretted.count)
+        }
     }
     
     enum NeckView {
@@ -180,6 +221,7 @@ final class SequenceEditorState {
     
     @ObservationIgnored private var lastSequence: ChordSequence?
     @ObservationIgnored private var shapeCache: [String: [Shape]] = [:]
+    @ObservationIgnored private var optionCache: [String: [ShapeOption]] = [:]
 
     private(set) var analysis = Analysis()
 
@@ -222,32 +264,78 @@ final class SequenceEditorState {
         analysis.positions = positions(for: lastSequence, chords: analysis.chords, scales: analysis.scales)
     }
     
-    /// Walks through the chords picking, for each, the scale position nearest the hand, then moving the hand there.
+    /// Walks through the chords choosing, for each, a voicing near the hand (or the one picked), then the scale
+    /// shape that best surrounds it (or the one picked), and moving the hand to the voicing.
     private func positions(for sequence: ChordSequence, chords: [UUID: ChordSymbol],
                            scales: [UUID: ScaleDefinition]) -> [UUID: NeckPosition] {
         var result: [UUID: NeckPosition] = [:]
         var hand = Double(handFret)
         for region in sequence.chords {
-            guard let chord = chords[region.id], let scale = scales[region.id] else { continue }
-            let candidates = scaleShapes(scale).flatMap { shape in
-                shape.placements(root: chord.root.pitchClass, on: fretboard).map { (shape, $0) }
+            guard let chord = chords[region.id] else { continue }
+            let voicings = voicingOptions(for: chord)
+            let voicing = region.voicing.flatMap { pick in voicings.first { $0.pick == pick } }
+                ?? voicings.min { abs($0.centre - hand) < abs($1.centre - hand) }
+
+            var position: ShapeOption?
+            if let scale = scales[region.id] {
+                let options = positionOptions(for: chord, scale: scale)
+                if let pick = region.position, let picked = options.first(where: { $0.pick == pick }) {
+                    position = picked
+                } else if let voicing {
+                    // The scale shape that covers the voicing, under the same hand
+                    let target = Set(voicing.placement.keys)
+                    position = options.max { score($0, covering: target, at: voicing.centre) < score($1, covering: target, at: voicing.centre) }
+                } else {
+                    position = options.min { abs($0.centre - hand) < abs($1.centre - hand) }
+                }
             }
-            let best = candidates.min { lhs, rhs in
-                abs(centre(lhs.1) - hand) < abs(centre(rhs.1) - hand)
-            }
-            guard let (shape, placement) = best else { continue }
-            let position = NeckPosition(name: "\(shape.system), \(shape.name)", placement: placement, centre: centre(placement))
-            result[region.id] = position
-            hand = position.centre
+
+            guard voicing != nil || position != nil else { continue }
+            let name = [voicing.map { "\($0.shape.system), \($0.shape.name)" }, position.map { "\($0.shape.system), \($0.shape.name)" }]
+                .compactMap { $0 }.joined(separator: " in ")
+            let neck = NeckPosition(name: name, placement: position?.placement ?? [:],
+                                    centre: voicing?.centre ?? position!.centre, voicing: voicing, position: position)
+            result[region.id] = neck
+            hand = neck.centre
         }
         return result
     }
-    
-    private func centre(_ placement: [FretPosition: ShapeNote]) -> Double {
-        let frets = placement.keys.map(\.fret)
-        return Double(frets.reduce(0, +)) / Double(max(frets.count, 1))
+
+    /// How well a scale shape surrounds a voicing: every voicing note it covers counts most, then closeness.
+    private func score(_ option: ShapeOption, covering target: Set<FretPosition>, at centre: Double) -> Double {
+        Double(target.filter { option.placement[$0] != nil }.count) * 10 - abs(option.centre - centre)
     }
-    
+
+    /// Every voicing of a chord on the neck (yours first, then generated ones), up the neck.
+    func voicingOptions(for chord: ChordSymbol) -> [ShapeOption] {
+        let key = "voicing:\(chord.chord.id):\(chord.root.pitchClass.value)"
+        if let cached = optionCache[key] {
+            return cached
+        }
+        let shapes = library.userShapes(for: chord.chord.id, tuningId: fretboard.tuning.id).filter { $0.kind == .chord }
+            + ShapeGenerator.chordVoicings(chord.chord, root: chord.root.pitchClass, fretboard: fretboard)
+        let options = shapes.flatMap { shape in
+            shape.placements(root: chord.root.pitchClass, on: fretboard).map { ShapeOption(shape: shape, placement: $0) }
+        }
+        .sorted { $0.centre < $1.centre }
+        optionCache[key] = options
+        return options
+    }
+
+    /// Every placement of a scale's shapes for this chord's root, up the neck.
+    func positionOptions(for chord: ChordSymbol, scale: ScaleDefinition) -> [ShapeOption] {
+        let key = "scale:\(scale.id):\(scale.formula):\(chord.root.pitchClass.value)"
+        if let cached = optionCache[key] {
+            return cached
+        }
+        let options = scaleShapes(scale).flatMap { shape in
+            shape.placements(root: chord.root.pitchClass, on: fretboard).map { ShapeOption(shape: shape, placement: $0) }
+        }
+        .sorted { $0.centre < $1.centre }
+        optionCache[key] = options
+        return options
+    }
+
     private func scaleShapes(_ scale: ScaleDefinition) -> [Shape] {
         let key = "\(scale.id):\(scale.formula)"
         if let cached = shapeCache[key] {

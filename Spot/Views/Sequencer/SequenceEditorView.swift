@@ -110,6 +110,17 @@ private struct LaneEditorBar: View {
                 .help("The scale to play over this chord")
             }
 
+            // How to play this chord, and where to play its scale: chosen automatically, or picked
+            if let region, let chord = editor.analysis.chords[region.id] {
+                let neck = editor.analysis.positions[region.id]
+                shapeMenu(title: "Voicing", options: editor.voicingOptions(for: chord), current: neck?.voicing,
+                          picked: region.voicing) { pick in sequence.pick(region.id, voicing: .some(pick)) }
+                if let scale = editor.analysis.scales[region.id] {
+                    shapeMenu(title: "Position", options: editor.positionOptions(for: chord, scale: scale), current: neck?.position,
+                              picked: region.position) { pick in sequence.pick(region.id, position: .some(pick)) }
+                }
+            }
+
             if let section {
                 Button("Remove Section “\(section.name)”") { sequence.removeSection(section.id) }
             }
@@ -164,6 +175,55 @@ private struct LaneEditorBar: View {
         // A little more below, to sit level above the footer
         .padding(.top, 8)
         .padding(.bottom, 12)
+    }
+}
+
+extension LaneEditorBar {
+    /// A menu of shapes to choose from, grouped by system and ordered up the neck, with Automatic first.
+    /// Its title shows what's in use (picked or not).
+    @ViewBuilder
+    func shapeMenu(title: String, options: [SequenceEditorState.ShapeOption], current: SequenceEditorState.ShapeOption?,
+                   picked: ShapePick?, choose: @escaping (ShapePick?) -> Void) -> some View {
+        let systems = options.reduce(into: [String]()) { if !$0.contains($1.shape.system) { $0.append($1.shape.system) } }
+        Menu {
+            Button {
+                choose(nil)
+            } label: {
+                if picked == nil { Label("Automatic", systemImage: "checkmark") } else { Text("Automatic") }
+            }
+            Divider()
+            ForEach(systems, id: \.self) { system in
+                Menu(system) {
+                    ForEach(options.filter { $0.shape.system == system }) { option in
+                        Button {
+                            choose(option.pick)
+                        } label: {
+                            let text = option.shortLabel
+                            if option.pick == picked { Label(text, systemImage: "checkmark") } else { Text(text) }
+                        }
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: 4) {
+                Text(title).opacity(0.6)
+                Text(current?.shortLabel ?? "None")
+                    .lineLimit(1)
+                if picked != nil {
+                    Image(systemName: "pin.fill")
+                        .font(.caption2)
+                        .opacity(0.7)
+                }
+            }
+            .foregroundStyle(.white)
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.visible)
+        .fixedSize()
+        .disabled(options.isEmpty)
+        .help(picked == nil
+              ? "\(title): \(current?.label ?? "none"), chosen automatically to stay near your hand. Pick one to use it for this chord\(title == "Voicing" ? " (or ⌘[ ⌘] to step through them)" : "")."
+              : "\(title): picked for this chord (the pin). Choose Automatic to let Spot choose again.")
     }
 }
 

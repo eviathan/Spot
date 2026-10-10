@@ -35,12 +35,27 @@ protocol BeatRanged {
 }
 
 /// A chord over part of the sequence, written as a symbol ("Dm7", "Bb7#9/D") so files stay readable.
+/// A shape placed on the neck: which shape (by id), and where (the fret of its lowest fretted note).
+public struct ShapePick: Hashable, Codable, Sendable {
+    public var shapeId: String
+    public var fret: Int
+
+    public init(shapeId: String, fret: Int) {
+        self.shapeId = shapeId
+        self.fret = fret
+    }
+}
+
 public struct ChordRegion: Identifiable, Hashable, Codable, Sendable, BeatRanged {
     public var id: UUID
     public var range: BeatRange
     public var symbol: String
     /// A scale chosen for this chord; nil to use the best suggestion.
     public var scaleId: String?
+    /// How to play the chord, chosen by hand; nil to pick one near the hand.
+    public var voicing: ShapePick?
+    /// Where to play the scale, chosen by hand; nil to pick the one around the voicing.
+    public var position: ShapePick?
 
     public init(id: UUID = UUID(), range: BeatRange, symbol: String, scaleId: String? = nil) {
         self.id = id
@@ -154,10 +169,25 @@ public struct ChordSequence: Hashable, Codable, Sendable {
     }
 
     /// Changes one chord's symbol or scale without moving it.
+    /// Changing the chord forgets its voicing and position; changing its scale forgets the position.
     public mutating func update(_ id: UUID, symbol: String? = nil, scaleId: String?? = nil) {
         guard let index = chords.firstIndex(where: { $0.id == id }) else { return }
-        if let symbol { chords[index].symbol = symbol }
-        if let scaleId { chords[index].scaleId = scaleId }
+        if let symbol, symbol != chords[index].symbol {
+            chords[index].symbol = symbol
+            chords[index].voicing = nil
+            chords[index].position = nil
+        }
+        if let scaleId, scaleId != chords[index].scaleId {
+            chords[index].scaleId = scaleId
+            chords[index].position = nil
+        }
+    }
+
+    /// Chooses (or, with nil, stops choosing) a chord's voicing or scale position.
+    public mutating func pick(_ id: UUID, voicing: ShapePick?? = nil, position: ShapePick?? = nil) {
+        guard let index = chords.firstIndex(where: { $0.id == id }) else { return }
+        if let voicing { chords[index].voicing = voicing }
+        if let position { chords[index].position = position }
     }
 
     public mutating func setSection(_ name: String, in range: BeatRange) {
