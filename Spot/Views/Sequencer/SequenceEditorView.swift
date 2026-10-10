@@ -99,15 +99,25 @@ private struct LaneEditorBar: View {
             }
 
             if let region, let suggestions = editor.analysis.suggestions[region.id] {
-                Picker("Scale", selection: Binding(get: { region.scaleId ?? "" },
-                                                   set: { sequence.update(region.id, scaleId: .some($0.isEmpty ? nil : $0)) })) {
-                    Text("Auto (\(suggestions.first?.scale.name ?? "none"))").tag("")
+                let inUse = editor.analysis.scales[region.id]?.name ?? "None"
+                BarMenu(title: "Scale", value: inUse, isPinned: region.scaleId != nil,
+                        help: region.scaleId == nil
+                            ? "Scale: \(inUse), the best fit for this chord. Pick another to use it instead."
+                            : "Scale: \(inUse), picked for this chord (the pin). Choose Automatic to go back to the best fit.") {
+                    Button {
+                        sequence.update(region.id, scaleId: .some(nil))
+                    } label: {
+                        checked("Automatic (\(suggestions.first?.scale.name ?? "none"))", region.scaleId == nil)
+                    }
+                    Divider()
                     ForEach(suggestions.prefix(12)) { suggestion in
-                        Text(suggestion.scale.name).tag(suggestion.scale.id)
+                        Button {
+                            sequence.update(region.id, scaleId: .some(suggestion.scale.id))
+                        } label: {
+                            checked(suggestion.scale.name, region.scaleId == suggestion.scale.id)
+                        }
                     }
                 }
-                .frame(maxWidth: 250)
-                .help("The scale to play over this chord")
             }
 
             // How to play this chord, and where to play its scale: chosen automatically, or picked
@@ -125,19 +135,20 @@ private struct LaneEditorBar: View {
                 Button("Remove Section “\(section.name)”") { sequence.removeSection(section.id) }
             }
 
-            Picker("Snap", selection: $editor.snap) {
-                Text("Bar").tag(Double(sequence.beatsPerBar))
-                if sequence.beatsPerBar % 2 == 0 {
-                    Text("Half bar").tag(Double(sequence.beatsPerBar) / 2)
+            let bar = Double(sequence.beatsPerBar)
+            let grids: [(name: String, beats: Double)] = [("Bar", bar)] + (sequence.beatsPerBar % 2 == 0 ? [("Half bar", bar / 2)] : [])
+                + [("Beat", 1), ("1/8", 0.5), ("1/16", 0.25), ("Off", 0)]
+            BarMenu(title: "Snap", value: grids.first { $0.beats == editor.snap }?.name ?? "Off",
+                    help: "The grid for the playhead, selecting, and moving and resizing chords. Chords also stick to each other's edges; hold ⌥ while dragging to ignore both.") {
+                ForEach(grids, id: \.beats) { grid in
+                    if grid.beats == 0 { Divider() }
+                    Button {
+                        editor.snap = grid.beats
+                    } label: {
+                        checked(grid.name, editor.snap == grid.beats)
+                    }
                 }
-                Text("Beat").tag(1.0)
-                Text("1/8").tag(0.5)
-                Text("1/16").tag(0.25)
-                Divider()
-                Text("Off").tag(0.0)
             }
-            .fixedSize()
-            .help("The grid for the playhead, selecting, and moving and resizing chords. Chords also stick to each other's edges; hold ⌥ while dragging to ignore both.")
 
             if let error = editor.chordError {
                 Label(error, systemImage: "exclamationmark.triangle")
@@ -180,16 +191,19 @@ private struct LaneEditorBar: View {
 
 extension LaneEditorBar {
     /// A menu of shapes to choose from, grouped by system and ordered up the neck, with Automatic first.
-    /// Its title shows what's in use (picked or not).
+    /// Its title shows what's in use (picked or not), with its group.
     @ViewBuilder
     func shapeMenu(title: String, options: [SequenceEditorState.ShapeOption], current: SequenceEditorState.ShapeOption?,
                    picked: ShapePick?, choose: @escaping (ShapePick?) -> Void) -> some View {
         let systems = options.reduce(into: [String]()) { if !$0.contains($1.shape.system) { $0.append($1.shape.system) } }
-        Menu {
+        BarMenu(title: title, value: current?.label ?? "None", isPinned: picked != nil,
+                help: picked == nil
+                    ? "\(title): \(current?.label ?? "none"), chosen automatically to stay near your hand. Pick one to use it for this chord\(title == "Voicing" ? " (or ⌘[ ⌘] to step through them)" : "")."
+                    : "\(title): \(current?.label ?? "none"), picked for this chord (the pin). Choose Automatic to let Spot choose again.") {
             Button {
                 choose(nil)
             } label: {
-                if picked == nil { Label("Automatic", systemImage: "checkmark") } else { Text("Automatic") }
+                checked("Automatic", picked == nil)
             }
             Divider()
             ForEach(systems, id: \.self) { system in
@@ -198,32 +212,64 @@ extension LaneEditorBar {
                         Button {
                             choose(option.pick)
                         } label: {
-                            let text = option.shortLabel
-                            if option.pick == picked { Label(text, systemImage: "checkmark") } else { Text(text) }
+                            checked(option.shortLabel, option.pick == picked)
                         }
                     }
                 }
             }
+        }
+        .disabled(options.isEmpty)
+    }
+
+    /// A menu item, ticked when it's the one in use.
+    @ViewBuilder
+    func checked(_ title: String, _ isOn: Bool) -> some View {
+        if isOn { Label(title, systemImage: "checkmark") } else { Text(title) }
+    }
+}
+
+/// A dropdown in the editor bar: a dimmed title, then what's chosen in white (shortened to a set length, with the
+/// whole thing in the tooltip), a pin when it was picked by hand, and a chevron. Plain, on the bar's colour.
+struct BarMenu<Content: View>: View {
+    let title: String
+    let value: String
+    var isPinned = false
+    var help: String
+    @ViewBuilder let content: () -> Content
+
+    /// Long names keep their start (the group, e.g. "Open · …") and lose the end.
+    static func shortened(_ text: String, to length: Int = 30) -> String {
+        text.count <= length ? text : String(text.prefix(length - 1)).trimmingCharacters(in: .whitespaces) + "…"
+    }
+
+    var body: some View {
+        Menu {
+            content()
         } label: {
-            HStack(spacing: 4) {
-                Text(title).opacity(0.6)
-                Text(current?.shortLabel ?? "None")
+            HStack(spacing: 5) {
+                Text(title)
+                    .opacity(0.6)
+                Text(BarMenu.shortened(value))
+                    .fontWeight(.medium)
                     .lineLimit(1)
-                if picked != nil {
+                if isPinned {
                     Image(systemName: "pin.fill")
                         .font(.caption2)
-                        .opacity(0.7)
+                        .opacity(0.8)
                 }
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 9, weight: .bold))
+                    .opacity(0.8)
             }
             .foregroundStyle(.white)
+            .contentShape(Rectangle())
         }
-        .menuStyle(.borderlessButton)
-        .menuIndicator(.visible)
+        // Plain: the borderless menu style tints its label with the accent colour, whatever colour it's given
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .menuIndicator(.hidden)
         .fixedSize()
-        .disabled(options.isEmpty)
-        .help(picked == nil
-              ? "\(title): \(current?.label ?? "none"), chosen automatically to stay near your hand. Pick one to use it for this chord\(title == "Voicing" ? " (or ⌘[ ⌘] to step through them)" : "")."
-              : "\(title): picked for this chord (the pin). Choose Automatic to let Spot choose again.")
+        .help(help)
     }
 }
 
