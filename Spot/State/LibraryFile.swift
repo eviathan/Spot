@@ -33,3 +33,30 @@ struct LibraryFile: FileDocument {
         FileWrapper(regularFileWithContents: try bundle.encoded())
     }
 }
+
+/// Whatever the window's single Save panel is saving: a library export or a sequence.
+struct ExportDocument: FileDocument {
+    static var readableContentTypes: [UTType] { [.spotLibrary, .spotSequence] }
+
+    enum Content {
+        case library(LibraryFile)
+        case sequence(SequenceDocument)
+    }
+
+    var content: Content
+
+    init(_ content: Content) {
+        self.content = content
+    }
+
+    init(configuration: ReadConfiguration) throws {
+        throw CocoaError(.featureUnsupported)
+    }
+
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        switch content {
+        case .library(let file): return try file.fileWrapper(configuration: configuration)
+        case .sequence(let document): return try document.fileWrapper(configuration: configuration)
+        }
+    }
+}

@@ -21,6 +21,7 @@ struct SpotApp: App {
     @State private var audioSettings: AudioSettings
     @State private var playback: PlaybackController
     @State private var practice: PracticeState
+    @State private var session: SequenceSession
 
     init() {
         NSWindow.allowsAutomaticWindowTabbing = false
@@ -42,8 +43,10 @@ struct SpotApp: App {
         let audioSettings = AudioSettings()
         _transport = State(initialValue: transport)
         _audioSettings = State(initialValue: audioSettings)
-        _playback = State(initialValue: PlaybackController(transport: transport, settings: audioSettings))
+        let playback = PlaybackController(transport: transport, settings: audioSettings)
+        _playback = State(initialValue: playback)
         _practice = State(initialValue: PracticeState(library: library))
+        _session = State(initialValue: SequenceSession(library: library, playback: playback, transport: transport))
     }
 
     var body: some Scene {
@@ -58,6 +61,7 @@ struct SpotApp: App {
                 .environment(audioSettings)
                 .environment(playback)
                 .environment(practice)
+                .environment(session)
                 .toolbar {
                     Color.clear
                 }
@@ -66,12 +70,39 @@ struct SpotApp: App {
         .windowStyle(.hiddenTitleBar)
         .windowToolbarStyle(UnifiedWindowToolbarStyle(showsTitle: false))
         .commands {
-            // File > New (⌘N) and Open (⌘O) come from the sequence documents below
-            CommandGroup(after: .newItem) {
+            CommandGroup(replacing: .newItem) {
+                Button("New Sequence") { ui.requestSequenceAction(.new, session: session) }
+                    .keyboardShortcut("n", modifiers: [.command])
+                Button("Open Sequence…") { ui.requestSequenceAction(.open, session: session) }
+                    .keyboardShortcut("o", modifiers: [.command])
+                Menu("Open Recent") {
+                    ForEach(session.recents) { recent in
+                        Button(recent.name) { ui.requestSequenceAction(.openRecent(recent), session: session) }
+                    }
+                }
+                .disabled(session.recents.isEmpty)
+                Button("Close Sequence") { ui.requestSequenceAction(.close, session: session) }
+                    .disabled(!session.isOpen)
+                Divider()
                 Button("New Scale…") { ui.definitionEditor = .new(.scale) }
                     .keyboardShortcut("n", modifiers: [.command, .option])
                 Button("New Chord…") { ui.definitionEditor = .new(.chord) }
                     .keyboardShortcut("n", modifiers: [.command, .option, .shift])
+            }
+            
+            CommandGroup(replacing: .saveItem) {
+                Button("Save") {
+                    if session.fileURL == nil {
+                        ui.isSavingSequenceAs = true
+                    } else {
+                        do { try session.save() } catch { ui.errorMessage = error.localizedDescription }
+                    }
+                }
+                .keyboardShortcut("s", modifiers: [.command])
+                .disabled(!session.isOpen)
+                Button("Save As…") { ui.isSavingSequenceAs = true }
+                    .keyboardShortcut("s", modifiers: [.command, .shift])
+                    .disabled(!session.isOpen)
             }
             
             CommandGroup(replacing: .importExport) {
@@ -81,8 +112,22 @@ struct SpotApp: App {
                     .keyboardShortcut("e", modifiers: [.command, .shift])
             }
             
-            PlaybackCommands(transport: transport, playback: playback, previewLabel: ui.tab == .Practice ? "Preview Chord" : "Preview Shape",
-                             preview: previewCurrentShape)
+            CommandMenu("Playback") {
+                Button(transport.isPlaying ? "Stop" : "Play") {
+                    if ui.tab == .Sequence && session.isOpen && !transport.isPlaying {
+                        session.togglePlay()
+                    } else {
+                        playback.togglePlay()
+                    }
+                }
+                .keyboardShortcut("p", modifiers: [.command])
+                Button(transport.isMetronomeOn ? "Metronome Off" : "Metronome On") { transport.isMetronomeOn.toggle() }
+                    .keyboardShortcut("m", modifiers: [.command, .shift])
+                Divider()
+                Button(ui.tab == .Practice ? "Preview Chord" : "Preview Shape") { previewCurrentShape() }
+                    .keyboardShortcut(.return, modifiers: [.command])
+                    .disabled(ui.tab == .Sequence)
+            }
             
             CommandMenu("Shape") {
                 Button(ui.tab == .Practice ? "Next Voicing" : "Next Shape") {
@@ -126,19 +171,6 @@ struct SpotApp: App {
                 .keyboardShortcut("L", modifiers: [.command])
             }
        }
-        
-        DocumentGroup(newDocument: SequenceDocument()) { file in
-            SequenceWindow(document: file.$document, library: library)
-                .environment(library)
-                .environment(selection)
-                .environment(display)
-                .environment(ui)
-                .environment(transport)
-                .environment(audioSettings)
-                .environment(playback)
-                .environment(practice)
-        }
-        .modelContainer(container)
     }
     
     private func previewCurrentShape() {
@@ -149,34 +181,5 @@ struct SpotApp: App {
         guard let shape = selection.currentShape,
               let placement = shape.placements(root: selection.root, on: selection.fretboard).first else { return }
         playback.preview(Audition.events(for: shape, placement: placement, on: selection.fretboard, clock: transport.clock))
-    }
-}
-
-/// Play/Stop acts on the focused sequence window if there is one, otherwise the plain transport.
-struct PlaybackCommands: Commands {
-    let transport: TransportState
-    let playback: PlaybackController
-    let previewLabel: String
-    let preview: () -> Void
-    
-    @FocusedValue(\.sequenceActions) private var sequenceActions
-    
-    var body: some Commands {
-        CommandMenu("Playback") {
-            Button(transport.isPlaying ? "Stop" : "Play") {
-                if let sequenceActions {
-                    sequenceActions.togglePlay()
-                } else {
-                    playback.togglePlay()
-                }
-            }
-            .keyboardShortcut("p", modifiers: [.command])
-            Button(transport.isMetronomeOn ? "Metronome Off" : "Metronome On") { transport.isMetronomeOn.toggle() }
-                .keyboardShortcut("m", modifiers: [.command, .shift])
-            Divider()
-            Button(previewLabel, action: preview)
-                .keyboardShortcut(.return, modifiers: [.command])
-                .disabled(sequenceActions != nil)
-        }
     }
 }

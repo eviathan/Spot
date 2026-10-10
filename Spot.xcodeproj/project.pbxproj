@@ -7,9 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F6C19D5ABF9041C1B884B709 /* SequenceSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AD58EB22CE341C68A455B05 /* SequenceSession.swift */; };
+		D8F071B19CC84BAA9515DE95 /* SequenceEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8F4859D90034CA2A03C616F /* SequenceEditorView.swift */; };
 		79DFE9711A8547148E42448F /* SequencerFretboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4E0F9177ADE40C580A9F01D /* SequencerFretboard.swift */; };
 		338BE742F89C4425A22C4E28 /* ChordLaneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6F6126529154F0C8B1B2F43 /* ChordLaneView.swift */; };
-		3353A71836F941CD949F82C5 /* SequenceWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C870F6A12AF5433F9A576E48 /* SequenceWindow.swift */; };
 		AB26BEBF3A294C63BC21DA51 /* SequenceEditorState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F46EF17E845942AE9217E36C /* SequenceEditorState.swift */; };
 		E82D8C1A06F24A67B5218D0D /* SequenceDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B10EFD464274E03AA280694 /* SequenceDocument.swift */; };
 		64B66CCA6B3B4B7CB4F878E4 /* PracticeFretboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329A369EDF034C528A6FB7FD /* PracticeFretboard.swift */; };
@@ -77,9 +78,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0AD58EB22CE341C68A455B05 /* SequenceSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SequenceSession.swift; sourceTree = "<group>"; };
+		D8F4859D90034CA2A03C616F /* SequenceEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SequenceEditorView.swift; sourceTree = "<group>"; };
 		E4E0F9177ADE40C580A9F01D /* SequencerFretboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SequencerFretboard.swift; sourceTree = "<group>"; };
 		E6F6126529154F0C8B1B2F43 /* ChordLaneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChordLaneView.swift; sourceTree = "<group>"; };
-		C870F6A12AF5433F9A576E48 /* SequenceWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SequenceWindow.swift; sourceTree = "<group>"; };
 		F46EF17E845942AE9217E36C /* SequenceEditorState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SequenceEditorState.swift; sourceTree = "<group>"; };
 		7B10EFD464274E03AA280694 /* SequenceDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SequenceDocument.swift; sourceTree = "<group>"; };
 		329A369EDF034C528A6FB7FD /* PracticeFretboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PracticeFretboard.swift; sourceTree = "<group>"; };
@@ -164,7 +166,7 @@
 		C3213DDB4B114AF1BF4F2FDD /* Sequencer */ = {
 			isa = PBXGroup;
 			children = (
-				C870F6A12AF5433F9A576E48 /* SequenceWindow.swift */,
+				D8F4859D90034CA2A03C616F /* SequenceEditorView.swift */,
 				E6F6126529154F0C8B1B2F43 /* ChordLaneView.swift */,
 				E4E0F9177ADE40C580A9F01D /* SequencerFretboard.swift */,
 			);
@@ -356,6 +358,7 @@
 		DB080E70AAD94BBE9BF02139 /* State */ = {
 			isa = PBXGroup;
 			children = (
+				0AD58EB22CE341C68A455B05 /* SequenceSession.swift */,
 				F46EF17E845942AE9217E36C /* SequenceEditorState.swift */,
 				7B10EFD464274E03AA280694 /* SequenceDocument.swift */,
 				D4C197311A5A48C8BE9CC8EE /* PracticeState.swift */,
@@ -455,9 +458,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F6C19D5ABF9041C1B884B709 /* SequenceSession.swift in Sources */,
+				D8F071B19CC84BAA9515DE95 /* SequenceEditorView.swift in Sources */,
 				79DFE9711A8547148E42448F /* SequencerFretboard.swift in Sources */,
 				338BE742F89C4425A22C4E28 /* ChordLaneView.swift in Sources */,
-				3353A71836F941CD949F82C5 /* SequenceWindow.swift in Sources */,
 				AB26BEBF3A294C63BC21DA51 /* SequenceEditorState.swift in Sources */,
 				E82D8C1A06F24A67B5218D0D /* SequenceDocument.swift in Sources */,
 				64B66CCA6B3B4B7CB4F878E4 /* PracticeFretboard.swift in Sources */,

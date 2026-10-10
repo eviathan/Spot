@@ -7,20 +7,25 @@
 
 import SwiftUI
 
-/// Sequences open in their own windows; this tab starts or reopens one.
+/// The open sequence, or a way to start or open one.
 struct SequenceTabView: View {
-    @Environment(\.newDocument) private var newDocument
-    @Environment(\.openDocument) private var openDocument
+    @Environment(SequenceSession.self) private var session
     @Environment(UIState.self) private var ui
 
-    @State private var recent: [URL] = []
-
     var body: some View {
+        if session.isOpen {
+            SequenceEditorView()
+        } else {
+            launcher
+        }
+    }
+
+    private var launcher: some View {
         VStack(spacing: 24) {
             VStack(spacing: 6) {
                 Text("Sequences")
                     .font(.largeTitle)
-                Text("Put chords on a timeline, play them back and see what to play over each one. Each sequence is a .spot file and opens in its own window.")
+                Text("Put chords on a timeline, play them back and see what to play over each one. Each sequence is saved as a .spot file.")
                     .multilineTextAlignment(.center)
                     .opacity(0.7)
                     .frame(maxWidth: 520)
@@ -28,14 +33,14 @@ struct SequenceTabView: View {
 
             HStack(spacing: 16) {
                 Button {
-                    newDocument(SequenceDocument())
+                    ui.requestSequenceAction(.new, session: session)
                 } label: {
                     Label("New Sequence", systemImage: "plus")
                         .frame(minWidth: 160)
                 }
 
                 Button {
-                    NSDocumentController.shared.openDocument(nil)
+                    ui.requestSequenceAction(.open, session: session)
                 } label: {
                     Label("Open…", systemImage: "folder")
                         .frame(minWidth: 160)
@@ -43,31 +48,33 @@ struct SequenceTabView: View {
             }
             .controlSize(.large)
 
-            if !recent.isEmpty {
+            if !session.recents.isEmpty {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Recent")
                         .font(.headline)
-                    ForEach(recent, id: \.self) { url in
-                        Button {
-                            Task {
-                                do {
-                                    try await openDocument(at: url)
-                                } catch {
-                                    ui.errorMessage = "Couldn't open \(url.lastPathComponent): \(error.localizedDescription)"
-                                }
+                    ForEach(session.recents) { recent in
+                        HStack {
+                            Button {
+                                ui.requestSequenceAction(.openRecent(recent), session: session)
+                            } label: {
+                                Label(recent.name, systemImage: "music.note.list")
                             }
-                        } label: {
-                            Label(url.deletingPathExtension().lastPathComponent, systemImage: "music.note.list")
+                            .buttonStyle(.link)
+                            Spacer()
+                            Button {
+                                session.removeRecent(recent)
+                            } label: {
+                                Image(systemName: "xmark")
+                            }
+                            .buttonStyle(.plain)
+                            .opacity(0.5)
+                            .help("Remove from this list")
                         }
-                        .buttonStyle(.link)
                     }
                 }
-                .frame(maxWidth: 520, alignment: .leading)
+                .frame(maxWidth: 420, alignment: .leading)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .onAppear {
-            recent = NSDocumentController.shared.recentDocumentURLs.filter { $0.pathExtension == "spot" }
-        }
     }
 }

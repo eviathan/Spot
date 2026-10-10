@@ -10,6 +10,8 @@ import SwiftUI
 struct Footer: View {
     @Environment(SelectionState.self) private var selection
     @Environment(TransportState.self) private var transport
+    @Environment(SequenceSession.self) private var session
+    @Environment(UIState.self) private var ui
     @State private var previousBPMChangeValue:CGFloat =  0
     
     let backgroundColor = Color(hue: 0.62, saturation: 0.34, brightness: 0.20, opacity: 1.00)
@@ -18,8 +20,24 @@ struct Footer: View {
         selection.transposeRoot(by: value)
     }
     
+    /// On the Sequence tab the tempo belongs to the sequence.
+    private var editsSequenceTempo: Bool {
+        ui.tab == .Sequence && session.isOpen
+    }
+    
+    private var bpm: Int {
+        editsSequenceTempo ? Int(session.sequence?.tempo.rounded() ?? 0) : transport.bpm
+    }
+    
     func incrementBPM(_ value: Int) {
-        transport.incrementBPM(value)
+        if editsSequenceTempo, let tempo = session.sequence?.tempo {
+            session.sequence?.tempo = min(max(tempo.rounded() + Double(value), 20), 300)
+            if !session.isPlaying {
+                transport.setBPM(bpm)
+            }
+        } else {
+            transport.incrementBPM(value)
+        }
     }
     
     var body: some View {
@@ -53,7 +71,7 @@ struct Footer: View {
                             .font(.system(size: 16))
                             .foregroundColor(.white)
                         
-                        Text("\(transport.bpm)")
+                        Text("\(bpm)")
                             .font(.system(size: 20))
                             .foregroundColor(.white)
                             .frame(minWidth: 50)

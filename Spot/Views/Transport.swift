@@ -11,6 +11,13 @@ struct Transport: View {
     
     @Environment(TransportState.self) private var transport
     @Environment(PlaybackController.self) private var playback
+    @Environment(SequenceSession.self) private var session
+    @Environment(UIState.self) private var ui
+    
+    /// On the Sequence tab, play the open sequence.
+    private var playsSequence: Bool {
+        ui.tab == .Sequence && session.isOpen
+    }
    
     func onClickTransport() -> Void {
         
@@ -19,13 +26,18 @@ struct Transport: View {
     /// Back to the start (with the count-in again) if playing.
     func onClickTransportRestart() -> Void {
         if transport.isPlaying {
+            let wasSequence = session.isPlaying
             playback.stop()
-            playback.play()
+            wasSequence ? session.togglePlay() : playback.play()
         }
     }
     
     func onClickTransportPlay() -> Void {
-        playback.togglePlay()
+        if playsSequence && !transport.isPlaying {
+            session.togglePlay()
+        } else {
+            playback.togglePlay()
+        }
     }
     
     func onClickTransportRecord() -> Void {

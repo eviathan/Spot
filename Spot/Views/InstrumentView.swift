@@ -10,12 +10,17 @@ import SpotCore
 
 struct InstrumentView: View {
     @Environment(UIState.self) private var ui
-
+    @Environment(SequenceSession.self) private var session
+    
     var body: some View {
         switch ui.tab {
         case .Library: LibraryFretboard()
         case .Practice: PracticeFretboard()
-        case .Sequence, .Settings: EmptyView()
+        case .Sequence:
+            if let sequence = session.sequence, let editor = session.editor {
+                SequencerFretboard(sequence: sequence, editor: editor)
+            }
+        case .Settings: EmptyView()
         }
     }
 }

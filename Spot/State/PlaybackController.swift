@@ -17,6 +17,9 @@ struct SequencePlayback {
     var notes: [BeatNote]
     var length: Double
     var loop: BeatRange?
+    /// The recording, already lined up with the grid.
+    var audio: RenderedAudio?
+    var audioGain: Float = 1
 }
 
 @Observable
@@ -42,6 +45,10 @@ final class PlaybackController {
     @ObservationIgnored private var carryInBeat: Double?
     /// Sequence notes sounding now, by note number, so a loop or stop can cut them off.
     @ObservationIgnored private var sounding: [Int: Int] = [:]
+    @ObservationIgnored private var track: TrackPlayer?
+    /// Audio is queued up to this beat; nil until the first slice has started.
+    @ObservationIgnored private var audioCursor: Double?
+    @ObservationIgnored private var audioRate: Double = 1
 
     private let lookahead = 0.1
     private let startLatency = 0.05
@@ -85,13 +92,22 @@ final class PlaybackController {
         scheduledUntil = beat - countIn
         countInEnd = beat
         carryInBeat = beat
+        audioCursor = nil
         startTimer()
     }
 
+    /// Practice speed for the audio (the clock is slowed separately, via the tempo).
+    func setAudioRate(_ rate: Double) {
+        audioRate = rate
+        track?.rate = Float(rate)
+    }
+    
     func stop() {
         sequence = nil
         playingSequence = nil
         sounding.removeAll()
+        track?.stop()
+        audioCursor = nil
         transport.stop()
         clicks?.stop()
         midiOutput()?.allNotesOff()
@@ -182,6 +198,10 @@ final class PlaybackController {
             releaseSounding(at: loopEndTime)
             transport.jump(toBeat: loop.start, atHostTime: loopEndTime)
             scheduledUntil = loop.start
+            // Audio carries straight on from the loop start, queued after the slice that ended at the loop end
+            if audioCursor != nil {
+                audioCursor = loop.start
+            }
             carryInBeat = loop.start
             until = transport.position(at: horizon)
         }
@@ -195,6 +215,39 @@ final class PlaybackController {
         scheduleClicks(from: from, to: to)
         if let sequence, let midi = midiOutput() {
             scheduleNotes(sequence, from: from, to: to, midi: midi)
+        }
+        if let sequence, let audio = sequence.audio {
+            scheduleAudio(audio, gain: sequence.audioGain, loopEnd: sequence.loop?.end, to: to)
+        }
+    }
+    
+    /// Queues the recording in one-beat slices. The first starts at an exact time when the count-in ends;
+    /// the rest follow on back to back, so loops and slices join without gaps.
+    private func scheduleAudio(_ audio: RenderedAudio, gain: Float, loopEnd: Double?, to: Double) {
+        if audioCursor == nil {
+            guard countInEnd < to else { return }
+            let first = countInEnd
+            let end = min(floor(first) + 1, loopEnd ?? .infinity)
+            guard let slice = audio.buffer(fromBeat: first, toBeat: end) else { return }
+            let player = track ?? TrackPlayer()
+            track = player
+            player.rate = Float(audioRate)
+            player.volume = gain
+            do {
+                try player.start(slice, atHostTime: transport.hostTime(forBeat: first))
+            } catch {
+                problem = "Couldn't play the audio: \(error.localizedDescription)"
+                return
+            }
+            audioCursor = end
+        }
+        
+        track?.volume = gain
+        while let cursor = audioCursor, cursor < to {
+            let end = min(floor(cursor) + 1, loopEnd.map { cursor < $0 ? $0 : .infinity } ?? .infinity)
+            guard let slice = audio.buffer(fromBeat: cursor, toBeat: end) else { break }
+            track?.append(slice)
+            audioCursor = end
         }
     }
     

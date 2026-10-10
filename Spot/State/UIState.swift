@@ -5,7 +5,31 @@
 
 import Foundation
 import Observation
+import UniformTypeIdentifiers
 import SpotCore
+
+/// The one Open panel the window can show. SwiftUI on macOS only honours one file importer per window
+/// when they're nested, so every kind of opening goes through this.
+enum OpenPanel: Equatable {
+    case library
+    case sequence
+    case audio
+    case relinkAudio
+
+    var contentTypes: [UTType] {
+        switch self {
+        case .library: return [.spotLibrary, .json]
+        case .sequence: return [.spotSequence]
+        case .audio, .relinkAudio: return [.audio]
+        }
+    }
+}
+
+/// The one Save panel the window can show (see `OpenPanel`).
+enum SavePanel: Equatable {
+    case library
+    case sequence
+}
 
 /// Which scale or chord the definition editor is working on.
 enum DefinitionEditorRequest: Identifiable {
@@ -20,6 +44,15 @@ enum DefinitionEditorRequest: Identifiable {
     }
 }
 
+/// Something that replaces the open sequence, held back while asking whether to save it first.
+enum SequenceAction: Equatable {
+    case new
+    case open
+    case openURL(URL)
+    case openRecent(SequenceSession.Recent)
+    case close
+}
+
 struct PendingImport: Identifiable {
     let id = UUID()
     let plan: LibraryImport
@@ -30,12 +63,64 @@ struct PendingImport: Identifiable {
 final class UIState {
     var tab: TabViewType = .Library
     var definitionEditor: DefinitionEditorRequest?
-    var isImporting = false
+    var openPanel: OpenPanel? {
+        didSet { if let openPanel { lastOpenPanel = openPanel } }
+    }
+    /// Which panel was showing, still known after it closes (when its result arrives).
+    private(set) var lastOpenPanel: OpenPanel = .library
+    var savePanel: SavePanel? {
+        didSet { if let savePanel { lastSavePanel = savePanel } }
+    }
+    private(set) var lastSavePanel: SavePanel = .library
+    
+    var isImporting: Bool {
+        get { openPanel == .library }
+        set { setOpenPanel(.library, newValue) }
+    }
     var pendingImport: PendingImport?
     var isChoosingExport = false
     var exportFile: LibraryFile?
-    var isExporting = false
+    var isExporting: Bool {
+        get { savePanel == .library }
+        set { setSavePanel(.library, newValue) }
+    }
     var errorMessage: String?
+    var isOpeningSequence: Bool {
+        get { openPanel == .sequence }
+        set { setOpenPanel(.sequence, newValue) }
+    }
+    var isImportingAudio: Bool {
+        get { openPanel == .audio }
+        set { setOpenPanel(.audio, newValue) }
+    }
+    var isRelinkingAudio: Bool {
+        get { openPanel == .relinkAudio }
+        set { setOpenPanel(.relinkAudio, newValue) }
+    }
+    var isSavingSequenceAs: Bool {
+        get { savePanel == .sequence }
+        set { setSavePanel(.sequence, newValue) }
+    }
+    
+    private func setOpenPanel(_ panel: OpenPanel, _ show: Bool) {
+        if show {
+            openPanel = panel
+        } else if openPanel == panel {
+            openPanel = nil
+        }
+    }
+    
+    private func setSavePanel(_ panel: SavePanel, _ show: Bool) {
+        if show {
+            savePanel = panel
+        } else if savePanel == panel {
+            savePanel = nil
+        }
+    }
+    /// Waiting on "save changes to Untitled?"
+    var pendingSequenceAction: SequenceAction?
+    /// Carry on with this once Save As finishes.
+    var sequenceActionAfterSave: SequenceAction?
     var displayLeftSidebar: Bool {
         didSet { defaults.set(displayLeftSidebar, forKey: "ui.displayLeftSidebar") }
     }
@@ -49,5 +134,36 @@ final class UIState {
         self.defaults = defaults
         displayLeftSidebar = defaults.object(forKey: "ui.displayLeftSidebar") as? Bool ?? true
         displayRightSidebar = defaults.object(forKey: "ui.displayRightSidebar") as? Bool ?? true
+    }
+    
+    /// Does `action` now, or first asks whether to save an unsaved sequence.
+    func requestSequenceAction(_ action: SequenceAction, session: SequenceSession) {
+        if action != .open && session.needsSaveBeforeClosing {
+            pendingSequenceAction = action
+        } else {
+            perform(action, session: session)
+        }
+    }
+    
+    func perform(_ action: SequenceAction, session: SequenceSession) {
+        do {
+            switch action {
+            case .new:
+                session.newSequence()
+                tab = .Sequence
+            case .open:
+                isOpeningSequence = true
+            case .openURL(let url):
+                try session.open(url)
+                tab = .Sequence
+            case .openRecent(let recent):
+                try session.open(recent)
+                tab = .Sequence
+            case .close:
+                session.close()
+            }
+        } catch {
+            errorMessage = "Couldn't open the sequence: \(error.localizedDescription)"
+        }
     }
 }

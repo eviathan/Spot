@@ -14,9 +14,15 @@ struct ChordLaneView: View {
 
     @Environment(PlaybackController.self) private var playback
     @Environment(TransportState.self) private var transport
-
+    @Environment(SequenceSession.self) private var session
+    
     let barWidth: CGFloat = 140
-    let laneHeight: CGFloat = 104
+    /// Chords and sections, plus a waveform row when there's audio.
+    private var laneHeight: CGFloat {
+        sequence.audio == nil ? 104 : 160
+    }
+    let waveformTop: CGFloat = 84
+    let waveformHeight: CGFloat = 52
 
     private var beatWidth: CGFloat {
         barWidth / CGFloat(sequence.beatsPerBar)
@@ -111,6 +117,11 @@ struct ChordLaneView: View {
                 .offset(x: CGFloat(region.range.start) * beatWidth + 1, y: 30)
             }
 
+            if let audio = sequence.audio {
+                WaveformRow(sequence: sequence, audio: audio, beatWidth: beatWidth, width: width, height: waveformHeight)
+                    .offset(y: waveformTop)
+            }
+            
             // Bar lines and numbers
             ForEach(0..<sequence.lengthInBars, id: \.self) { bar in
                 let x = CGFloat(bar) * barWidth
@@ -131,5 +142,124 @@ struct ChordLaneView: View {
             }
         }
         .frame(width: width, height: laneHeight, alignment: .topLeading)
+    }
+}
+
+/// The recording drawn in beat time (so it lines up with the grid), with warp markers to drag.
+/// Double-click a hit to drop a marker there, then drag the marker onto the beat it belongs on.
+private struct WaveformRow: View {
+    let sequence: ChordSequence
+    let audio: AudioTrack
+    let beatWidth: CGFloat
+    let width: CGFloat
+    let height: CGFloat
+    
+    @Environment(SequenceSession.self) private var session
+    @State private var dragging: (id: UUID, beat: Double)?
+    
+    var body: some View {
+        let map = audio.map(tempo: sequence.tempo)
+        
+        ZStack(alignment: .topLeading) {
+            if let peaks = session.peaks {
+                Canvas { context, size in
+                    let middle = size.height / 2
+                    var path = Path()
+                    for x in stride(from: 0, to: size.width, by: 1) {
+                        let start = map.sourceTime(atBeat: Double(x / beatWidth))
+                        let end = map.sourceTime(atBeat: Double((x + 1) / beatWidth))
+                        guard end > 0, start < audio.reference.duration else { continue }
+                        let (low, high) = peaks.range(from: start, to: end)
+                        path.move(to: CGPoint(x: x, y: middle - CGFloat(high) * middle))
+                        path.addLine(to: CGPoint(x: x, y: middle - CGFloat(low) * middle + 0.5))
+                    }
+                    context.stroke(path, with: .color(.cyan.opacity(audio.isMuted ? 0.25 : 0.7)), lineWidth: 1)
+                }
+                .frame(width: width, height: height)
+                .contentShape(Rectangle())
+                .onTapGesture(count: 2, coordinateSpace: .local) { location in
+                    // A marker where you clicked, not moving anything yet
+                    let beat = Double(location.x / beatWidth)
+                    session.sequence?.audio?.setMarker(WarpMarker(sourceTime: map.sourceTime(atBeat: beat), beat: beat))
+                }
+            } else {
+                Text(statusText)
+                    .font(.caption)
+                    .opacity(0.6)
+                    .frame(width: 400, height: height, alignment: .leading)
+                    .padding(.leading, 8)
+            }
+            
+            // Beats heard by the analysis, where they land on the grid now (bar starts taller)
+            if let analysis = session.analysis, session.showsAnalysis {
+                Canvas { context, size in
+                    var path = Path()
+                    for (index, time) in analysis.beats.enumerated() {
+                        let x = CGFloat(map.beat(atSourceTime: time)) * beatWidth
+                        guard x >= 0, x <= size.width else { continue }
+                        let isBarStart = (index - analysis.downbeat) % analysis.beatsPerBar == 0
+                        path.move(to: CGPoint(x: x, y: size.height))
+                        path.addLine(to: CGPoint(x: x, y: size.height * (isBarStart ? 0.35 : 0.7)))
+                    }
+                    context.stroke(path, with: .color(.teal), lineWidth: 1.5)
+                }
+                .frame(width: width, height: height)
+                .allowsHitTesting(false)
+            }
+            
+            ForEach(audio.warpMarkers) { marker in
+                let beat = dragging?.id == marker.id ? dragging!.beat : marker.beat
+                WarpFlag(height: height)
+                    .offset(x: CGFloat(beat) * beatWidth - 5)
+                    .gesture(
+                        DragGesture(minimumDistance: 2)
+                            .onChanged { value in
+                                // Snap to beats; hold ⌥ for anywhere
+                                let raw = marker.beat + Double(value.translation.width / beatWidth)
+                                let snapped = NSEvent.modifierFlags.contains(.option) ? raw : raw.rounded()
+                                dragging = (marker.id, snapped)
+                            }
+                            .onEnded { _ in
+                                if let dragging {
+                                    var moved = marker
+                                    moved.beat = dragging.beat
+                                    session.sequence?.audio?.setMarker(moved)
+                                }
+                                dragging = nil
+                            }
+                    )
+                    .contextMenu {
+                        Button("Delete Warp Marker") { session.sequence?.audio?.removeMarker(marker.id) }
+                    }
+                    .help("Drag onto the beat this moment belongs on (⌥ for between beats). Right-click to delete.")
+            }
+        }
+        .frame(width: width, height: height, alignment: .topLeading)
+    }
+    
+    private var statusText: String {
+        switch session.audioStatus {
+        case .loading: return "Loading \(audio.reference.fileName)…"
+        case .missing: return "\(audio.reference.fileName) can't be found. Use Locate… to find it."
+        case .failed(let message): return message
+        case .none, .ready: return ""
+        }
+    }
+}
+
+private struct WarpFlag: View {
+    let height: CGFloat
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            Image(systemName: "arrowtriangle.down.fill")
+                .font(.system(size: 10))
+                .foregroundColor(.yellow)
+            Rectangle()
+                .fill(Color.yellow)
+                .frame(width: 1.5, height: height - 10)
+        }
+        .frame(width: 10, height: height)
+        .contentShape(Rectangle())
     }
 }
