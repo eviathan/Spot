@@ -249,7 +249,7 @@ final class TabPerformanceTests: XCTestCase {
     }
 }
 
-final class TabLinkTests: XCTestCase {
+final class SequenceTabTests: XCTestCase {
     /// Two bars of 4/4 repeated, chords Am (twice in a row), C, then G in the bar after.
     private func score() -> TabScore {
         var score = TabScore.empty(bars: 3)
@@ -286,15 +286,25 @@ final class TabLinkTests: XCTestCase {
         XCTAssertEqual(score().chordChanges(track: 3).count, 0)
     }
 
-    func testSequenceKeepsItsLink() throws {
+    func testSequenceKeepsItsTab() throws {
         var sequence = ChordSequence()
-        sequence.tab = TabLink(bookmark: nil, lastKnownPath: "/tmp/Song.spottab", fileName: "Song.spottab", track: 1, startBeat: 4, isMuted: true)
+        sequence.startBeat = 4
+        XCTAssertEqual(sequence.contentEnd, 0)
+        sequence.tablature = score()
+        sequence.tabIsMuted = true
         let read = try JSONDecoder().decode(ChordSequence.self, from: sequence.encoded())
-        XCTAssertEqual(read.tab, sequence.tab)
-        XCTAssertEqual(read.tab?.name, "Song")
-        // Files from before links still open
+        XCTAssertEqual(read.tablature, sequence.tablature)
+        XCTAssertTrue(read.tabIsMuted)
+        // The tab is content: 5 bars as played (with the repeat) from the start marker
+        XCTAssertEqual(sequence.contentEnd, 24)
+        // Empty bars after the notes don't count
+        sequence.tablature?.insertBar()
+        sequence.tablature?.insertBar()
+        XCTAssertEqual(sequence.contentEnd, 24)
+        // Files from before the tab still open
         var old = try JSONSerialization.jsonObject(with: sequence.encoded()) as! [String: Any]
-        old["tab"] = nil
-        XCTAssertNil(try JSONDecoder().decode(ChordSequence.self, from: JSONSerialization.data(withJSONObject: old)).tab)
+        old["tablature"] = nil
+        old["tabIsMuted"] = nil
+        XCTAssertNil(try JSONDecoder().decode(ChordSequence.self, from: JSONSerialization.data(withJSONObject: old)).tablature)
     }
 }

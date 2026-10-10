@@ -155,6 +155,7 @@ struct LayoutView: View {
     /// What the Save panel writes: the library export or the open sequence.
     /// Only made while the panel is up: building it reads the sequence (and the takes folder), and doing
     /// that on every render would redraw the whole window whenever a chord changed.
+    @MainActor
     private var exportDocument: ExportDocument? {
         guard ui.savePanel != nil else { return nil }
         switch ui.lastSavePanel {
@@ -162,6 +163,7 @@ struct LayoutView: View {
         case .sequence: return session.document.map { ExportDocument(.sequence($0)) }
         case .tab: return tabSession.document.map { ExportDocument(.tab($0)) }
         case .guitarPro: return tabSession.guitarProDocument.map { ExportDocument(.guitarPro($0)) }
+        case .tabPDF: return tabSession.printContent.map { ExportDocument(.pdf(PDFFile(data: TabPrinter.pdf($0)))) }
         }
     }
 
@@ -181,12 +183,6 @@ struct LayoutView: View {
             ui.requestSequenceAction(.openURL(url), session: session)
         case .tab:
             ui.requestTabAction(.openURL(url), session: tabSession)
-        case .linkTab:
-            do {
-                try session.linkTab(url)
-            } catch {
-                ui.errorMessage = "Couldn't link that tab: \(error.localizedDescription)"
-            }
         case .audio, .relinkAudio:
             do {
                 try panel == .relinkAudio ? session.relinkAudio(url) : session.importAudio(url)
@@ -221,9 +217,9 @@ struct LayoutView: View {
         case (.tab, .failure(let error)):
             ui.errorMessage = error.localizedDescription
             ui.tabActionAfterSave = nil
-        case (.guitarPro, .success):
+        case (.guitarPro, .success), (.tabPDF, .success):
             break
-        case (.guitarPro, .failure(let error)):
+        case (.guitarPro, .failure(let error)), (.tabPDF, .failure(let error)):
             ui.errorMessage = error.localizedDescription
         }
     }
@@ -234,6 +230,7 @@ struct LayoutView: View {
         case .sequence: return .spotSequence
         case .tab: return .spotTab
         case .guitarPro: return .guitarPro7
+        case .tabPDF: return .pdf
         }
     }
 
@@ -241,7 +238,7 @@ struct LayoutView: View {
         switch ui.lastSavePanel {
         case .library: return ui.exportFile?.bundle.bundle.name ?? "Library"
         case .sequence: return session.displayName
-        case .tab, .guitarPro: return tabSession.score.map { $0.title.isEmpty ? tabSession.displayName : $0.title } ?? "Untitled"
+        case .tab, .guitarPro, .tabPDF: return tabSession.score.map { $0.title.isEmpty ? tabSession.displayName : $0.title } ?? "Untitled"
         }
     }
 

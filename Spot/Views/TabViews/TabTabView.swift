@@ -47,16 +47,6 @@ struct TabTabView: View {
             }
             .controlSize(.large)
 
-            // The open sequence's tab, to work on alongside it
-            if let link = sequenceSession.sequence?.tab, let url = sequenceSession.linkedTabURL {
-                Button {
-                    ui.requestTabAction(.openURL(url), session: session)
-                } label: {
-                    Label("Open “\(link.name)”, linked to \(sequenceSession.displayName)", systemImage: "link")
-                }
-                .buttonStyle(.link)
-            }
-
             if !session.recents.isEmpty {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Recent")
@@ -116,12 +106,12 @@ private struct TabEditorView: View {
                         }
                     }
 
-                    // Linked: one transport with the sequence
-                    if let sequence = session.linkedSequence {
-                        Label("With \(sequence.displayName)", systemImage: "link")
+                    // The sequence's tab: one transport with it
+                    if session.linkedSequence != nil {
+                        Label("Sequence tab", systemImage: "music.note.list")
                             .font(.callout)
                             .foregroundStyle(.cyan)
-                            .help("This tab is linked to the open sequence, so they play together: Space, ⌥Space, loop (⌘L loops the selected beats), the start marker, end and playhead are the sequence's, and so are tempo and time signature in the footer.")
+                            .help("The open sequence's tab, saved with it. They play together: Space, ⌥Space (from the cursor), the loop (⌘L loops the selected beats), the start marker, end and playhead are shared, and so are tempo and time signature in the footer. Open… brings a .spottab or Guitar Pro file into it (⌘Z to undo).")
                     }
 
                     if score.tracks.count > 1 {

@@ -78,7 +78,7 @@ struct SpotApp: App {
                 if ui.tab == .Tab {
                     Button("New Tab") { ui.requestTabAction(.new, session: tabSession) }
                         .keyboardShortcut("n", modifiers: [.command])
-                    Button("Open Tab…") { ui.requestTabAction(.open, session: tabSession) }
+                    Button(tabSession.isSequenceTab ? "Open Tab into Sequence…" : "Open Tab…") { ui.requestTabAction(.open, session: tabSession) }
                         .keyboardShortcut("o", modifiers: [.command])
                     Menu("Open Recent") {
                         ForEach(tabSession.recents) { recent in
@@ -87,7 +87,7 @@ struct SpotApp: App {
                     }
                     .disabled(tabSession.recents.isEmpty)
                     Button("Close Tab") { ui.requestTabAction(.close, session: tabSession) }
-                        .disabled(!tabSession.isOpen)
+                        .disabled(!tabSession.isOpen || tabSession.isSequenceTab)
                 } else {
                     Button("New Sequence") { ui.requestSequenceAction(.new, session: session) }
                         .keyboardShortcut("n", modifiers: [.command])
@@ -118,7 +118,23 @@ struct SpotApp: App {
             }
 
             CommandGroup(replacing: .saveItem) {
-                if ui.tab == .Tab {
+                if ui.tab == .Tab && tabSession.isSequenceTab {
+                    // The sequence's tab is saved with the sequence; it can also be written out on its own
+                    Button("Save Sequence") {
+                        if session.fileURL == nil {
+                            ui.isSavingSequenceAs = true
+                        } else {
+                            do { try session.save() } catch { ui.errorMessage = error.localizedDescription }
+                        }
+                    }
+                    .keyboardShortcut("s", modifiers: [.command])
+                    Button("Export Tab…") { ui.savePanel = .tab }
+                        .keyboardShortcut("s", modifiers: [.command, .shift])
+                    Button("Export as Guitar Pro…") { ui.savePanel = .guitarPro }
+                    Divider()
+                    Button("Export Tab as PDF…") { ui.savePanel = .tabPDF }
+                    Button("Print Tab…") { tabSession.printContent.map(TabPrinter.print) }
+                } else if ui.tab == .Tab {
                     Button("Save") {
                         if tabSession.fileURL == nil {
                             ui.savePanel = .tab
@@ -132,6 +148,11 @@ struct SpotApp: App {
                         .keyboardShortcut("s", modifiers: [.command, .shift])
                         .disabled(!tabSession.isOpen)
                     Button("Export as Guitar Pro…") { ui.savePanel = .guitarPro }
+                        .disabled(!tabSession.isOpen)
+                    Divider()
+                    Button("Export Tab as PDF…") { ui.savePanel = .tabPDF }
+                        .disabled(!tabSession.isOpen)
+                    Button("Print Tab…") { tabSession.printContent.map(TabPrinter.print) }
                         .disabled(!tabSession.isOpen)
                 } else {
                     Button("Save") {

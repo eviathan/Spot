@@ -162,6 +162,9 @@ struct TabStaffView: View {
             let metrics = TabMetrics(stringCount: score.tracks.indices.contains(editor.track) ? score.tracks[editor.track].stringCount : 6)
             let playhead = session.playhead
             let loop = session.loopSpan
+            let sequenceChords = session.sequenceChords
+            let playheadPlace = session.playheadPlace
+            let sequenceTempo = session.sequenceTempo
             let playingLine = playhead.flatMap { playhead in layout.lines.firstIndex { $0.bars.contains { $0.index == playhead.bar } } }
             ScrollViewReader { scroller in
             ScrollView(.vertical) {
@@ -179,8 +182,12 @@ struct TabStaffView: View {
                         .padding(.top, 12)
                     }
                     ForEach(Array(layout.lines.enumerated()), id: \.offset) { index, line in
+                        let bars = Set(line.bars.map(\.index))
                         TabLineView(score: score, editor: editor, line: line, metrics: metrics, width: geometry.size.width,
-                                    playhead: index == playingLine ? playhead : nil, loop: loop)
+                                    playhead: index == playingLine ? playhead : nil, loop: loop,
+                                    sequenceChords: sequenceChords.isEmpty ? nil : sequenceChords.filter { bars.contains($0.bar) },
+                                    playheadPlace: playheadPlace.flatMap { bars.contains($0.bar) ? $0 : nil },
+                                    sequenceTempo: sequenceTempo)
                             .id(index)
                     }
                 }
@@ -198,7 +205,7 @@ struct TabStaffView: View {
 }
 
 /// One line of bars.
-private struct TabLineView: View {
+struct TabLineView: View {
     let score: TabScore
     let editor: TabEditorState
     let line: TabLayout.Line
@@ -208,6 +215,17 @@ private struct TabLineView: View {
     var playhead: TabPosition?
     /// The linked sequence's loop, as beats of this track.
     var loop: (start: TabPosition, end: TabPosition)?
+    /// The sequence's chords on this line (nil when there are none: then the tab's own chord names show).
+    var sequenceChords: [(bar: Int, tick: Int, name: String)]?
+    /// Exactly where the sequence is playing, if it's on this line.
+    var playheadPlace: (bar: Int, tick: Int)?
+    /// The sequence's tab: its tempo at the start, instead of the tab's own (and none of the tab's changes).
+    var sequenceTempo: Double?
+    /// For paper: black on white, without the cursor, selection, playhead or loop.
+    var printing = false
+
+    private var inkColour: Color { printing ? .black : .white }
+    private var paperColour: Color { printing ? .white : TabStaffView.paper }
 
     private var track: TabTrack? {
         score.tracks.indices.contains(editor.track) ? score.tracks[editor.track] : nil
@@ -237,8 +255,8 @@ private struct TabLineView: View {
 
     private func draw(track: TabTrack, cursor: TabEditorState.Cursor, selection: (start: TabPosition, end: TabPosition)?,
                       in context: inout GraphicsContext, size: CGSize) {
-        let ink = Color.white
-        let lineColour = Color.white.opacity(0.35)
+        let ink = inkColour
+        let lineColour = inkColour.opacity(printing ? 0.6 : 0.35)
         let top = metrics.y(string: track.stringCount - 1), bottom = metrics.y(string: 0)
         let lastX = line.bars.last.map { $0.x + $0.width } ?? TabLayout.leftMargin
 
@@ -271,7 +289,7 @@ private struct TabLineView: View {
     /// Arcs, slides and bends between and on notes; marks for vibrato, tapping, accents, harmonics and strums;
     /// "let ring" and "P.M." over runs of beats.
     private func drawTechniques(track: TabTrack, top: CGFloat, lineEnd: CGFloat, in context: inout GraphicsContext) {
-        let ink = Color.white.opacity(0.85)
+        let ink = inkColour.opacity(printing ? 1 : 0.85)
         // Every beat on the line, in order
         var slots: [(x: CGFloat, beat: TabBeat)] = []
         for bar in line.bars where track.bars.indices.contains(bar.index) {
@@ -396,7 +414,7 @@ private struct TabLineView: View {
     }
 
     private func drawRuns(slots: [(x: CGFloat, on: Bool)], label: String, y: CGFloat, in context: inout GraphicsContext) {
-        let ink = Color.white.opacity(0.85)
+        let ink = inkColour.opacity(printing ? 1 : 0.85)
         var index = 0
         while index < slots.count {
             guard slots[index].on else { index += 1; continue }
@@ -431,7 +449,7 @@ private struct TabLineView: View {
     private func drawBar(_ bar: TabLayout.Bar, track: TabTrack, cursor: TabEditorState.Cursor,
                          selection: (start: TabPosition, end: TabPosition)?,
                          top: CGFloat, bottom: CGFloat, in context: inout GraphicsContext) {
-        let ink = Color.white
+        let ink = inkColour
         let master = score.masterBars[bar.index]
         let end = bar.x + bar.width
         var headerX = bar.x + 6
@@ -440,7 +458,7 @@ private struct TabLineView: View {
         // Bar number (red when the beats don't add up to the bar) and anything above the bar
         let fill = score.fill(track: editor.track, bar: bar.index)
         context.draw(Text("\(bar.index + 1)").font(.system(size: 9, weight: fill == 0 ? .regular : .bold))
-                        .foregroundColor(fill == 0 ? ink.opacity(0.45) : Color(red: 1, green: 0.4, blue: 0.4)),
+                        .foregroundColor(fill == 0 || printing ? ink.opacity(0.45) : Color(red: 1, green: 0.4, blue: 0.4)),
                      at: CGPoint(x: bar.x + 3, y: top - 10), anchor: .leading)
         let aboveY: CGFloat = 8
         // The tempo goes after the marker, however long the marker's name is
@@ -453,7 +471,7 @@ private struct TabLineView: View {
             context.draw(text, at: CGPoint(x: bar.x + 6, y: aboveY), anchor: .topLeading)
             tempoX = bar.x + size.width + 18
         }
-        let tempo = master.tempo ?? (bar.index == 0 ? score.tempo : nil)
+        let tempo = sequenceTempo.map { bar.index == 0 ? $0 : nil } ?? (master.tempo ?? (bar.index == 0 ? score.tempo : nil))
         if let tempo {
             context.draw(Text("♩ = \(Int(tempo.rounded()))").font(.system(size: 11)).foregroundColor(ink.opacity(0.85)),
                          at: CGPoint(x: tempoX, y: aboveY), anchor: .topLeading)
@@ -505,14 +523,14 @@ private struct TabLineView: View {
             }
         } else {
             context.stroke(Path { $0.move(to: CGPoint(x: end, y: top)); $0.addLine(to: CGPoint(x: end, y: bottom)) },
-                           with: .color(Color.white.opacity(0.5)), lineWidth: 1)
+                           with: .color(inkColour.opacity(printing ? 0.7 : 0.5)), lineWidth: 1)
         }
 
         // Notes, chord names, rests
         let beats = track.bars.indices.contains(bar.index) ? track.bars[bar.index].voices[0].beats : []
         for slot in bar.beats {
             let beat = beats[slot.index]
-            if let chord = beat.chord, !chord.isEmpty {
+            if sequenceChords == nil, let chord = beat.chord, !chord.isEmpty {
                 context.draw(Text(chord).font(.system(size: 12, weight: .semibold)).foregroundColor(ink),
                              at: CGPoint(x: slot.x, y: 48))
             }
@@ -527,7 +545,7 @@ private struct TabLineView: View {
 
         // Selected beats and the cursor's column, as a tint over the notes (under them, the patches that clear
         // the strings behind each fret number would show as dark boxes)
-        if let selection {
+        if let selection, !printing {
             for slot in bar.beats {
                 let position = TabPosition(bar: bar.index, beat: slot.index)
                 if position >= selection.start && position <= selection.end {
@@ -536,13 +554,26 @@ private struct TabLineView: View {
                 }
             }
         }
-        if cursor.bar == bar.index {
+        if cursor.bar == bar.index, !printing {
             let x = cursor.beat < bar.beats.count ? bar.beats[cursor.beat].x : bar.appendX
             context.fill(Path(roundedRect: CGRect(x: x - 11, y: top - 8, width: 22, height: bottom - top + 16), cornerRadius: 4),
                          with: .color(Color.white.opacity(0.07)))
         }
+        // The sequence's chords, where each starts (between beats, or in an empty bar, too)
+        for chord in sequenceChords ?? [] where chord.bar == bar.index {
+            let x = self.x(in: bar, tick: chord.tick, beats: beats, master: master)
+            context.draw(Text(chord.name).font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(printing ? ink : Color(red: 0.80, green: 0.70, blue: 1.0)),
+                         at: CGPoint(x: x, y: 48), anchor: .leading)
+        }
+        // Where the sequence is playing, as a line (so it shows in empty bars, while notating)
+        if let place = playheadPlace, place.bar == bar.index, !printing {
+            let x = self.x(in: bar, tick: place.tick, beats: beats, master: master)
+            context.fill(Path(CGRect(x: x - 1, y: top - 12, width: 2, height: bottom - top + 24)),
+                         with: .color(Color(red: 0.55, green: 0.85, blue: 0.45).opacity(0.9)))
+        }
         // The sequence's loop: a band above the staff over the looped beats, like the loop brace
-        if let loop {
+        if let loop, !printing {
             let looped = bar.beats.filter { slot in
                 let position = TabPosition(bar: bar.index, beat: slot.index)
                 return position >= loop.start && position <= loop.end
@@ -558,7 +589,7 @@ private struct TabLineView: View {
             }
         }
         // The beat being played
-        if let playhead, playhead.bar == bar.index, bar.beats.indices.contains(playhead.beat) {
+        if let playhead, playhead.bar == bar.index, !printing, bar.beats.indices.contains(playhead.beat) {
             let x = bar.beats[playhead.beat].x
             context.fill(Path(roundedRect: CGRect(x: x - 11, y: top - 8, width: 22, height: bottom - top + 16), cornerRadius: 4),
                          with: .color(Color(red: 0.55, green: 0.85, blue: 0.45).opacity(0.3)))
@@ -567,12 +598,29 @@ private struct TabLineView: View {
         }
 
         // The cursor itself: a box round the string at the beat
-        if cursor.bar == bar.index {
+        if cursor.bar == bar.index, !printing {
             let x = cursor.beat < bar.beats.count ? bar.beats[cursor.beat].x : bar.appendX
             let y = metrics.y(string: min(cursor.string, track.stringCount - 1))
             context.stroke(Path(roundedRect: CGRect(x: x - 10, y: y - 8, width: 20, height: 16), cornerRadius: 3),
                            with: .color(.orange), lineWidth: 1.5)
         }
+    }
+
+    /// Where a point in a bar (in ticks from its start) is drawn: between the beats it falls between, or spread
+    /// over the space after the last beat (all of an empty bar).
+    private func x(in bar: TabLayout.Bar, tick: Int, beats: [TabBeat], master: MasterBar) -> CGFloat {
+        var start = 0
+        for (index, slot) in bar.beats.enumerated() where beats.indices.contains(slot.index) {
+            let length = max(beats[slot.index].duration.ticks, 1)
+            let nextX = index + 1 < bar.beats.count ? bar.beats[index + 1].x : bar.appendX
+            if tick < start + length {
+                return slot.x + CGFloat(tick - start) / CGFloat(length) * (nextX - slot.x)
+            }
+            start += length
+        }
+        let remaining = max(master.timeSignature.ticks - start, 1)
+        let endX = bar.x + bar.width - 10
+        return bar.appendX + CGFloat(min(max(tick - start, 0), remaining)) / CGFloat(remaining) * max(endX - bar.appendX, 0)
     }
 
     private func repeatDotYs(top: CGFloat, bottom: CGFloat) -> [CGFloat] {
@@ -586,20 +634,20 @@ private struct TabLineView: View {
         var label = note.isDead ? "x" : "\(note.fret)"
         if note.harmonic != nil { label = "⟨\(label)⟩" }
         if note.isTied || note.isGhost { label = "(\(label))" }
-        let text = context.resolve(Text(label).font(.system(size: 12, weight: .semibold)).foregroundColor(.white))
+        let text = context.resolve(Text(label).font(.system(size: 12, weight: .semibold)).foregroundColor(inkColour))
         let size = text.measure(in: CGSize(width: 80, height: 20))
         context.fill(Path(CGRect(x: point.x - size.width / 2 - 1.5, y: point.y - size.height / 2, width: size.width + 3, height: size.height)),
-                     with: .color(TabStaffView.paper))
+                     with: .color(paperColour))
         context.draw(text, at: point)
     }
 
     /// Rests drawn as shapes (no music font to rely on): a block hanging from or sitting on the middle for
     /// whole and half, the zigzag for a quarter, a stem with one flag per beam for shorter ones.
     private func drawRest(_ value: TabDuration.Value, at centre: CGPoint, in context: inout GraphicsContext) {
-        let ink = Color.white.opacity(0.85)
+        let ink = inkColour.opacity(printing ? 1 : 0.85)
         let x = centre.x, y = centre.y
         // Clear the strings behind it
-        context.fill(Path(CGRect(x: x - 7, y: y - 12, width: 14, height: 24)), with: .color(TabStaffView.paper))
+        context.fill(Path(CGRect(x: x - 7, y: y - 12, width: 14, height: 24)), with: .color(paperColour))
         switch value {
         case .whole:
             context.stroke(Path { $0.move(to: CGPoint(x: x - 7, y: y - 5)); $0.addLine(to: CGPoint(x: x + 7, y: y - 5)) },
@@ -637,7 +685,7 @@ private struct TabLineView: View {
     /// tuplet numbers.
     private func drawRhythm(bar: TabLayout.Bar, beats: [TabBeat], timeSignature: TimeSignature, in context: inout GraphicsContext) {
         guard !beats.isEmpty else { return }
-        let ink = Color.white.opacity(0.85)
+        let ink = inkColour.opacity(printing ? 1 : 0.85)
         let stemTop = metrics.rhythmTop, stemBottom = metrics.rhythmTop + 22
         let compound = timeSignature.denominator == 8 && timeSignature.numerator % 3 == 0
         let groupTicks = compound ? TabDuration.ticksPerQuarter * 3 / 2 : TabDuration.ticksPerQuarter * 4 / timeSignature.denominator

@@ -198,25 +198,64 @@ final class TabSession {
         if wasPlaying { play(fromCursor: false) }
     }
 
-    // MARK: - Linked to the sequence
+    // MARK: - The sequence's tab
 
-    /// The open sequence, set by the app.
+    /// Editing the open sequence's tab, rather than a .spottab file of its own. With a sequence open, the Tab tab
+    /// always shows its tab, and the two share one transport.
+    private(set) var isSequenceTab = false
+
+    /// The sequence session, set by the app.
     @ObservationIgnored weak var sequenceSession: SequenceSession? {
         didSet {
-            sequenceSession?.liveLinkedTab = { [weak self] in
-                guard let self, linkedSequence != nil else { return nil }
-                return score
-            }
+            sequenceSession?.onOpen = { [weak self] in self?.attachToSequence() }
+            sequenceSession?.onClose = { [weak self] in self?.detachFromSequence() }
+            if sequenceSession?.sequence != nil { attachToSequence() }
         }
     }
 
-    /// The open sequence, when this tab is the one it links: the two then share one transport (the sequence's
-    /// play, loop, length, start marker and playhead).
+    /// The sequence, when this is its tab.
     var linkedSequence: SequenceSession? {
-        guard let sequenceSession, sequenceSession.sequence?.tab != nil, let linked = sequenceSession.linkedTabFile,
-              let fileURL, score != nil else { return nil }
-        return fileURL.standardizedFileURL.resolvingSymlinksInPath().path == linked.standardizedFileURL.resolvingSymlinksInPath().path
-            ? sequenceSession : nil
+        isSequenceTab ? sequenceSession : nil
+    }
+
+    /// Shows the open sequence's tab (a blank one in its time signature if it has none yet), padded with empty
+    /// bars to the sequence's end. A .spottab that was open is saved (or kept as a draft) and comes back when the
+    /// sequence closes.
+    func attachToSequence() {
+        guard let sequenceSession, let sequence = sequenceSession.sequence else { return }
+        suspendStandalone()
+        var score = sequence.tablature ?? sequenceSession.blankTablature()
+        let needed = Int(ceil((sequence.lengthInBeats - sequence.startBeat) / Double(sequence.beatsPerBar) - 1e-9))
+        while score.barCount < needed {
+            score.insertBar()
+        }
+        load(score, from: nil)
+        isSequenceTab = true
+        // (Nothing goes back to the sequence until it's edited, so opening it doesn't count as a change)
+    }
+
+    func detachFromSequence() {
+        guard isSequenceTab else { return }
+        stopFollowingSequence()
+        clearState()
+        isSequenceTab = false
+        restore()
+    }
+
+    /// Puts a .spottab that's open aside: saved to its file, or (Untitled) kept as the draft.
+    private func suspendStandalone() {
+        if isSequenceTab {
+            clearState()
+            return
+        }
+        guard let score else { return }
+        stopPlaying()
+        if fileURL != nil, hasUnsavedChanges {
+            try? save()
+        } else if fileURL == nil, hasUnsavedChanges, let data = try? score.encoded() {
+            defaults.set(data, forKey: TabSession.draftKey)
+        }
+        clearState()
     }
 
     /// The tab timed in beats, for lining it up with the sequence.
@@ -231,16 +270,40 @@ final class TabSession {
 
     /// The sequence beat the cursor's beat plays on (the first time round).
     var cursorBeat: Double? {
-        guard let editor, let link = linkedSequence?.sequence?.tab, let timing = beatTiming else { return nil }
-        return link.startBeat + timing.time(of: editor.position, track: editor.track)
+        guard let editor, let sequence = linkedSequence?.sequence, let timing = beatTiming else { return nil }
+        return sequence.startBeat + timing.time(of: editor.position, track: editor.track)
     }
 
     /// The beat playing on the track showing at a sequence beat.
     private func position(atSequenceBeat beat: Double) -> TabPosition? {
-        guard let editor, let link = linkedSequence?.sequence?.tab, let timing = beatTiming,
-              beat >= link.startBeat - 1e-9 else { return nil }
-        return timing.position(of: editor.track, at: beat - link.startBeat).map { TabPosition(bar: $0.bar, beat: $0.beat) }
+        guard let editor, let sequence = linkedSequence?.sequence, let timing = beatTiming,
+              beat >= sequence.startBeat - 1e-9 else { return nil }
+        return timing.position(of: editor.track, at: beat - sequence.startBeat).map { TabPosition(bar: $0.bar, beat: $0.beat) }
     }
+
+    /// Exactly where a sequence beat falls in the tab: a bar and how far into it (in ticks), even in an empty bar.
+    func place(atSequenceBeat beat: Double) -> (bar: Int, tick: Int)? {
+        guard let sequence = linkedSequence?.sequence, let timing = beatTiming else { return nil }
+        let time = beat - sequence.startBeat
+        guard time >= -1e-9, let bar = timing.bars.last(where: { $0.time <= time + 1e-9 }) else { return nil }
+        return (bar.bar, Int(((time - bar.time) * Double(TabDuration.ticksPerQuarter)).rounded()))
+    }
+
+    /// The sequence's chords, placed in the tab (for showing above it).
+    var sequenceChords: [(bar: Int, tick: Int, name: String)] {
+        guard let sequence = linkedSequence?.sequence else { return [] }
+        return sequence.chords.compactMap { region in
+            place(atSequenceBeat: region.range.start).map { ($0.bar, $0.tick, region.symbol) }
+        }
+    }
+
+    /// The tempo to show at the start: the sequence's (the tab plays at it, not its own).
+    var sequenceTempo: Double? {
+        linkedSequence?.sequence?.tempo
+    }
+
+    /// Exactly where playback is in the tab (a line, so it shows in empty bars too); nil when not playing.
+    private(set) var playheadPlace: (bar: Int, tick: Int)?
 
     /// The cursor moved: the sequence's playhead goes there too.
     func cursorMoved() {
@@ -251,7 +314,10 @@ final class TabSession {
     /// The cursor goes to where the sequence's playhead is (keeping its string).
     func syncCursorToSequence() {
         guard let sequence = linkedSequence, let editor, let beat = sequence.editor?.selection.start,
-              let position = position(atSequenceBeat: beat) else { return }
+              let place = place(atSequenceBeat: beat) else { return }
+        // The beat there, or (in an empty bar or past the last beat) the slot after the last one
+        let position = position(atSequenceBeat: beat).flatMap { $0.bar == place.bar ? $0 : nil }
+            ?? TabPosition(bar: place.bar, beat: place.tick == 0 ? 0 : (score?.beats(track: editor.track, bar: place.bar).count ?? 0))
         if editor.position != position {
             editor.cursor = TabEditorState.Cursor(bar: position.bar, beat: position.beat, string: editor.cursor.string)
             editor.selectionAnchor = nil
@@ -260,39 +326,47 @@ final class TabSession {
 
     /// The sequence's loop, as the beats it covers on the track showing (while looping).
     var loopSpan: (start: TabPosition, end: TabPosition)? {
-        guard let loop = linkedSequence?.sequence?.loop, let start = position(atSequenceBeat: loop.start) ?? (loop.start < (linkedSequence?.sequence?.tab?.startBeat ?? 0) ? TabPosition(bar: 0, beat: 0) : nil),
+        guard let sequence = linkedSequence?.sequence, let loop = sequence.loop,
+              let start = position(atSequenceBeat: max(loop.start, sequence.startBeat)),
               let end = position(atSequenceBeat: loop.end - 0.01) else { return nil }
         return (start, end)
     }
 
     /// The selected beats as a range of sequence beats, to loop.
     var selectionBeats: BeatRange? {
-        guard let editor, let selection = editor.selection, let score, let link = linkedSequence?.sequence?.tab,
+        guard let editor, let selection = editor.selection, let score, let sequence = linkedSequence?.sequence,
               let timing = beatTiming else { return nil }
         let start = timing.time(of: selection.start, track: editor.track)
         let lastBeats = score.beats(track: editor.track, bar: selection.end.bar)
         let lastLength = lastBeats.indices.contains(selection.end.beat)
             ? Double(lastBeats[selection.end.beat].duration.ticks) / Double(TabDuration.ticksPerQuarter) : 0
         let end = timing.time(of: selection.end, track: editor.track) + lastLength
-        return BeatRange(link.startBeat + start, link.startBeat + end)
+        return BeatRange(sequence.startBeat + start, sequence.startBeat + end)
     }
 
-    /// While the Tab tab shows a linked tab: follow the sequence (the playing beat while it plays; the cursor to
-    /// where it stopped).
+    /// While the Tab tab shows the sequence's tab: follow the sequence (the playing beat while it plays; the
+    /// cursor to where it stopped).
     func followSequence() {
         sequenceFollower?.invalidate()
         var wasPlaying = linkedSequence?.isPlaying ?? false
         sequenceFollower = Timer.scheduledTimer(withTimeInterval: 1.0 / 30, repeats: true) { [weak self] _ in
             guard let self else { return }
-            guard let sequence = linkedSequence else {
-                if playhead != nil, !playback.isPlayingTab { playhead = nil }
-                return
-            }
+            guard let sequence = linkedSequence else { return }
             if sequence.isPlaying {
-                let position = position(atSequenceBeat: transport.position())
+                let beat = transport.position()
+                let place = place(atSequenceBeat: beat)
+                // The beat playing, unless it's over (in a rest-less gap or an empty bar, just the line shows)
+                let position = position(atSequenceBeat: beat).flatMap { position -> TabPosition? in
+                    guard position.bar == place?.bar, let score = self.score, let editor = self.editor else { return nil }
+                    let beats = score.beats(track: editor.track, bar: position.bar)
+                    let ends = beats.prefix(position.beat + 1).reduce(0) { $0 + $1.duration.ticks }
+                    return (place?.tick ?? 0) < ends ? position : nil
+                }
                 if position != playhead { playhead = position }
+                if place?.bar != playheadPlace?.bar || place?.tick != playheadPlace?.tick { playheadPlace = place }
             } else {
                 if playhead != nil { playhead = nil }
+                if playheadPlace != nil { playheadPlace = nil }
                 if wasPlaying { syncCursorToSequence() }
             }
             wasPlaying = sequence.isPlaying
@@ -336,17 +410,23 @@ final class TabSession {
     }
 
     var displayName: String {
-        fileURL?.deletingPathExtension().lastPathComponent ?? "Untitled"
+        if let sequence = linkedSequence { return sequence.displayName }
+        return fileURL?.deletingPathExtension().lastPathComponent ?? "Untitled"
     }
 
-    /// An Untitled tab with something in it would be lost by opening another.
+    /// An Untitled tab with something in it would be lost by opening another. (The sequence's tab is saved with it.)
     var needsSaveBeforeClosing: Bool {
-        fileURL == nil && hasUnsavedChanges
+        !isSequenceTab && fileURL == nil && hasUnsavedChanges
     }
 
     // MARK: - Opening and closing
 
+    /// A new tab; for the sequence's tab, a blank one in its place (which can be undone).
     func newScore() {
+        if let sequence = linkedSequence {
+            score = sequence.blankTablature()
+            return
+        }
         close()
         load(TabScore.empty(), from: nil)
     }
@@ -354,9 +434,17 @@ final class TabSession {
     /// Tracks a Guitar Pro file had that couldn't be brought in (drums), to tell you about; nil once told.
     var skippedOnImport: [String]?
 
+    /// Opens a .spottab or Guitar Pro file; with a sequence open, it becomes the sequence's tab (which can be undone).
     func open(_ url: URL) throws {
         if GuitarPro.fileExtensions.contains(url.pathExtension.lowercased()) {
             try importGuitarPro(url)
+            return
+        }
+        if isSequenceTab {
+            let accessing = url.startAccessingSecurityScopedResource()
+            defer { if accessing { url.stopAccessingSecurityScopedResource() } }
+            score = try TabScore.decode(from: Data(contentsOf: url))
+            remember(url)
             return
         }
         let accessing = url.startAccessingSecurityScopedResource()
@@ -381,11 +469,16 @@ final class TabSession {
         guard !imported.score.tracks.isEmpty else {
             throw GuitarPro.Error.unsupported("Guitar Pro files with only drum tracks")
         }
-        close()
         var score = imported.score
         if score.title.isEmpty {
             score.title = url.deletingPathExtension().lastPathComponent
         }
+        if isSequenceTab {
+            self.score = score
+            skippedOnImport = imported.skippedTracks.isEmpty ? nil : imported.skippedTracks
+            return
+        }
+        close()
         load(score, from: nil)
         // Untitled with something in it: kept as a draft, and you're asked to save before it's replaced
         hasUnsavedChanges = true
@@ -394,7 +487,27 @@ final class TabSession {
     }
 
     var guitarProDocument: GuitarProDocument? {
-        score.map(GuitarProDocument.init)
+        exportScore.map(GuitarProDocument.init)
+    }
+
+    /// The track showing, ready to print (with the sequence's chords and tempo, for the sequence's tab).
+    @MainActor
+    var printContent: TabPrinter.Content? {
+        guard let score = exportScore, let editor else { return nil }
+        let chords = sequenceChords
+        return TabPrinter.Content(score: score, track: editor.track,
+                                  title: score.title.isEmpty ? displayName : score.title,
+                                  tempo: sequenceTempo, chords: chords.isEmpty ? nil : chords)
+    }
+
+    /// The tab to export: the sequence's at the sequence's tempo, named after it if it has no title.
+    private var exportScore: TabScore? {
+        guard var score else { return nil }
+        if let session = linkedSequence, let sequence = session.sequence {
+            score.tempo = sequence.tempo
+            if score.title.isEmpty { score.title = session.displayName }
+        }
+        return score
     }
 
     func open(_ recent: Recent) throws {
@@ -408,12 +521,19 @@ final class TabSession {
         saveRecents()
     }
 
-    /// Closes the tab (saving it first if it has a file).
+    /// Closes the tab (saving it first if it has a file). The sequence's tab stays while the sequence is open.
     func close() {
+        guard !isSequenceTab else { return }
         stopPlaying()
         if fileURL != nil, hasUnsavedChanges {
             try? save()
         }
+        clearState()
+        defaults.removeObject(forKey: TabSession.lastFileKey)
+        defaults.removeObject(forKey: TabSession.draftKey)
+    }
+
+    private func clearState() {
         autosave?.cancel()
         fileURL?.stopAccessingSecurityScopedResource()
         fileURL = nil
@@ -423,9 +543,9 @@ final class TabSession {
         isLoading = false
         hasUnsavedChanges = false
         saveError = nil
+        playhead = nil
+        playheadPlace = nil
         clearUndo()
-        defaults.removeObject(forKey: TabSession.lastFileKey)
-        defaults.removeObject(forKey: TabSession.draftKey)
     }
 
     private func load(_ score: TabScore, from url: URL?) {
@@ -453,8 +573,10 @@ final class TabSession {
         }
     }
 
-    /// Call after Save As has written the file: this becomes the tab's file.
+    /// Call after Save As has written the file: this becomes the tab's file. (For the sequence's tab, it was an
+    /// export: the tab stays the sequence's.)
     func didSave(to url: URL) {
+        guard !isSequenceTab else { return }
         if fileURL != url {
             fileURL?.stopAccessingSecurityScopedResource()
             _ = url.startAccessingSecurityScopedResource()
@@ -467,15 +589,18 @@ final class TabSession {
     }
 
     var document: TabDocument? {
-        score.map(TabDocument.init)
+        exportScore.map(TabDocument.init)
     }
 
     private func scoreChanged(from old: TabScore?) {
         if let score { editor?.clamp(to: score) }
-        // Linked: the sequence plays the edit straight away
-        if let score, let sequence = linkedSequence { sequence.useLinkedTab(score) }
         guard !isLoading, let score, score != old else { return }
         recordUndo(from: old, to: score)
+        // The sequence's tab goes into the sequence (which saves it, and plays it straight away)
+        if isSequenceTab {
+            sequenceSession?.setTablature(score)
+            return
+        }
         hasUnsavedChanges = true
         scheduleAutosave()
     }

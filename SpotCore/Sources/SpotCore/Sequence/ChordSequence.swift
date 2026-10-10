@@ -112,8 +112,10 @@ public struct ChordSequence: Hashable, Codable, Sendable {
     public var audio: AudioTrack?
     /// Your recordings, oldest first.
     public var takes: [RecordedTake]
-    /// A tab to play along (it stays in its own file).
-    public var tab: TabLink?
+    /// The sequence's tab (tablature): it plays along, its bar 1 on the start marker and its quarter notes on the
+    /// sequence's beats (at the sequence's tempo, not its own). nil until one is written.
+    public var tablature: TabScore?
+    public var tabIsMuted: Bool
     /// Where bar 1 beat 1 is, like Live's start marker: bars, beats and the grid count from here, and
     /// anything before it is in the bars before 1 (−1, −2…). Nothing moves when it does.
     public var startBeat: Double
@@ -132,7 +134,8 @@ public struct ChordSequence: Hashable, Codable, Sendable {
         self.isLooping = false
         self.audio = nil
         self.takes = []
-        self.tab = nil
+        self.tablature = nil
+        self.tabIsMuted = false
         self.startBeat = 0
         self.endBeat = nil
     }
@@ -285,10 +288,11 @@ public struct ChordSequence: Hashable, Codable, Sendable {
         audio.map { $0.map.beat(atSourceTime: $0.reference.duration) }
     }
 
-    /// Where the last thing ends: a chord, a section, a take or the recording.
+    /// Where the last thing ends: a chord, a section, a take, the recording or the tab's last notes.
     public var contentEnd: Double {
         max(chords.last?.range.end ?? 0, sections.last?.range.end ?? 0,
-            takes.map(\.endBeat).max() ?? 0, audioEndBeat ?? 0, endBeat ?? 0)
+            takes.map(\.endBeat).max() ?? 0, audioEndBeat ?? 0, endBeat ?? 0,
+            tablature.map { startBeat + $0.contentQuarterNotes } ?? 0)
     }
 
     /// Sizes the sequence to what's in it, plus `spareBars` empty bars to add more (and at least `minimumBars`).
@@ -331,7 +335,7 @@ public struct ChordSequence: Hashable, Codable, Sendable {
     // MARK: - Files
 
     enum CodingKeys: String, CodingKey {
-        case version, tempo, beatsPerBar, lengthInBars, key, chords, sections, loopRange, isLooping, audio, takes, tab, startBeat, endBeat
+        case version, tempo, beatsPerBar, lengthInBars, key, chords, sections, loopRange, isLooping, audio, takes, tablature, tabIsMuted, startBeat, endBeat
     }
 
     private enum LegacyKeys: String, CodingKey {
@@ -367,7 +371,8 @@ public struct ChordSequence: Hashable, Codable, Sendable {
         }
         tempo *= practiceRate
         takes = try container.decodeIfPresent([RecordedTake].self, forKey: .takes) ?? []
-        tab = try container.decodeIfPresent(TabLink.self, forKey: .tab)
+        tablature = try container.decodeIfPresent(TabScore.self, forKey: .tablature)
+        tabIsMuted = try container.decodeIfPresent(Bool.self, forKey: .tabIsMuted) ?? false
         startBeat = try container.decodeIfPresent(Double.self, forKey: .startBeat) ?? 0
         endBeat = try container.decodeIfPresent(Double.self, forKey: .endBeat)
     }

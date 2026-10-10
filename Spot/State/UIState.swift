@@ -16,15 +16,12 @@ enum OpenPanel: Equatable {
     case audio
     case relinkAudio
     case tab
-    /// A tab for the open sequence to play along with.
-    case linkTab
 
     var contentTypes: [UTType] {
         switch self {
         case .library: return [.spotLibrary, .json]
         case .sequence: return [.spotSequence]
         case .tab: return [.spotTab] + UTType.guitarProTypes
-        case .linkTab: return [.spotTab]
         case .audio, .relinkAudio: return [.audio]
         }
     }
@@ -37,6 +34,8 @@ enum SavePanel: Equatable {
     case tab
     /// The open tab as a Guitar Pro 7 file.
     case guitarPro
+    /// The open tab, printed to a PDF.
+    case tabPDF
 }
 
 /// Something that replaces the open tab, held back while asking whether to save it first.

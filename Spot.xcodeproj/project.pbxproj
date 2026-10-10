@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E9D10F1615064B5897E86EB4 /* TabPrinter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95159D034BD4946AAAC2D2C /* TabPrinter.swift */; };
 		8BEFE04140E04D1AA8DE53C0 /* TabStaffView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24ED30E490144F8F83F1B3F3 /* TabStaffView.swift */; };
 		8BD5B5CC92994063BDAA6529 /* TabEditorState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46428AC22FBE403381E81493 /* TabEditorState.swift */; };
 		8CAFF175FE4F4A1EA6D4A5F8 /* TabTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 230CB2A2C0DC48B5998B0214 /* TabTabView.swift */; };
@@ -80,6 +81,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		A95159D034BD4946AAAC2D2C /* TabPrinter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabPrinter.swift; sourceTree = "<group>"; };
 		24ED30E490144F8F83F1B3F3 /* TabStaffView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabStaffView.swift; sourceTree = "<group>"; };
 		46428AC22FBE403381E81493 /* TabEditorState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabEditorState.swift; sourceTree = "<group>"; };
 		230CB2A2C0DC48B5998B0214 /* TabTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabTabView.swift; sourceTree = "<group>"; };
@@ -188,6 +190,7 @@
 		D37E4C392C346E5100179A19 /* TabViews */ = {
 			isa = PBXGroup;
 			children = (
+				A95159D034BD4946AAAC2D2C /* TabPrinter.swift */,
 				24ED30E490144F8F83F1B3F3 /* TabStaffView.swift */,
 				230CB2A2C0DC48B5998B0214 /* TabTabView.swift */,
 				955085C7AF104F578507B6C0 /* SettingsTabView.swift */,
@@ -456,6 +459,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E9D10F1615064B5897E86EB4 /* TabPrinter.swift in Sources */,
 				8BEFE04140E04D1AA8DE53C0 /* TabStaffView.swift in Sources */,
 				8BD5B5CC92994063BDAA6529 /* TabEditorState.swift in Sources */,
 				8CAFF175FE4F4A1EA6D4A5F8 /* TabTabView.swift in Sources */,

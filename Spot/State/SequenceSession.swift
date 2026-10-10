@@ -158,13 +158,12 @@ final class SequenceSession {
         if audioChanged {
             unloadAudio()
         }
-        let tabChanged = target.tab?.bookmark != current.tab?.bookmark
+        // The tab has its own undo, in the tab editor
+        target.tablature = current.tablature
         isUndoing = true
         sequence = target
         isUndoing = false
-        if tabChanged {
-            reloadLinkedTab()
-        }
+
         if audioChanged {
             loadAudio()
         }
@@ -231,7 +230,6 @@ final class SequenceSession {
         fileURL = nil
         editor = nil
         unloadAudio()
-        linkedTab = nil
         isLoading = true
         sequence = nil
         isLoading = false
@@ -240,6 +238,7 @@ final class SequenceSession {
         clearUndo()
         defaults.removeObject(forKey: SequenceSession.lastFileKey)
         defaults.removeObject(forKey: SequenceSession.draftKey)
+        onClose?()
     }
 
     private func load(_ sequence: ChordSequence, from url: URL?) {
@@ -258,7 +257,7 @@ final class SequenceSession {
         saveError = nil
         clearUndo()
         loadAudio()
-        reloadLinkedTab()
+        onOpen?()
     }
     
     // MARK: - Saving
@@ -383,8 +382,11 @@ final class SequenceSession {
         let old = fittingFrom ?? old
         fittingFrom = nil
         guard let sequence else { return }
-        recordUndo(from: old, to: sequence)
-        editor?.analyse(sequence)
+        // A tab edit is an undo step in the tab editor, and changes nothing the analysis looks at
+        if !isTabEdit {
+            recordUndo(from: old, to: sequence)
+            editor?.analyse(sequence)
+        }
         
         // The rendered audio depends on the markers and the recording's tempo (not the sequence's: that's
         // applied as it plays), and runs to the end of the recording.
@@ -489,8 +491,6 @@ final class SequenceSession {
 
     private func start(_ sequence: ChordSequence, editor: SequenceEditorState, from beat: Double, countIn: Bool) {
         playedFrom = beat
-        // The tab may have been edited since it was last read
-        reloadLinkedTab()
         applyTempo(sequence)
         transport.beatsPerBar = sequence.beatsPerBar
         editor.followSuspended = false
@@ -581,19 +581,15 @@ final class SequenceSession {
         } else if !isRecording {
             // Stop at the end marker, or the end of the bar the content ends in, not after the spare bars
             // (unless recording into them). A tab playing along counts as content.
-            var end = sequence.songEnd
-            if sequence.endBeat == nil, let link = sequence.tab, !link.isMuted, let tab = linkedTabPerformance(link) {
-                end = max(end, sequence.onGrid(link.startBeat + tab.length - 1e-9, unit: Double(sequence.beatsPerBar), .up))
-            }
-            data.length = min(sequence.lengthInBeats, end)
+            data.length = min(sequence.lengthInBeats, sequence.songEnd)
         }
         if let audio = sequence.audio, !audio.isMuted, rendered?.tempo == audio.tempo {
             data.audio = rendered
             data.audioGain = Float(pow(10, audio.gain / 20))
         }
-        if let link = sequence.tab, !link.isMuted {
-            data.tab = linkedTabPerformance(link)
-            data.tabStart = link.startBeat
+        if let tablature = sequence.tablature, !sequence.tabIsMuted {
+            data.tab = tabPerformance(tablature)
+            data.tabStart = sequence.startBeat
         }
         if let folder = takesFolder {
             data.takes = sequence.takes.filter { !$0.isMuted }.map { take in
@@ -604,57 +600,21 @@ final class SequenceSession {
         return data
     }
     
-    // MARK: - Linked tab
+    // MARK: - The tab
 
-    /// The linked tab as last read; nil if there isn't one or it can't be found (`linkedTabMissing`).
-    private(set) var linkedTab: TabScore? {
-        didSet { cachedTabPerformance = nil }
-    }
-    private(set) var linkedTabMissing = false
-    /// Where the linked tab's file is (as last found), to tell whether the Tab tab has it open.
-    private(set) var linkedTabFile: URL?
-    /// The linked tab as it is in the tab editor, when the editor has it open (it may not be saved yet).
-    @ObservationIgnored var liveLinkedTab: (() -> TabScore?)?
-    @ObservationIgnored private var cachedTabPerformance: (track: Int, performance: TabPerformance)?
+    /// Told when a sequence opens or closes, for the tab editor to show its tab (or not).
+    @ObservationIgnored var onOpen: (() -> Void)?
+    @ObservationIgnored var onClose: (() -> Void)?
+    /// Set while the tab editor puts in an edit (which isn't an undo step here: the tab editor has its own undo).
+    @ObservationIgnored private var isTabEdit = false
+    @ObservationIgnored private var cachedTabPerformance: (score: TabScore, performance: TabPerformance)?
 
-    /// Links a tab to play along: at first from the start marker (1.1.1) with all its tracks. Linking another
-    /// (or finding a moved one) keeps where it starts, whether it's muted, and its track if it has that many.
-    func linkTab(_ url: URL) throws {
-        let accessing = url.startAccessingSecurityScopedResource()
-        defer { if accessing { url.stopAccessingSecurityScopedResource() } }
-        let score = try TabScore.decode(from: Data(contentsOf: url))
-        let bookmark = try? url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
-        let old = sequence?.tab
-        sequence?.tab = TabLink(bookmark: bookmark, lastKnownPath: url.path, fileName: url.lastPathComponent,
-                                track: old.map { score.tracks.indices.contains($0.track) ? $0.track : TabLink.allTracks } ?? TabLink.allTracks,
-                                startBeat: old?.startBeat ?? sequence?.startBeat ?? 0, isMuted: old?.isMuted ?? false)
-        linkedTabFile = url
-        linkedTab = liveLinkedTab?() ?? score
-        linkedTabMissing = false
-        // Long enough for the whole tab
-        if let sequence, let start = sequence.tab?.startBeat {
-            let end = start + (linkedTab ?? score).lengthInQuarterNotes
-            if end > sequence.lengthInBeats {
-                self.sequence?.setLength(bars: Int(ceil(end / Double(sequence.beatsPerBar) - 1e-9)))
-            }
-        }
-    }
-
-    func unlinkTab() {
-        sequence?.tab = nil
-        linkedTab = nil
-        linkedTabFile = nil
-        linkedTabMissing = false
-    }
-
-    /// The tab editor's copy of the linked tab changed: play that (straight away, if playing).
-    func useLinkedTab(_ score: TabScore) {
-        guard sequence?.tab != nil, score != linkedTab else { return }
-        linkedTab = score
-        linkedTabMissing = false
-        if isPlaying, let sequence, let editor {
-            playback.update(playbackData(sequence, editor: editor), id: editor.id)
-        }
+    /// The tab editor changed the tab.
+    func setTablature(_ score: TabScore) {
+        guard sequence != nil, sequence?.tablature != score else { return }
+        isTabEdit = true
+        sequence?.tablature = score
+        isTabEdit = false
     }
 
     /// Puts the playhead on a beat (from the tab editor's cursor), when not playing.
@@ -671,81 +631,46 @@ final class SequenceSession {
         sequence?.loop = sequence?.loop == range ? nil : range
     }
 
-    /// Where the linked tab is now, if it can be found.
-    var linkedTabURL: URL? {
-        guard let link = sequence?.tab else { return nil }
-        var isStale = false
-        if let bookmark = link.bookmark,
-           let url = try? URL(resolvingBookmarkData: bookmark, options: .withSecurityScope, bookmarkDataIsStale: &isStale) {
-            return url
+    /// A tab for this sequence: one guitar track, in its time signature, from the start marker to its end.
+    func blankTablature() -> TabScore {
+        guard let sequence else { return TabScore.empty() }
+        let bars = max(1, Int(ceil((sequence.lengthInBeats - sequence.startBeat) / Double(sequence.beatsPerBar) - 1e-9)))
+        var score = TabScore.empty(bars: bars)
+        for index in score.masterBars.indices {
+            score.masterBars[index].timeSignature = TimeSignature(sequence.beatsPerBar, 4)
         }
-        return FileManager.default.fileExists(atPath: link.lastKnownPath) ? URL(fileURLWithPath: link.lastKnownPath) : nil
+        score.tempo = sequence.tempo
+        return score
     }
 
-    /// Reads the linked tab again (it's a separate file, and may have been edited).
-    func reloadLinkedTab() {
-        guard sequence?.tab != nil else {
-            linkedTab = nil
-            linkedTabFile = nil
-            linkedTabMissing = false
-            return
-        }
-        guard let url = linkedTabURL else {
-            linkedTab = nil
-            linkedTabFile = nil
-            linkedTabMissing = true
-            return
-        }
-        linkedTabFile = url
-        // Open in the tab editor: its copy is newer than the file (saved a second after each change)
-        if let live = liveLinkedTab?() {
-            if live != linkedTab { linkedTab = live }
-            linkedTabMissing = false
-            return
-        }
-        let accessing = url.startAccessingSecurityScopedResource()
-        defer { if accessing { url.stopAccessingSecurityScopedResource() } }
-        let score = (try? Data(contentsOf: url)).flatMap { try? TabScore.decode(from: $0) }
-        if score != linkedTab {
-            linkedTab = score
-        }
-        linkedTabMissing = score == nil
-    }
-
-    /// The linked tab (just its chosen track, or all of them) timed in beats.
-    private func linkedTabPerformance(_ link: TabLink) -> TabPerformance? {
-        guard var score = linkedTab else { return nil }
-        if let cached = cachedTabPerformance, cached.track == link.track {
-            return cached.performance
-        }
-        if score.tracks.indices.contains(link.track) {
-            score.tracks = [score.tracks[link.track]]
-        }
+    /// The tab timed in beats (its quarter notes), for playing along.
+    private func tabPerformance(_ score: TabScore) -> TabPerformance {
+        if let cached = cachedTabPerformance, cached.score == score { return cached.performance }
         let performance = TabPerformance.make(score, inQuarterNotes: true)
-        cachedTabPerformance = (link.track, performance)
+        cachedTabPerformance = (score, performance)
         return performance
     }
 
-    /// The track whose chord names are used: the one chosen, or (playing all tracks) the first with any.
-    private func chordTrack(_ link: TabLink, in score: TabScore) -> Int {
-        if score.tracks.indices.contains(link.track) { return link.track }
-        return score.tracks.indices.first { !score.chordChanges(track: $0).isEmpty } ?? 0
+    /// The track whose chord names are used: the first with any.
+    private func chordTrack(in score: TabScore) -> Int {
+        score.tracks.indices.first { !score.chordChanges(track: $0).isEmpty } ?? 0
     }
 
-    /// Whether the linked tab has chord names to bring in.
-    var linkedTabHasChords: Bool {
-        guard let link = sequence?.tab, let score = linkedTab else { return false }
-        return !score.chordChanges(track: chordTrack(link, in: score)).isEmpty
+    /// Whether the tab has chord names to bring into the sequence.
+    var tablatureHasChords: Bool {
+        guard let score = sequence?.tablature else { return false }
+        return score.tracks.indices.contains { !score.chordChanges(track: $0).isEmpty }
     }
 
-    /// Puts the tab's chord names into the sequence, where they come as it plays (lengthening the sequence if the
+    /// Puts the tab's chord names into the sequence where they come as it plays (lengthening the sequence if the
     /// tab runs past its end), replacing the chords there. One undo. Returns the names Spot couldn't read as chords.
     @discardableResult
-    func addChordsFromLinkedTab() -> [String] {
-        guard var sequence, let link = sequence.tab, let score = linkedTab else { return [] }
-        let changes = score.chordChanges(track: chordTrack(link, in: score))
+    func addChordsFromTablature() -> [String] {
+        guard var sequence, let score = sequence.tablature else { return [] }
+        let changes = score.chordChanges(track: chordTrack(in: score))
         guard let last = changes.last else { return [] }
-        let end = link.startBeat + last.range.end
+        let start = sequence.startBeat
+        let end = start + last.range.end
         if end > sequence.lengthInBeats {
             sequence.setLength(bars: Int(ceil(end / Double(sequence.beatsPerBar))))
         }
@@ -756,7 +681,7 @@ final class SequenceSession {
                 if !unreadable.contains(change.name) { unreadable.append(change.name) }
                 continue
             }
-            sequence.setChord(change.name, in: BeatRange(link.startBeat + change.range.start, link.startBeat + change.range.end))
+            sequence.setChord(change.name, in: BeatRange(start + change.range.start, start + change.range.end))
         }
         self.sequence = sequence
         return unreadable

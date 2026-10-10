@@ -200,50 +200,22 @@ private struct LaneEditorBar: View {
 }
 
 extension LaneEditorBar {
-    /// A tab playing along: link one, choose its track and where it starts, mute it, bring in its chord names.
+    /// The sequence's tab: edit it (in the Tab tab), mute it, bring in its chord names.
     @ViewBuilder
     var tabMenu: some View {
-        let link = sequence.tab
-        let score = session.linkedTab
-        BarMenu(title: "Tab", value: link.map { session.linkedTabMissing ? "\($0.name) (missing)" : $0.name } ?? "None",
-                help: link == nil
-                    ? "Link a tab (.spottab) to play along with the sequence, at its tempo"
-                    : "\(link!.name) plays along\(link!.isMuted ? " (muted)" : ""), from \(barLabel(link!.startBeat))") {
-            if let link {
-                if session.linkedTabMissing {
-                    Button("Locate Tab…") { ui.openPanel = .linkTab }
-                    Divider()
-                }
-                if let score {
-                    Menu("Plays") {
-                        choice("All Tracks", link.track == TabLink.allTracks) { sequence.tab?.track = TabLink.allTracks }
-                        Divider()
-                        ForEach(Array(score.tracks.enumerated()), id: \.offset) { index, track in
-                            choice(track.name, link.track == index) { sequence.tab?.track = index }
-                        }
-                    }
-                }
-                Button("Start at the Playhead (\(barLabel(editor.selection.start)))") { sequence.tab?.startBeat = editor.selection.start }
-                    .help("Where the tab's first bar comes in the sequence: now \(barLabel(link.startBeat))")
-                choice("Mute", link.isMuted) { sequence.tab?.isMuted.toggle() }
-                Divider()
-                Button("Add Its Chord Names to the Sequence") {
-                    let unreadable = session.addChordsFromLinkedTab()
-                    unreadableChords = unreadable.isEmpty ? nil : unreadable
-                }
-                .disabled(!session.linkedTabHasChords)
-                Button("Open in the Tab Editor") {
-                    if let url = session.linkedTabURL {
-                        ui.requestTabAction(.openURL(url), session: tabSession)
-                    }
-                }
-                .disabled(session.linkedTabURL == nil)
-                Button("Link a Different Tab…") { ui.openPanel = .linkTab }
-                Divider()
-                Button("Unlink Tab", role: .destructive) { session.unlinkTab() }
-            } else {
-                Button("Link a Tab…") { ui.openPanel = .linkTab }
+        let notes = sequence.tablature.map { score in
+            score.tracks.reduce(0) { $0 + $1.bars.reduce(0) { $0 + $1.voices[0].beats.reduce(0) { $0 + $1.notes.count } } }
+        } ?? 0
+        BarMenu(title: "Tab", value: notes == 0 ? "Empty" : sequence.tabIsMuted ? "Muted" : "\(notes) notes",
+                help: "The sequence's tab, written in the Tab tab: it plays along with the sequence, from 1.1.1") {
+            Button("Edit in the Tab Tab") { ui.tab = .Tab }
+            choice("Mute", sequence.tabIsMuted) { sequence.tabIsMuted.toggle() }
+            Divider()
+            Button("Use Its Chord Names in the Sequence") {
+                let unreadable = session.addChordsFromTablature()
+                unreadableChords = unreadable.isEmpty ? nil : unreadable
             }
+            .disabled(!session.tablatureHasChords)
         }
         .alert("Some chord names weren't added", isPresented: Binding(get: { unreadableChords != nil },
                                                                       set: { if !$0 { unreadableChords = nil } })) {

@@ -36,13 +36,14 @@ struct LibraryFile: FileDocument {
 
 /// Whatever the window's single Save panel is saving: a library export, a sequence or a tab.
 struct ExportDocument: FileDocument {
-    static var readableContentTypes: [UTType] { [.spotLibrary, .spotSequence, .spotTab, .guitarPro7] }
+    static var readableContentTypes: [UTType] { [.spotLibrary, .spotSequence, .spotTab, .guitarPro7, .pdf] }
 
     enum Content {
         case library(LibraryFile)
         case sequence(SequenceDocument)
         case tab(TabDocument)
         case guitarPro(GuitarProDocument)
+        case pdf(PDFFile)
     }
 
     var content: Content
@@ -61,6 +62,7 @@ struct ExportDocument: FileDocument {
         case .sequence(let document): return try document.fileWrapper(configuration: configuration)
         case .tab(let document): return try document.fileWrapper(configuration: configuration)
         case .guitarPro(let document): return try document.fileWrapper(configuration: configuration)
+        case .pdf(let document): return try document.fileWrapper(configuration: configuration)
         }
     }
 }
