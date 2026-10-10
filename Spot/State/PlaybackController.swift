@@ -99,7 +99,9 @@ final class PlaybackController {
 
     private func play(from beat: Double, countIn useCountIn: Bool = true) {
         // A count-in is clicks, so it only happens with the metronome on
-        let countIn = useCountIn && transport.isMetronomeOn ? Double(settings.countInBars * transport.beatsPerBar) : 0
+        // The count-in is off for now: playback always starts straight away
+        // let countIn = useCountIn && transport.isMetronomeOn ? Double(settings.countInBars * transport.beatsPerBar) : 0
+        let countIn = 0.0
         transport.start(atBeat: beat - countIn, hostTime: HostTime.adding(startLatency, to: HostTime.now))
         scheduledUntil = beat - countIn
         countInStart = beat - countIn
@@ -210,6 +212,9 @@ final class PlaybackController {
             let loopEndTime = transport.hostTime(forBeat: loop.end)
             transport.jump(toBeat: loop.start, atHostTime: loopEndTime)
             scheduledUntil = loop.start
+            // Any count-in is long over: looping back before where playback started mustn't count as one
+            // (its clicks would sound with the metronome off)
+            countInEnd = -.infinity
             // Audio carries straight on from the loop start, queued after the slice that ended at the loop end
             if audioCursor != nil {
                 audioCursor = loop.start
@@ -233,7 +238,8 @@ final class PlaybackController {
         }
         if sequence != nil, !takesStarted, countInEnd < to {
             takesStarted = true
-            startTakes(fromBeat: countInEnd, atHostTime: transport.hostTime(forBeat: countInEnd))
+            let beat = countInEnd.isFinite ? countInEnd : from
+            startTakes(fromBeat: beat, atHostTime: transport.hostTime(forBeat: beat))
         }
     }
     

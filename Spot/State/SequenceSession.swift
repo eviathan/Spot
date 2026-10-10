@@ -470,7 +470,11 @@ final class SequenceSession {
     /// Where playback stops when playing just the selection.
     @ObservationIgnored private var playRangeEnd: Double?
 
+    /// Where the current playback started (before that, it's still counting in).
+    @ObservationIgnored private var playedFrom: Double = 0
+
     private func start(_ sequence: ChordSequence, editor: SequenceEditorState, from beat: Double, countIn: Bool) {
+        playedFrom = beat
         applyTempo(sequence)
         transport.beatsPerBar = sequence.beatsPerBar
         editor.followSuspended = false
@@ -488,15 +492,22 @@ final class SequenceSession {
     func seek(to beat: Double) {
         guard isPlaying, !isRecording, let sequence, let editor else { return }
         playRangeEnd = nil
+        playedFrom = beat
         playback.play(playbackData(sequence, editor: editor), from: beat, id: editor.id, countIn: false)
     }
 
     /// Stops. Play starts from 1.1.1 again (⌥Space from the playhead).
+    /// Stopping by hand leaves the playhead where playback got to (unless it was still counting in).
     func stopPlayback() {
         stopRecording()
         playRangeEnd = nil
         if isPlaying {
+            let position = transport.position()
             playback.stop()
+            if let editor, let sequence, position >= playedFrom {
+                let beat = min(max(0, position), sequence.lengthInBeats)
+                editor.select(BeatRange(beat, beat), extend: false, in: sequence)
+            }
         }
     }
     

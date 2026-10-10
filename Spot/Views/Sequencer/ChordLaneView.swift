@@ -253,12 +253,12 @@ struct ChordLaneView: View {
                 .padding(.horizontal, 6)
                 .frame(width: span.width, height: takesHeight, alignment: .leading)
                 .background(RoundedRectangle(cornerRadius: 3).fill(Color.red.opacity(take.isMuted ? 0.15 : 0.4)))
-                .offset(x: span.x, y: takesTop)
                 .contextMenu {
                     Button(take.isMuted ? "Unmute" : "Mute") { session.setTakeMuted(take.id, !take.isMuted) }
                     Divider()
                     Button("Delete Take", role: .destructive) { session.removeTake(take.id) }
                 }
+                .offset(x: span.x, y: takesTop)
                 }
             }
         }
@@ -318,7 +318,6 @@ struct ChordLaneView: View {
                 .offset(x: startX, y: laneHeight - 18)
                 .help("Where bar 1 beat 1 is: bars, beats and the grid count from here. Drag it (it sticks to warp markers unless Snap is off or you hold ⌥), or right-click in the lane: Set 1.1.1 Here.")
             markerFlag("End", marker: .end, faded: isAutomaticEnd)
-                .offset(x: endX - 34, y: laneHeight - 18)
                 .contextMenu {
                     Button("Automatic End") { session.sequence?.endBeat = nil }
                         .disabled(sequence.endBeat == nil)
@@ -326,6 +325,7 @@ struct ChordLaneView: View {
                 .help(isAutomaticEnd
                       ? "Where playback stops: for now, the end of the bar the last thing ends in. Drag it to set the end yourself."
                       : "Where playback stops. Drag to move it; right-click for Automatic End.")
+                .offset(x: endX - 34, y: laneHeight - 18)
         }
     }
 
@@ -840,6 +840,9 @@ private struct WaveformRow: View {
     @State private var selectedMarker: UUID?
     /// What a press on the waveform turned out to be.
     @State private var gesture: WaveformGesture?
+    /// When and where the last click ended, to tell a double-click (the system's click count isn't
+    /// reliable by the time the gesture hears about the press).
+    @State private var lastClick: (time: Date, x: CGFloat)?
 
     private enum WaveformGesture {
         /// A click so far (it becomes a range if it moves).
@@ -903,9 +906,11 @@ private struct WaveformRow: View {
                     context.stroke(path, with: .color(.cyan.opacity(audio.isMuted ? 0.25 : 0.75)), lineWidth: 1)
                 }
                 .frame(width: width, height: height)
-                .offset(x: left)
+                // Clickable where it's drawn: the shape and gesture go on before it's moved into place
+                // (after, they'd stay at the start of the lane and miss clicks once it's scrolled)
                 .contentShape(Rectangle())
                 .gesture(waveformDrag(map: map, left: left))
+                .offset(x: left)
             } else {
                 Text(statusText)
                     .font(.caption)
@@ -920,7 +925,6 @@ private struct WaveformRow: View {
                 if x >= left - 10 && x <= left + width + 10 {
                     WarpFlag(height: height, isActive: dragging?.id == marker.id || hovered == marker.id || selectedMarker == marker.id,
                              grabsWholeLine: selectedMarker == marker.id)
-                        .offset(x: x - 6)
                         .onHover { hovered = $0 ? marker.id : (hovered == marker.id ? nil : hovered) }
                         .gesture(markerDrag(marker, map: map))
                         .simultaneousGesture(TapGesture(count: 2).onEnded {
@@ -933,8 +937,10 @@ private struct WaveformRow: View {
                                 .disabled(liveMarkers.count <= 1)
                         }
                         .help(liveMarkers.count <= 1
-                              ? "Where the recording sits on the grid: drag to move it all (⌥ free, ⇧ slide along the audio to put it on another hit)"
-                              : "Drag to stretch onto a beat (⌥ free, ⇧ slide along the audio). Double-click to remove.")
+                              ? "Where the recording sits on the grid: drag to move it all (⌥ free); ⇧-drag to slide the audio under it"
+                              : "Drag to stretch onto a beat (⌥ free). ⇧-drag to slide the audio under it, to line up a different hit. Double-click to remove.")
+                        // Moved into place last, so it's grabbed where it's drawn
+                        .offset(x: x - 6)
                 }
             }
 
@@ -988,9 +994,10 @@ private struct WaveformRow: View {
     }
     
     /// Stretch: the marker keeps its moment in the audio and moves to a new beat.
-    /// Slide (⇧): the marker moves along the audio, which stays where it is.
-    /// Measured in the row's fixed coordinates against where the marker started, so the point you
-    /// grabbed stays under the mouse.
+    /// Slide (⇧), as in Live: the marker stays on its beat and the audio slides underneath it, following the
+    /// mouse, so a different moment lands on that beat (each side stretches to fit).
+    /// Measured in the row's fixed coordinates against where the marker started, so what you grabbed
+    /// stays under the mouse.
     private func markerDrag(_ marker: WarpMarker, map: WarpMap) -> some Gesture {
         DragGesture(minimumDistance: 2, coordinateSpace: .named(WaveformRow.space))
             .onChanged { value in
@@ -998,19 +1005,33 @@ private struct WaveformRow: View {
                 let flags = NSEvent.modifierFlags
                 // The marker as it was before this drag (the one on screen has already moved)
                 let original = audio.warpMarkers.first { $0.id == marker.id } ?? marker
-                let grab = value.startLocation.x - CGFloat(original.beat) * beatWidth
-                let raw = Double((value.location.x - grab) / beatWidth)
                 var moved = original
                 if flags.contains(.shift) {
-                    let base = WarpMap(markers: audio.warpMarkers.filter { $0.id != marker.id }, tempo: audio.tempo)
-                    moved.beat = raw
-                    moved.sourceTime = base.sourceTime(atBeat: raw)
+                    // How much audio a beat holds where the marker is, as it was before the drag
+                    let before = audio.map
+                    let secondsPerBeat = (before.sourceTime(atBeat: original.beat + 0.01)
+                        - before.sourceTime(atBeat: original.beat - 0.01)) / 0.02
+                    // Dragging right brings earlier audio under the marker
+                    moved.sourceTime = original.sourceTime - Double(value.translation.width / beatWidth) * secondsPerBeat
+                    dragging = slideClamped(moved)
                 } else {
-                    moved.beat = snap(raw, free: flags.contains(.option))
+                    let grab = value.startLocation.x - CGFloat(original.beat) * beatWidth
+                    moved.beat = snap(Double((value.location.x - grab) / beatWidth), free: flags.contains(.option))
+                    dragging = clamped(moved)
                 }
-                dragging = clamped(moved)
             }
             .onEnded { _ in commitDrag() }
+    }
+
+    /// Keeps a sliding marker's moment in the audio between its neighbours' (and inside the recording).
+    private func slideClamped(_ marker: WarpMarker) -> WarpMarker {
+        let others = audio.warpMarkers.filter { $0.id != marker.id }
+        let before = others.filter { $0.beat < marker.beat }.max { $0.beat < $1.beat }
+        let after = others.filter { $0.beat > marker.beat }.min { $0.beat < $1.beat }
+        var result = marker
+        result.sourceTime = min(max(result.sourceTime, (before?.sourceTime ?? -.infinity) + 0.005), (after?.sourceTime ?? .infinity) - 0.005)
+        result.sourceTime = min(max(result.sourceTime, 0), audio.reference.duration)
+        return result
     }
 
     /// As in the rest of the lane: click to place the playhead, drag to select a range. Double-click to
@@ -1021,7 +1042,11 @@ private struct WaveformRow: View {
                 if gesture == nil {
                     gesture = .click
                     selectedMarker = nil
-                    if (NSApp.currentEvent?.clickCount ?? 1) >= 2 {
+                    let isDoubleClick = lastClick.map {
+                        Date().timeIntervalSince($0.time) <= NSEvent.doubleClickInterval && abs($0.x - value.startLocation.x) <= 5
+                    } ?? false
+                    lastClick = nil
+                    if isDoubleClick {
                         let beat = Double(value.startLocation.x / beatWidth)
                         let marker = WarpMarker(sourceTime: map.sourceTime(atBeat: beat), beat: beat)
                         if session.sequence?.audio?.setMarker(marker) == true {
@@ -1055,6 +1080,7 @@ private struct WaveformRow: View {
                     editor.select(beat: Double(value.location.x / beatWidth),
                                   extend: NSEvent.modifierFlags.contains(.shift), in: sequence)
                     session.seek(to: editor.selection.start)
+                    lastClick = (Date(), value.location.x)
                 case .range:
                     break
                 }

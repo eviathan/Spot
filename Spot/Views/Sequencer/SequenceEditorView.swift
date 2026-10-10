@@ -183,7 +183,7 @@ struct AudioTrackHeader: View {
                     .fixedSize()
                     .help("Audio")
                 }
-                .help("Double-click the waveform to add a warp marker and drag it onto its beat. Markers are picked up by their arrows (⇧ slides one along the audio).")
+                .help("Double-click the waveform to add a warp marker and drag it onto its beat. Markers are picked up by their arrows; ⇧-drag one to slide the audio under it.")
 
                 RecordingTempo(sequence: binding, editor: editor)
 

@@ -57,12 +57,13 @@ struct SettingsTabView: View {
                 LabeledContent("Volume") {
                     Slider(value: $settings.metronomeVolume, in: 0...1)
                 }
-                Picker("Count-in", selection: $settings.countInBars) {
-                    Text("None").tag(0)
-                    Text("1 bar").tag(1)
-                    Text("2 bars").tag(2)
-                }
-                .help("Counts in before playback starts, when the metronome is on")
+                // The count-in is off for now (see PlaybackController.play(from:countIn:))
+                // Picker("Count-in", selection: $settings.countInBars) {
+                //     Text("None").tag(0)
+                //     Text("1 bar").tag(1)
+                //     Text("2 bars").tag(2)
+                // }
+                // .help("Counts in before playback starts, when the metronome is on")
             } header: {
                 Text("Metronome")
             }
