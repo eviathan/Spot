@@ -12,6 +12,29 @@ import SpotCore
 extension UTType {
     /// A tab (tablature) file: JSON.
     static let spotTab = UTType(exportedAs: "iko.spot.tab", conformingTo: .json)
+
+    /// Guitar Pro files, by extension (Guitar Pro declares the types, but it may not be installed).
+    static let guitarProTypes: [UTType] = GuitarPro.fileExtensions.compactMap { UTType(filenameExtension: $0) }
+    static let guitarPro7 = UTType(filenameExtension: "gp") ?? .data
+}
+
+/// The tab as a Guitar Pro 7 file, for exporting.
+struct GuitarProDocument: FileDocument {
+    static var readableContentTypes: [UTType] { [.guitarPro7] }
+
+    var data: Data
+
+    init(score: TabScore) {
+        data = GuitarPro.gp7(score)
+    }
+
+    init(configuration: ReadConfiguration) throws {
+        throw CocoaError(.featureUnsupported)
+    }
+
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        FileWrapper(regularFileWithContents: data)
+    }
 }
 
 /// A tab as a document, for the Save panel.
@@ -185,7 +208,14 @@ final class TabSession {
         load(TabScore.empty(), from: nil)
     }
 
+    /// Tracks a Guitar Pro file had that couldn't be brought in (drums), to tell you about; nil once told.
+    var skippedOnImport: [String]?
+
     func open(_ url: URL) throws {
+        if GuitarPro.fileExtensions.contains(url.pathExtension.lowercased()) {
+            try importGuitarPro(url)
+            return
+        }
         let accessing = url.startAccessingSecurityScopedResource()
         do {
             let score = try TabScore.decode(from: Data(contentsOf: url))
@@ -196,6 +226,32 @@ final class TabSession {
             if accessing { url.stopAccessingSecurityScopedResource() }
             throw error
         }
+    }
+
+    /// Opens a Guitar Pro file as a new, Untitled tab (saving makes a `.spottab`; the original is left alone).
+    func importGuitarPro(_ url: URL) throws {
+        let accessing = url.startAccessingSecurityScopedResource()
+        defer {
+            if accessing { url.stopAccessingSecurityScopedResource() }
+        }
+        let imported = try GuitarPro.read(Data(contentsOf: url))
+        guard !imported.score.tracks.isEmpty else {
+            throw GuitarPro.Error.unsupported("Guitar Pro files with only drum tracks")
+        }
+        close()
+        var score = imported.score
+        if score.title.isEmpty {
+            score.title = url.deletingPathExtension().lastPathComponent
+        }
+        load(score, from: nil)
+        // Untitled with something in it: kept as a draft, and you're asked to save before it's replaced
+        hasUnsavedChanges = true
+        scheduleAutosave()
+        skippedOnImport = imported.skippedTracks.isEmpty ? nil : imported.skippedTracks
+    }
+
+    var guitarProDocument: GuitarProDocument? {
+        score.map(GuitarProDocument.init)
     }
 
     func open(_ recent: Recent) throws {

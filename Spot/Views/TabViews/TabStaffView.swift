@@ -437,20 +437,21 @@ private struct TabLineView: View {
         context.draw(Text("\(bar.index + 1)").font(.system(size: 9, weight: fill == 0 ? .regular : .bold))
                         .foregroundColor(fill == 0 ? ink.opacity(0.45) : Color(red: 1, green: 0.4, blue: 0.4)),
                      at: CGPoint(x: bar.x + 3, y: top - 10), anchor: .leading)
-        var aboveY: CGFloat = 8
+        let aboveY: CGFloat = 8
+        // The tempo goes after the marker, however long the marker's name is
+        var tempoX = bar.x + 4
         if let marker = master.marker, !marker.isEmpty {
             let text = context.resolve(Text(marker).font(.system(size: 11, weight: .bold)).foregroundColor(.black))
             let size = text.measure(in: CGSize(width: 300, height: 30))
             context.fill(Path(roundedRect: CGRect(x: bar.x + 2, y: aboveY - 1, width: size.width + 8, height: size.height + 2), cornerRadius: 3),
                          with: .color(Color(red: 0.95, green: 0.78, blue: 0.35)))
             context.draw(text, at: CGPoint(x: bar.x + 6, y: aboveY), anchor: .topLeading)
-            aboveY += 0
+            tempoX = bar.x + size.width + 18
         }
         let tempo = master.tempo ?? (bar.index == 0 ? score.tempo : nil)
         if let tempo {
-            let x = bar.x + (master.marker?.isEmpty == false ? 90 : 4)
             context.draw(Text("♩ = \(Int(tempo.rounded()))").font(.system(size: 11)).foregroundColor(ink.opacity(0.85)),
-                         at: CGPoint(x: x, y: aboveY), anchor: .topLeading)
+                         at: CGPoint(x: tempoX, y: aboveY), anchor: .topLeading)
         }
         if !master.alternateEndings.isEmpty {
             var bracket = Path()

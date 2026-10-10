@@ -128,6 +128,8 @@ struct SpotApp: App {
                     Button("Save As…") { ui.savePanel = .tab }
                         .keyboardShortcut("s", modifiers: [.command, .shift])
                         .disabled(!tabSession.isOpen)
+                    Button("Export as Guitar Pro…") { ui.savePanel = .guitarPro }
+                        .disabled(!tabSession.isOpen)
                 } else {
                     Button("Save") {
                         if session.fileURL == nil {

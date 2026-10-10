@@ -131,11 +131,17 @@ struct LayoutView: View {
         .onOpenURL { url in
             if url.pathExtension == "spot" {
                 ui.requestSequenceAction(.openURL(url), session: session)
-            } else if url.pathExtension == "spottab" {
+            } else if url.pathExtension == "spottab" || GuitarPro.fileExtensions.contains(url.pathExtension.lowercased()) {
                 ui.requestTabAction(.openURL(url), session: tabSession)
             } else {
                 openLibraryFile(url)
             }
+        }
+        .alert("Some tracks weren't brought in",
+               isPresented: Binding(get: { tabSession.skippedOnImport != nil }, set: { if !$0 { tabSession.skippedOnImport = nil } })) {
+            Button("OK") { tabSession.skippedOnImport = nil }
+        } message: {
+            Text("Drum tracks can't be shown as tab, so these were left out: \((tabSession.skippedOnImport ?? []).joined(separator: ", ")).")
         }
         .alert("Something went wrong", isPresented: Binding(get: { ui.errorMessage != nil }, set: { if !$0 { ui.errorMessage = nil } })) {
             Button("OK") { ui.errorMessage = nil }
@@ -153,6 +159,7 @@ struct LayoutView: View {
         case .library: return ui.exportFile.map { ExportDocument(.library($0)) }
         case .sequence: return session.document.map { ExportDocument(.sequence($0)) }
         case .tab: return tabSession.document.map { ExportDocument(.tab($0)) }
+        case .guitarPro: return tabSession.guitarProDocument.map { ExportDocument(.guitarPro($0)) }
         }
     }
 
@@ -206,6 +213,10 @@ struct LayoutView: View {
         case (.tab, .failure(let error)):
             ui.errorMessage = error.localizedDescription
             ui.tabActionAfterSave = nil
+        case (.guitarPro, .success):
+            break
+        case (.guitarPro, .failure(let error)):
+            ui.errorMessage = error.localizedDescription
         }
     }
 
@@ -214,6 +225,7 @@ struct LayoutView: View {
         case .library: return .spotLibrary
         case .sequence: return .spotSequence
         case .tab: return .spotTab
+        case .guitarPro: return .guitarPro7
         }
     }
 
@@ -221,7 +233,7 @@ struct LayoutView: View {
         switch ui.lastSavePanel {
         case .library: return ui.exportFile?.bundle.bundle.name ?? "Library"
         case .sequence: return session.displayName
-        case .tab: return tabSession.score.map { $0.title.isEmpty ? tabSession.displayName : $0.title } ?? "Untitled"
+        case .tab, .guitarPro: return tabSession.score.map { $0.title.isEmpty ? tabSession.displayName : $0.title } ?? "Untitled"
         }
     }
 
