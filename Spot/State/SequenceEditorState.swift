@@ -46,8 +46,12 @@ final class SequenceEditorState {
     }
     /// Where playback paused; Play carries on from here. Cleared by Stop or by selecting somewhere else.
     var pausedAt: Double?
-    /// Selection size in beats: a bar, half a bar or a beat.
+    /// The grid in beats, for selecting and for moving and resizing chords; 0 is off.
     var snap: Double = 4
+    /// What a click selects: the grid, but at least a beat (finer grids are for dragging).
+    private var clickUnit: Double {
+        snap >= 1 ? snap : 1
+    }
     private var selectionAnchor: Double = 0
 
     /// The chord being typed in the editor bar.
@@ -69,9 +73,75 @@ final class SequenceEditorState {
     var showsPalette = false
     /// Lane zoom: how wide a bar is, in points.
     var barWidth: Double = 140
-    
-    func zoom(by factor: Double) {
-        barWidth = min(max(barWidth * factor, 40), 1_200)
+    /// Lane scroll: the beat at the left edge while stopped (playing follows the playhead).
+    var viewStart: Double = 0
+
+    // What the lane last told us about itself, for zooming and clamping
+    @ObservationIgnored private var viewportWidth: Double = 0
+    @ObservationIgnored private var laneBeats: Double = 16
+    @ObservationIgnored private var laneBeatsPerBar: Double = 4
+
+    enum ViewEdge { case start, end }
+
+    private var beatWidth: Double {
+        barWidth / laneBeatsPerBar
+    }
+    /// How many beats fit on screen.
+    var visibleBeats: Double {
+        viewportWidth > 0 ? viewportWidth / beatWidth : laneBeats
+    }
+    /// Zoomed right out, the whole sequence fits.
+    private var barWidthRange: ClosedRange<Double> {
+        let fit = viewportWidth > 0 ? viewportWidth * laneBeatsPerBar / laneBeats : 40
+        return min(40, fit)...1_200
+    }
+
+    func setViewport(width: Double, lengthInBeats: Double, beatsPerBar: Int) {
+        viewportWidth = width
+        laneBeats = max(lengthInBeats, 1)
+        laneBeatsPerBar = Double(max(beatsPerBar, 1))
+        clampView()
+    }
+
+    /// Zooms keeping the beat at `x` (points from the lane's left edge; the middle by default) where it is.
+    func zoom(by factor: Double, around x: Double? = nil) {
+        let anchorX = x ?? viewportWidth / 2
+        let anchorBeat = viewStart + anchorX / beatWidth
+        let range = barWidthRange
+        barWidth = min(max(barWidth * factor, range.lowerBound), range.upperBound)
+        viewStart = anchorBeat - anchorX / beatWidth
+        clampView()
+    }
+
+    func pan(by points: Double) {
+        viewStart += points / beatWidth
+        clampView()
+    }
+
+    func scroll(to beat: Double) {
+        viewStart = beat
+        clampView()
+    }
+
+    /// Shows `start` to `end`, zooming to fit; if that's beyond the zoom limits, `keeping` that edge where asked.
+    func show(from start: Double, to end: Double, keeping edge: ViewEdge = .start) {
+        guard viewportWidth > 0 else { return }
+        let range = barWidthRange
+        barWidth = min(max(viewportWidth * laneBeatsPerBar / max(end - start, 0.25), range.lowerBound), range.upperBound)
+        viewStart = edge == .start ? start : end - visibleBeats
+        clampView()
+    }
+
+    func showAll() {
+        show(from: 0, to: laneBeats)
+    }
+
+    private func clampView() {
+        let range = barWidthRange
+        let width = min(max(barWidth, range.lowerBound), range.upperBound)
+        if width != barWidth { barWidth = width }
+        let start = min(max(viewStart, 0), max(0, laneBeats - visibleBeats))
+        if start != viewStart { viewStart = start }
     }
     
     @ObservationIgnored private var lastSequence: ChordSequence?
@@ -162,15 +232,43 @@ final class SequenceEditorState {
 
     // MARK: - Selection
 
-    /// Selects the snap unit at `beat`, or extends the selection to it.
+    /// Selects the grid unit at `beat`, or extends the selection to it.
     func select(beat: Double, extend: Bool, in sequence: ChordSequence) {
-        let start = max(0, min(floor(beat / snap) * snap, sequence.lengthInBeats - snap))
+        let unit = clickUnit
+        let start = max(0, min(floor(beat / unit) * unit, sequence.lengthInBeats - unit))
         if extend {
-            selection = BeatRange(min(selectionAnchor, start), max(selectionAnchor + snap, start + snap))
+            selection = BeatRange(min(selectionAnchor, start), max(selectionAnchor + unit, start + unit))
         } else {
-            selection = BeatRange(start, start + snap)
+            selection = BeatRange(start, start + unit)
             selectionAnchor = start
         }
+        loadChordText(from: sequence)
+    }
+
+    /// Selects exactly `range` (a chord), or extends the selection to cover it.
+    func select(_ range: BeatRange, extend: Bool, in sequence: ChordSequence) {
+        if extend {
+            selection = BeatRange(min(selection.start, range.start), max(selection.end, range.end))
+        } else {
+            selection = range
+            selectionAnchor = range.start
+        }
+        loadChordText(from: sequence)
+    }
+
+    /// Selects from one beat to another as dragged, out to the grid unless `free`.
+    func selectRange(from first: Double, to second: Double, free: Bool, in sequence: ChordSequence) {
+        let unit = free ? 0 : snap
+        var start = min(first, second)
+        var end = max(first, second)
+        if unit > 0 {
+            start = floor(start / unit) * unit
+            end = ceil(end / unit) * unit
+        }
+        start = max(0, start)
+        end = min(sequence.lengthInBeats, max(end, start + (unit > 0 ? unit : 1.0 / 16)))
+        selection = BeatRange(start, end)
+        selectionAnchor = start
         loadChordText(from: sequence)
     }
 

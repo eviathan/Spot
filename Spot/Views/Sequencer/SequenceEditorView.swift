@@ -111,8 +111,13 @@ private struct LaneEditorBar: View {
                     Text("Half bar").tag(Double(sequence.beatsPerBar) / 2)
                 }
                 Text("Beat").tag(1.0)
+                Text("1/8").tag(0.5)
+                Text("1/16").tag(0.25)
+                Divider()
+                Text("Off").tag(0.0)
             }
             .frame(width: 140)
+            .help("The grid for selecting, moving and resizing chords. Chords also stick to each other's edges; hold ⌥ while dragging to ignore both.")
 
             if let error = editor.chordError {
                 Label(error, systemImage: "exclamationmark.triangle")

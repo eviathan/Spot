@@ -146,6 +146,18 @@ public struct ChordSequence: Hashable, Codable, Sendable {
         chords.sort { $0.range.start < $1.range.start }
     }
 
+    /// Puts an existing chord (moved or resized) at its new range, keeping its id and scale,
+    /// and trims whatever it now covers.
+    public mutating func place(_ region: ChordRegion) {
+        var region = region
+        region.range = clamped(region.range)
+        guard region.range.length > 0 else { return }
+        chords.removeAll { $0.id == region.id }
+        chords = ChordSequence.carve(chords, removing: region.range)
+        chords.append(region)
+        chords.sort { $0.range.start < $1.range.start }
+    }
+
     public mutating func clearChords(in range: BeatRange) {
         chords = ChordSequence.carve(chords, removing: range)
     }

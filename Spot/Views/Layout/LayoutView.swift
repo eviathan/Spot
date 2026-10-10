@@ -100,7 +100,10 @@ struct LayoutView: View {
     }
 
     /// What the Save panel writes: the library export or the open sequence.
+    /// Only made while the panel is up: building it reads the sequence (and the takes folder), and doing
+    /// that on every render would redraw the whole window whenever a chord changed.
     private var exportDocument: ExportDocument? {
+        guard ui.savePanel != nil else { return nil }
         switch ui.lastSavePanel {
         case .library: return ui.exportFile.map { ExportDocument(.library($0)) }
         case .sequence: return session.document.map { ExportDocument(.sequence($0)) }

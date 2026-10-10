@@ -155,3 +155,34 @@ final class BackingTests: XCTestCase {
         XCTAssertEqual(Backing.notes(for: compSequence, chords: chords), [])
     }
 }
+
+final class ChordClipTests: XCTestCase {
+    func testMovingAndResizingKeepsTheChord() throws {
+        var sequence = ChordSequence(lengthInBars: 4)
+        sequence.setChord("Dm7", in: BeatRange(0, 4), scaleId: "builtin.scale.dorian")
+        sequence.setChord("G7", in: BeatRange(4, 8))
+        sequence.setChord("Cmaj7", in: BeatRange(8, 16))
+        var g7 = try XCTUnwrap(sequence.chords.first { $0.symbol == "G7" })
+
+        // Shorten to a beat and a half, starting on the "and" of 2
+        g7.range = BeatRange(5.5, 7)
+        sequence.place(g7)
+        XCTAssertEqual(sequence.chords.map(\.symbol), ["Dm7", "G7", "Cmaj7"])
+        XCTAssertEqual(sequence.chords[1].range, BeatRange(5.5, 7))
+        XCTAssertEqual(sequence.chords[1].id, g7.id)
+
+        // Moving over another chord trims it; the moved chord keeps its pinned scale
+        var dm7 = sequence.chords[0]
+        dm7.range = BeatRange(6, 10)
+        sequence.place(dm7)
+        XCTAssertEqual(sequence.chords.map(\.symbol), ["G7", "Dm7", "Cmaj7"])
+        XCTAssertEqual(sequence.chords.map(\.range), [BeatRange(5.5, 6), BeatRange(6, 10), BeatRange(10, 16)])
+        XCTAssertEqual(sequence.chords[1].scaleId, "builtin.scale.dorian")
+
+        // Clamped to the sequence
+        var cmaj7 = sequence.chords[2]
+        cmaj7.range = BeatRange(14, 20)
+        sequence.place(cmaj7)
+        XCTAssertEqual(sequence.chords.last?.range, BeatRange(14, 16))
+    }
+}
