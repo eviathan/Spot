@@ -60,7 +60,8 @@ struct PracticeFretboard: View {
                 let ring = position.fret == 0 ? theme.openMarkerColor : theme.defaultMarkerColor
                 return FretboardMarker(marker: marker, label: label(marker), ring: ring, fill: ring,
                                        text: position.fret == 0 ? .white : theme.fretboardColor,
-                                       isVisible: !display.hideUnrelatedNotes, scale: 0.8)
+                                       // Isolating the shape (⌘I) hides them whatever ⌘U says
+                                       isVisible: !display.hideUnrelatedNotes && !display.isolatePosition, scale: 0.8)
             }
             return FretboardMarker(marker: marker,
                                    label: label(marker),

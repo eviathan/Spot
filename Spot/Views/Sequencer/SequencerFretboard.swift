@@ -77,7 +77,9 @@ struct SequencerFretboard: View {
             let offset = pitchClass.semitones(above: chord.root.pitchClass)
             let role = roles[offset] ?? .outside
             let inVoicing = currentVoicing?[position] != nil
-            let inCurrent = !followsHand || currentPlacement?[position] != nil || inVoicing
+            // Isolating the shape (⌘I): just the voicing and scale shape, even when showing the whole neck
+            let isolates = display.isolatePosition && current != nil
+            let inCurrent = (!followsHand && !isolates) || currentPlacement?[position] != nil || inVoicing
 
             let degree = chordDegrees[offset] ?? scaleDegrees[offset].map(ChordScaleMatcher.tensionName)
             let marker = FretMarker(position: position, pitchClass: pitchClass, semitonesAboveRoot: offset,
@@ -137,10 +139,15 @@ struct SequencerFretboard: View {
                                            fill: .black.opacity(0.3), text: .white.opacity(0.85),
                                            scale: 0.46, opacity: nextStrength * 0.85)
                 }
-                if role == .chordTone {
+                if role == .chordTone && !isolates {
                     // Chord tones elsewhere on the neck, faint, for orientation
                     return FretboardMarker(marker: marker, label: label, ring: roleColour(.chordTone), fill: .black, text: .white,
                                            scale: 0.55, opacity: 0.35)
+                }
+                if (role == .tension || role == .avoid) && !isolates {
+                    // The rest of the scale elsewhere on the neck, fainter still (isolating the shape hides these)
+                    return FretboardMarker(marker: marker, label: label, ring: roleColour(role), fill: theme.defaultMarkerColor,
+                                           text: theme.fretboardColor, scale: 0.5, opacity: 0.3)
                 }
                 // Everything else: shown plainly (as on the Library tab) when unrelated notes are on (⌘U)
                 return unrelatedMarker(marker, label: label)
@@ -153,7 +160,7 @@ struct SequencerFretboard: View {
         let ring = marker.position.fret == 0 ? theme.openMarkerColor : theme.defaultMarkerColor
         return FretboardMarker(marker: marker, label: label, ring: ring, fill: ring,
                                text: marker.position.fret == 0 ? .white : theme.fretboardColor,
-                               isVisible: !display.hideUnrelatedNotes, scale: 0.8)
+                               isVisible: !display.hideUnrelatedNotes && !display.isolatePosition, scale: 0.8)
     }
 
     private func roleColour(_ role: NoteRole) -> Color {
