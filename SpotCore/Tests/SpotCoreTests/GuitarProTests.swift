@@ -64,7 +64,7 @@ final class GuitarProTests: XCTestCase {
 
     func testRejectsOtherFiles() {
         XCTAssertThrowsError(try GuitarPro.read(Data("hello".utf8)))
-        XCTAssertThrowsError(try GuitarPro.read(Data([0x18] + Array("FICHIER GUITAR PRO v5.00".utf8))))
+        XCTAssertThrowsError(try GuitarPro.read(Data([0x18] + Array("FICHIER GUITAR PRO v5.00".utf8) + [0, 0, 0, 0, 0, 0])))
     }
 
     /// Real files, if there are some to try (set SPOT_GP_SAMPLES to a folder of .gp files): they read, and what's
@@ -99,7 +99,69 @@ final class GuitarProTests: XCTestCase {
         }
     }
 
+    /// Guitar Pro 3–5 files, if there are some to try (SPOT_GP_OLD_SAMPLES, searched recursively): each is read to
+    /// its very end (the binary format has no lengths, so ending exactly there means every field was read right).
+    func testOldSampleFiles() throws {
+        guard let folder = ProcessInfo.processInfo.environment["SPOT_GP_OLD_SAMPLES"] else { throw XCTSkip("No samples") }
+        let files = FileManager.default.enumerator(at: URL(fileURLWithPath: folder), includingPropertiesForKeys: nil)!
+            .compactMap { $0 as? URL }.filter { ["gp3", "gp4", "gp5"].contains($0.pathExtension) }
+            .sorted { $0.path < $1.path }
+        XCTAssertFalse(files.isEmpty)
+        for url in files {
+            let data = try Data(contentsOf: url)
+            do {
+                let (read, consumed) = try GuitarProBinary.readCounting(data)
+                let score = read.score
+                let beats = score.tracks.flatMap(\.bars).flatMap(\.voices).flatMap(\.beats)
+                let notes = beats.flatMap(\.notes)
+                let unfilled = score.tracks.indices.flatMap { t in score.masterBars.indices.filter { score.fill(track: t, bar: $0) != 0 } }
+                func count(_ test: (TabNote) -> Bool) -> Int { notes.filter(test).count }
+                print("OLD \(url.lastPathComponent): \(data[consumed...].allSatisfy { $0 == 0 } ? "all read" : "READ \(consumed) OF \(data.count)"), "
+                      + "\(score.barCount) bars, \(score.tracks.count) tracks \(score.tracks.map { "\($0.name)/\($0.stringCount)/capo \($0.capo)/prog \($0.midiProgram)" }), "
+                      + "skipped \(read.skippedTracks), tempo \(score.tempo), \(notes.count) notes, unfilled bars \(unfilled.count), "
+                      + "bends \(count { $0.bend != nil }) slides \(count { $0.slide != nil }) legato \(count(\.legato)) ties \(count(\.isTied)) "
+                      + "harm \(count { $0.harmonic != nil }) dead \(count(\.isDead)) ghost \(count(\.isGhost)) acc \(count(\.accent)) "
+                      + "vib \(count(\.vibrato)) pm \(count(\.palmMute)) ring \(count(\.letRing)) tap \(count(\.tapped)) "
+                      + "strokes \(beats.filter { $0.stroke != nil }.count) trem \(beats.filter(\.tremoloPicking).count) "
+                      + "chords \(Set(beats.compactMap(\.chord)).sorted()) text \(beats.compactMap(\.text).prefix(3)) "
+                      + "markers \(score.masterBars.compactMap(\.marker).prefix(4)) repeats \(score.masterBars.map(\.repeatCount).filter { $0 > 0 }) "
+                      + "endings \(score.masterBars.map(\.alternateEndings).filter { !$0.isEmpty }) times \(Set(score.masterBars.map(\.timeSignature.description)).sorted()) "
+                      + "title \(score.title)")
+                // What was read survives being written as Guitar Pro 7 and read back (bends by their height: Guitar
+                // Pro 7 can't hold a bend with more than four points)
+                let again = try GuitarPro.read(GuitarPro.gp7(score)).score
+                if Self.withBendPeaks(again) != Self.withBendPeaks(score) {
+                    XCTFail("\(url.lastPathComponent) round trip")
+                    Self.reportDifferences(again, score)
+                }
+                // (Some files are padded with zeros at the end)
+                XCTAssertTrue(data[consumed...].allSatisfy { $0 == 0 }, "\(url.lastPathComponent): read \(consumed) of \(data.count)")
+            } catch {
+                XCTFail("\(url.lastPathComponent): \(error)")
+            }
+        }
+    }
+
     // MARK: -
+
+    /// Without ids, and each bend reduced to its height.
+    static func withBendPeaks(_ score: TabScore) -> TabScore {
+        var score = withoutIDs(score)
+        for t in score.tracks.indices {
+            for b in score.tracks[t].bars.indices {
+                for v in score.tracks[t].bars[b].voices.indices {
+                    for i in score.tracks[t].bars[b].voices[v].beats.indices {
+                        for n in score.tracks[t].bars[b].voices[v].beats[i].notes.indices {
+                            if let peak = score.tracks[t].bars[b].voices[v].beats[i].notes[n].bend?.peak {
+                                score.tracks[t].bars[b].voices[v].beats[i].notes[n].bend = .up(peak)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return score
+    }
 
     static func withoutIDs(_ score: TabScore) -> TabScore {
         var score = score

@@ -24,7 +24,7 @@ struct TabTabView: View {
             VStack(spacing: 6) {
                 Text("Tab")
                     .font(.largeTitle)
-                Text("Write and read tablature. Each tab is saved as a .spottab file. Open… also opens Guitar Pro 7 and 8 files (.gp), and File ▸ Export as Guitar Pro… writes one.")
+                Text("Write and read tablature. Each tab is saved as a .spottab file. Open… also opens Guitar Pro 3, 4, 5, 7 and 8 files, and File ▸ Export as Guitar Pro… writes one.")
                     .multilineTextAlignment(.center)
                     .opacity(0.7)
                     .frame(maxWidth: 520)

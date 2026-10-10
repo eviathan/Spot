@@ -395,7 +395,7 @@ Suggestions, best first. I'd build **A + B** first and add **C** later.
     - 12d. ✅ Techniques: keys (H hammer-on/pull-off, S / ⇧S slides, B bends, V vibrato, M palm mute, ⇧L let ring, X dead, G ghost, N harmonic, T tapping, A accent) and a Technique menu (exact bends, every slide and harmonic), applied to the note at the cursor or every note in the selection. Drawn Guitar Pro style: H/P arcs, slide lines, bend arrows with amounts and dashed releases, vibrato waves, T / > / harmonic types / strum marks, "let ring" and "P.M." runs; beats with techniques get more room.
     - 12e. ✅ Playback over MIDI with the metronome (repeats, endings, tempo changes, bends, slides, vibrato, let ring, palm mute, ghost/dead/accent velocities). Space plays from the start, ⌥Space from the cursor; the playing beat is highlighted and kept in view, and the fretboard shows it. The footer's tempo, tap and time signature edit the tab at the cursor's bar.
     - 12f. ✅ Guitar Pro 7/8 (`.gp`) import and export (zip + GPIF XML). Open… reads .gp as an Untitled tab (drum tracks skipped, with a notice); File ▸ Export as Guitar Pro… writes GP7, checked in Guitar Pro 8. Known gap: chord names don't show in Guitar Pro after export (they survive the round trip back into Spot).
-    - 12g. Guitar Pro 3–5 import.
+    - 12g. ✅ Guitar Pro 3–5 (`.gp3` `.gp4` `.gp5`) import (binary). Checked against 91 files (alphaTab's GP3–5 test files and a real GP5): every one read to its last byte, and each survives export to GP7 and back. Grace notes and whammy bar aren't kept; bends with more than four points are simplified when exported to GP7.
     - 12h. Guitar Pro 6 (`.gpx`) import.
     - 12i. Linking a tab to a sequence.
 

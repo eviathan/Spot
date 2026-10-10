@@ -8,7 +8,7 @@ import Foundation
 /// Reading Guitar Pro files into a `TabScore`, and writing one out as Guitar Pro 7.
 ///
 /// Guitar Pro 7 and 8 files (`.gp`) are zip archives holding the score as XML (`Content/score.gpif`, "GPIF").
-/// Guitar Pro 6 (`.gpx`) keeps the same XML in its own container; 3, 4 and 5 are binary.
+/// Guitar Pro 6 (`.gpx`) keeps the same XML in its own container; 3, 4 and 5 are binary (`GuitarProBinary`).
 public enum GuitarPro {
     public enum Error: LocalizedError {
         case notGuitarPro
@@ -43,7 +43,7 @@ public enum GuitarPro {
             throw Error.unsupported("Guitar Pro 6")
         }
         if data.count > 1, String(decoding: data.dropFirst().prefix(18), as: UTF8.self).hasPrefix("FICHIER GUITAR PRO") {
-            throw Error.unsupported("Guitar Pro 3–5")
+            return try GuitarProBinary.read(data)
         }
         throw Error.notGuitarPro
     }
@@ -705,10 +705,12 @@ enum GPIF {
             }
         }
         if let bend = note.bend, let first = bend.points.first, let last = bend.points.last {
-            // Guitar Pro has origin, up to two middle points sharing a value, and destination
+            // Guitar Pro 7 has origin, up to two middle points sharing a value, and destination: a bend with more
+            // points (Guitar Pro 3–5 allows any number) is simplified to the furthest one
             enable("Bended")
+            // Positions to more places than Guitar Pro's own six, so sixtieths (from Guitar Pro 3–5) come back exactly
             func value(_ cents: Int) -> String { GPIF.float(Double(cents) / 2) }
-            func offset(_ position: Double) -> String { GPIF.float(position * 100) }
+            func offset(_ position: Double) -> String { String(position * 100) }
             xml.property("BendOriginValue") { $0.element("Float", value(first.cents)) }
             xml.property("BendOriginOffset") { $0.element("Float", offset(first.position)) }
             let middle = Array(bend.points.dropFirst().dropLast())
@@ -787,11 +789,11 @@ enum GPIF {
     /// Sharps (positive) or flats (negative) in the key signature.
     static func accidentals(of key: Key) -> Int {
         let major = key.quality == .minor ? key.tonic.pitchClass.transposed(by: 3) : key.tonic.pitchClass
-        var count = (major.value * 7) % 12
-        if count > 6 || (count == 6 && key.tonic.accidental < 0) {
-            count -= 12
-        }
-        return count
+        let sharps = (major.value * 7) % 12
+        // As sharps or as flats: whichever spells the tonic the same way (A♭ minor is 7 flats, G♯ minor 5 sharps)
+        let candidates = [sharps, sharps - 12].filter { (-7...7).contains($0) }
+        return candidates.first { GPIF.key(accidentals: $0, minor: key.quality == .minor).tonic == key.tonic }
+            ?? candidates.min { abs($0) < abs($1) } ?? 0
     }
 
     static func number(_ value: Double) -> String {
