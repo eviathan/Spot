@@ -142,9 +142,18 @@ struct SequencerFretboard: View {
                     return FretboardMarker(marker: marker, label: label, ring: roleColour(.chordTone), fill: .black, text: .white,
                                            scale: 0.55, opacity: 0.35)
                 }
-                return FretboardMarker(marker: marker, label: label, ring: roleColour(role), fill: .clear, text: .white, isVisible: false)
+                // Everything else: shown plainly (as on the Library tab) when unrelated notes are on (⌘U)
+                return unrelatedMarker(marker, label: label)
             }
         }
+    }
+
+    /// A note that's not part of what's being shown: grey, like the Library's, and only when unrelated notes are on.
+    private func unrelatedMarker(_ marker: FretMarker, label: String) -> FretboardMarker {
+        let ring = marker.position.fret == 0 ? theme.openMarkerColor : theme.defaultMarkerColor
+        return FretboardMarker(marker: marker, label: label, ring: ring, fill: ring,
+                               text: marker.position.fret == 0 ? .white : theme.fretboardColor,
+                               isVisible: !display.hideUnrelatedNotes, scale: 0.8)
     }
 
     private func roleColour(_ role: NoteRole) -> Color {

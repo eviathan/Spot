@@ -55,6 +55,13 @@ struct PracticeFretboard: View {
             }
 
             let inFocus = focus.map { $0[position] != nil } ?? focusOffsets.contains(offset)
+            guard inFocus else {
+                // Everything else: shown plainly (as on the Library tab) when unrelated notes are on (⌘U)
+                let ring = position.fret == 0 ? theme.openMarkerColor : theme.defaultMarkerColor
+                return FretboardMarker(marker: marker, label: label(marker), ring: ring, fill: ring,
+                                       text: position.fret == 0 ? .white : theme.fretboardColor,
+                                       isVisible: !display.hideUnrelatedNotes, scale: 0.8)
+            }
             return FretboardMarker(marker: marker,
                                    label: label(marker),
                                    ring: colour,
