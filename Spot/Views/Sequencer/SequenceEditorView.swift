@@ -203,6 +203,8 @@ private struct SequenceFileBar: View {
             .fixedSize()
             
             Menu("View") {
+                Toggle("Follow Playhead", isOn: Binding(get: { editor.followsPlayhead }, set: { editor.followsPlayhead = $0 }))
+                Divider()
                 Picker("Neck", selection: Binding(get: { editor.neckView }, set: { editor.neckView = $0 })) {
                     Text("Follow Hand").tag(SequenceEditorState.NeckView.followHand)
                     Text("Whole Neck").tag(SequenceEditorState.NeckView.wholeNeck)

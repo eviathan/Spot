@@ -36,35 +36,22 @@ struct ChordLaneView: View {
         let isPlaying = playback.playingSequence == editor.id
 
         VStack(spacing: 0) {
+            // The view stays put while playing; the playhead moves across it (and turns the page, if following)
             GeometryReader { geometry in
                 let viewport = geometry.size.width
-                if isPlaying {
-                    TimelineView(.animation) { _ in
-                        let x = CGFloat(transport.position()) * beatWidth
-                        let playheadX = viewport * 0.25
-                        let left = x - playheadX
-                        ZStack(alignment: .topLeading) {
-                            lane(visible: left...(left + viewport))
-                                .offset(x: -left)
-                            Rectangle()
-                                .fill(Color.orange)
-                                .frame(width: 2, height: laneHeight)
-                                .offset(x: playheadX)
-                        }
-                        .frame(width: viewport, alignment: .leading)
-                        .clipped()
-                    }
-                } else {
-                    let left = CGFloat(editor.viewStart) * beatWidth
-                    lane(visible: left...(left + viewport))
-                        .overlay(alignment: .topLeading) {
+                let left = CGFloat(editor.viewStart) * beatWidth
+                lane(visible: left...(left + viewport))
+                    .overlay(alignment: .topLeading) {
+                        if isPlaying {
+                            PlayingPlayhead(editor: editor, beatWidth: beatWidth, height: laneHeight)
+                        } else {
                             StoppedPlayhead(editor: editor, beatWidth: beatWidth, height: laneHeight)
                         }
-                        .offset(x: -left)
-                        .frame(width: viewport, alignment: .leading)
-                        .clipped()
-                        .contentShape(Rectangle())
-                }
+                    }
+                    .offset(x: -left)
+                    .frame(width: viewport, alignment: .leading)
+                    .clipped()
+                    .contentShape(Rectangle())
             }
             .frame(height: laneHeight)
             // Trackpad: swipe to pan, pinch (or ⌘/⌥ + scroll) to zoom around the pointer
@@ -78,8 +65,9 @@ struct ChordLaneView: View {
                     }
                     if event.modifierFlags.contains(.command) || event.modifierFlags.contains(.option) {
                         editor.zoom(by: exp(Double(dy) * 0.01), around: Double(x))
-                    } else if !isPlaying {
+                    } else {
                         editor.pan(by: -Double(abs(dx) >= abs(dy) ? dx : dy))
+                        if isPlaying { editor.viewMovedByHand() }
                     }
                 },
                 onMagnify: { magnification, x in
@@ -160,7 +148,7 @@ struct ChordLaneView: View {
             }
 
             if let audio = sequence.audio {
-                WaveformRow(sequence: sequence, audio: audio, beatWidth: beatWidth, visible: visible, height: waveformHeight)
+                WaveformRow(sequence: sequence, editor: editor, audio: audio, beatWidth: beatWidth, visible: visible, height: waveformHeight)
                     .offset(y: waveformTop)
             }
             
@@ -185,6 +173,24 @@ struct ChordLaneView: View {
             }
         }
         .frame(width: width, height: laneHeight, alignment: .topLeading)
+        .contentShape(Rectangle())
+        .gesture(laneClick)
+    }
+
+    /// Clicking anywhere that doesn't have its own job places the playhead (selects by the grid);
+    /// dragging selects a range.
+    private var laneClick: some Gesture {
+        DragGesture(minimumDistance: 0)
+            .onChanged { value in
+                guard abs(value.translation.width) >= 3 else { return }
+                editor.selectRange(from: Double(value.startLocation.x / beatWidth), to: Double(value.location.x / beatWidth),
+                                   free: NSEvent.modifierFlags.contains(.option), in: sequence)
+            }
+            .onEnded { value in
+                guard abs(value.translation.width) < 3 else { return }
+                editor.select(beat: Double(value.location.x / beatWidth),
+                              extend: NSEvent.modifierFlags.contains(.shift), in: sequence)
+            }
     }
 }
 
@@ -200,6 +206,26 @@ private struct SelectionHighlight: View {
             .frame(width: CGFloat(editor.selection.length) * beatWidth, height: height)
             .offset(x: CGFloat(editor.selection.start) * beatWidth)
             .allowsHitTesting(false)
+    }
+}
+
+/// The moving playhead. Only this redraws every frame, not the lane.
+private struct PlayingPlayhead: View {
+    let editor: SequenceEditorState
+    let beatWidth: CGFloat
+    let height: CGFloat
+
+    @Environment(TransportState.self) private var transport
+
+    var body: some View {
+        TimelineView(.animation) { context in
+            Rectangle()
+                .fill(Color.orange)
+                .frame(width: 2, height: height)
+                .offset(x: CGFloat(transport.position()) * beatWidth)
+                .allowsHitTesting(false)
+                .onChange(of: context.date) { editor.follow(transport.position()) }
+        }
     }
 }
 
@@ -443,6 +469,7 @@ private struct LaneOverview: View {
                         .onChanged { value in
                             // Centre the view on the click, and follow the mouse from there
                             editor.scroll(to: Double(value.location.x / scale) - editor.visibleBeats / 2)
+                            editor.viewMovedByHand()
                         }
                         .onEnded { _ in
                             if (NSApp.currentEvent?.clickCount ?? 1) >= 2 { editor.showAll() }
@@ -460,9 +487,7 @@ private struct LaneOverview: View {
             .coordinateSpace(name: Self.space)
         }
         .frame(height: 10)
-        .disabled(isPlaying)
-        .opacity(isPlaying ? 0.4 : 1)
-        .help("Drag to scroll, drag the ends to zoom, double-click to see everything. On a trackpad, swipe the lane to scroll and pinch to zoom.")
+        .help("Drag to scroll, drag the ends to zoom, double-click to see everything. On a trackpad, swipe the lane to scroll and pinch to zoom. Scrolling while playing stops following the playhead until you next press Play.")
     }
 
     private func edge(_ part: Part, width: CGFloat, scale: CGFloat) -> some View {
@@ -481,6 +506,7 @@ private struct LaneOverview: View {
                 let origin = dragOrigin ?? (editor.viewStart, editor.viewStart + editor.visibleBeats)
                 dragOrigin = origin
                 let delta = Double(value.translation.width / scale)
+                editor.viewMovedByHand()
                 switch part {
                 case .body: editor.scroll(to: origin.start + delta)
                 case .start: editor.show(from: min(origin.start + delta, origin.end - 0.25), to: origin.end, keeping: .end)
@@ -552,6 +578,7 @@ private struct ScrollCatcher: NSViewRepresentable {
 /// Everything redraws live while dragging; the audio re-renders when you let go.
 private struct WaveformRow: View {
     let sequence: ChordSequence
+    let editor: SequenceEditorState
     let audio: AudioTrack
     let beatWidth: CGFloat
     /// The part of the lane on screen, in lane x coordinates.
@@ -608,13 +635,6 @@ private struct WaveformRow: View {
                 .offset(x: left)
                 .contentShape(Rectangle())
                 .gesture(waveformDrag(map: map, left: left))
-                .simultaneousGesture(
-                    SpatialTapGesture(count: 2).onEnded { tap in
-                        // A new marker exactly where you clicked; nothing moves until you drag it
-                        let beat = Double((left + tap.location.x) / beatWidth)
-                        session.sequence?.audio?.setMarker(WarpMarker(sourceTime: map.sourceTime(atBeat: beat), beat: beat))
-                    }
-                )
             } else {
                 Text(statusText)
                     .font(.caption)
@@ -673,10 +693,12 @@ private struct WaveformRow: View {
             .onEnded { _ in commitDrag() }
     }
 
-    /// Grab the audio at the click and pull that moment onto a beat (a new marker, made on the fly).
+    /// Click to place the playhead, double-click to add a marker, or drag to grab the audio at the click
+    /// and pull that moment onto a beat (a new marker, made on the fly). One gesture, so clicks act at once.
     private func waveformDrag(map: WarpMap, left: CGFloat) -> some Gesture {
-        DragGesture(minimumDistance: 4, coordinateSpace: .named(WaveformRow.space))
+        DragGesture(minimumDistance: 0, coordinateSpace: .named(WaveformRow.space))
             .onChanged { value in
+                guard dragging != nil || abs(value.translation.width) >= 4 else { return }
                 // Where the drag began in the audio, worked out once with the map as it was then
                 let existing = dragging ?? {
                     let startBeat = Double(value.startLocation.x / beatWidth)
@@ -686,7 +708,16 @@ private struct WaveformRow: View {
                 moved.beat = snap(Double(value.location.x / beatWidth), free: NSEvent.modifierFlags.contains(.option))
                 dragging = clamped(moved)
             }
-            .onEnded { _ in commitDrag() }
+            .onEnded { value in
+                guard dragging == nil else { return commitDrag() }
+                let beat = Double(value.location.x / beatWidth)
+                if (NSApp.currentEvent?.clickCount ?? 1) >= 2 {
+                    // A new marker exactly where you clicked; nothing moves until you drag it
+                    session.sequence?.audio?.setMarker(WarpMarker(sourceTime: map.sourceTime(atBeat: beat), beat: beat))
+                } else {
+                    editor.select(beat: beat, extend: NSEvent.modifierFlags.contains(.shift), in: sequence)
+                }
+            }
     }
 
     private func commitDrag() {

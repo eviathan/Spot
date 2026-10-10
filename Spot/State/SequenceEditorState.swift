@@ -81,7 +81,21 @@ final class SequenceEditorState {
     @ObservationIgnored private var laneBeats: Double = 16
     @ObservationIgnored private var laneBeatsPerBar: Double = 4
 
+    /// While playing, page the lane along when the playhead reaches the edge.
+    var followsPlayhead = true
+    /// Scrolling by hand while playing stops following until the next Play.
+    @ObservationIgnored var followSuspended = false
+
     enum ViewEdge { case start, end }
+
+    /// Called every frame while playing: turns the page when the playhead goes off the view.
+    func follow(_ beat: Double) {
+        guard followsPlayhead, !followSuspended, viewportWidth > 0 else { return }
+        let visible = visibleBeats
+        if beat > viewStart + visible * 0.97 || beat < viewStart {
+            scroll(to: beat - visible * 0.03)
+        }
+    }
 
     private var beatWidth: Double {
         barWidth / laneBeatsPerBar
@@ -116,6 +130,11 @@ final class SequenceEditorState {
     func pan(by points: Double) {
         viewStart += points / beatWidth
         clampView()
+    }
+
+    /// The person moved the view themselves (only matters while playing).
+    func viewMovedByHand() {
+        followSuspended = true
     }
 
     func scroll(to beat: Double) {

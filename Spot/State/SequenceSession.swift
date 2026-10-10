@@ -364,6 +364,7 @@ final class SequenceSession {
         transport.beatsPerBar = sequence.beatsPerBar
         playback.setAudioRate(sequence.practiceRate)
         let resume = editor.pausedAt
+        editor.followSuspended = false
         playback.play(playbackData(sequence, editor: editor), from: resume ?? editor.selection.start, id: editor.id,
                       countIn: resume == nil)
     }
