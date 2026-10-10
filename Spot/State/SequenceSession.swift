@@ -53,11 +53,6 @@ final class SequenceSession {
     /// 0...1 while rendering.
     private(set) var renderProgress: Double?
     /// What was heard in the recording: tempo, beats, bar 1, chords, key. Nothing changes until it's applied.
-    private(set) var analysis: AudioAnalysis?
-    /// 0...1 while analysing.
-    private(set) var analysisProgress: Double?
-    var showsAnalysis = true
-    @ObservationIgnored private var analysisTask: Task<Void, Never>?
     
     private(set) var isRecording = false
     @ObservationIgnored private var recorder: InputRecorder?
@@ -296,7 +291,7 @@ final class SequenceSession {
         }
         if isPlaying, let editor {
             playback.update(playbackData(sequence, editor: editor), id: editor.id)
-            transport.setBPM(Int((sequence.tempo * sequence.practiceRate).rounded()))
+            transport.setBPM(sequence.tempo * sequence.practiceRate)
             playback.setAudioRate(sequence.practiceRate)
         }
         hasUnsavedChanges = true
@@ -359,8 +354,8 @@ final class SequenceSession {
     /// Plays from where it paused, otherwise from the selection (with a count-in).
     func play() {
         guard let sequence, let editor, !isPlaying else { return }
-        // Practice speed slows everything: the clock, the backing and the audio
-        transport.setBPM(Int((sequence.tempo * sequence.practiceRate).rounded()))
+        // Practice speed slows everything: the clock, the clicks and the audio
+        transport.setBPM(sequence.tempo * sequence.practiceRate)
         transport.beatsPerBar = sequence.beatsPerBar
         playback.setAudioRate(sequence.practiceRate)
         let resume = editor.pausedAt
@@ -450,16 +445,51 @@ final class SequenceSession {
     }
     
     /// Records a tap; after a few, sets the tempo from their spacing. Taps more than 2 s apart start again.
-    func tapTempo() {
+    /// Tap along with the beat: after four taps, returns the tempo tapped (and keeps refining it with more).
+    func tap() -> Double? {
         let now = Date()
         if let last = taps.last, now.timeIntervalSince(last) > 2 {
             taps.removeAll()
         }
         taps.append(now)
         taps = Array(taps.suffix(9))
-        guard taps.count >= 4 else { return }
+        guard taps.count >= 4 else { return nil }
         let interval = taps.last!.timeIntervalSince(taps.first!) / Double(taps.count - 1)
-        sequence?.tempo = min(max((60 / interval * 10).rounded() / 10, 20), 300)
+        return min(max((60 / interval * 10).rounded() / 10, 20), 300)
+    }
+
+    /// Tap tempo for the sequence. With a recording, the taps are its tempo (heard at the practice speed,
+    /// if it's playing), so the grid follows it; without one, they're simply the tempo.
+    func tapTempo() {
+        guard let tapped = tap(), let sequence else { return }
+        if sequence.audio != nil {
+            let heardRate = isPlaying ? sequence.practiceRate : 1
+            self.sequence?.tempo = (tapped / heardRate * 10).rounded() / 10
+        } else {
+            self.sequence?.tempo = tapped
+            self.sequence?.practiceRate = 1
+        }
+    }
+
+    /// The tempo things play at: the sequence's tempo times the practice speed.
+    var playingTempo: Double? {
+        sequence.map { $0.tempo * $0.practiceRate }
+    }
+
+    /// Sets the tempo to play at. With a recording, that's a practice speed (the recording's own tempo, which
+    /// the grid is lined up to, stays put); without one, it's the tempo itself.
+    func setPlayingTempo(_ bpm: Double) {
+        guard let sequence else { return }
+        let bpm = min(max(bpm, 20), 300)
+        if sequence.audio != nil {
+            self.sequence?.practiceRate = min(max(bpm / sequence.tempo, 0.25), 2)
+        } else {
+            self.sequence?.tempo = bpm
+            self.sequence?.practiceRate = 1
+        }
+        if !isPlaying, let tempo = playingTempo {
+            transport.setBPM(tempo)
+        }
     }
     
     var tapCount: Int {
@@ -507,7 +537,6 @@ final class SequenceSession {
                     session.peaks = peaks
                     session.audioStatus = .ready
                     session.scheduleRender(delay: 0)
-                    session.analyseAudio()
                 }
             } catch {
                 let message = "Couldn't read \(url.lastPathComponent): \(error.localizedDescription)"
@@ -524,9 +553,6 @@ final class SequenceSession {
         inFlight = nil
         pendingFullRender = false
         pendingRenderRange = nil
-        analysisTask?.cancel()
-        analysis = nil
-        analysisProgress = nil
         renderDelay?.cancel()
         audioURL?.stopAccessingSecurityScopedResource()
         audioURL = nil
@@ -626,82 +652,6 @@ final class SequenceSession {
                 owner.session?.finishRender(result)
             }
         }
-    }
-    
-    // MARK: - Analysis
-    
-    /// Listens for tempo, beats, bar 1, chords and key in the background.
-    func analyseAudio() {
-        analysisTask?.cancel()
-        guard let source = sourceAudio, let beatsPerBar = sequence?.beatsPerBar else { return }
-        analysisProgress = 0
-        showsAnalysis = true
-        
-        let owner = WeakSession(self)
-        analysisTask = Task.detached(priority: .utility) {
-            var lastReport = Date.distantPast
-            let result = AudioAnalysis.analyse(source, beatsPerBar: beatsPerBar) { progress in
-                if Task.isCancelled { return false }
-                if Date().timeIntervalSince(lastReport) > 0.1 {
-                    lastReport = Date()
-                    Task { @MainActor in owner.session?.analysisProgress = progress }
-                }
-                return true
-            }
-            guard !Task.isCancelled else { return }
-            await MainActor.run {
-                owner.session?.analysis = result
-                owner.session?.analysisProgress = nil
-            }
-        }
-    }
-    
-    /// Re-tracks the beats at another tempo, e.g. half or double what was first heard.
-    func useAnalysedTempo(_ bpm: Double) {
-        analysis?.track(tempo: bpm)
-    }
-    
-    /// Moves the guessed bar 1 by a beat or more.
-    func shiftAnalysedBarOne(by beats: Int) {
-        analysis?.shiftDownbeat(by: beats)
-    }
-    
-    /// Sets the tempo from the recording and puts a warp marker on every downbeat, so the grid follows the band.
-    func applyAnalysedBeatGrid() {
-        guard let analysis, var sequence else { return }
-        sequence.tempo = (analysis.tempo * 10).rounded() / 10
-        sequence.audio?.removeAllMarkers()
-        for marker in analysis.warpMarkers {
-            sequence.audio?.setMarker(marker)
-        }
-        sequence.setLength(bars: analysis.lengthInBars)
-        self.sequence = sequence
-    }
-    
-    /// Puts the heard chords on the grid: everywhere, or only where there's no chord yet.
-    func applyAnalysedChords(onlyEmpty: Bool) {
-        // With no warp markers yet, line the grid up with the heard beats first
-        if sequence?.audio?.warpMarkers.isEmpty == true {
-            applyAnalysedBeatGrid()
-        }
-        guard let analysis, var sequence, let audio = sequence.audio else { return }
-        if !onlyEmpty {
-            sequence.clearChords(in: BeatRange(0, sequence.lengthInBeats))
-        }
-        // Placed by when they're heard in the recording, through the grid as it is now (however it was made)
-        let regions = analysis.chordRegions(through: audio.map(tempo: sequence.tempo), key: sequence.key ?? analysis.key,
-                                            length: sequence.lengthInBeats)
-        for region in regions {
-            if onlyEmpty && sequence.chords.contains(where: { $0.range.overlaps(region.range) }) {
-                continue
-            }
-            sequence.setChord(region.symbol, in: region.range)
-        }
-        self.sequence = sequence
-    }
-    
-    func applyAnalysedKey() {
-        sequence?.key = analysis?.key
     }
     
     private func finishRender(_ result: RenderedAudio) {

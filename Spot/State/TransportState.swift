@@ -12,11 +12,11 @@ import SpotCore
 final class TransportState {
     static let bpmRange = 1...999
 
-    private(set) var bpm: Int = 120
+    /// Not rounded: a sequence's tempo can be fractional, and the clock has to match its audio exactly.
+    private(set) var bpm: Double = 120
     var beatsPerBar = 4
     private(set) var isPlaying = false
     var isRecording = false
-    var isLooping = false
     var isMetronomeOn = false
 
     /// While playing, `anchorBeat` was (or will be, during a count-in) the position at `anchorHostTime`.
@@ -26,7 +26,7 @@ final class TransportState {
     private var anchorBeforeJump: (beat: Double, hostTime: UInt64)?
 
     var clock: TempoClock {
-        TempoClock(bpm: Double(bpm), beatsPerBar: beatsPerBar)
+        TempoClock(bpm: bpm, beatsPerBar: beatsPerBar)
     }
 
     /// Position in beats; negative during a count-in, 0 when stopped.
@@ -57,17 +57,8 @@ final class TransportState {
         anchorHostTime = hostTime
     }
     
-    func setBPM(_ value: Int) {
-        incrementBPM(value - bpm)
-    }
-
-    func stop() {
-        isPlaying = false
-        anchorBeat = 0
-    }
-
-    func incrementBPM(_ amount: Int) {
-        let newBPM = min(max(bpm + amount, TransportState.bpmRange.lowerBound), TransportState.bpmRange.upperBound)
+    func setBPM(_ value: Double) {
+        let newBPM = min(max(value, Double(TransportState.bpmRange.lowerBound)), Double(TransportState.bpmRange.upperBound))
         guard newBPM != bpm else { return }
 
         // Keep the position continuous: re-anchor at the current beat before the tempo changes
@@ -77,5 +68,15 @@ final class TransportState {
             anchorHostTime = now
         }
         bpm = newBPM
+    }
+
+    func stop() {
+        isPlaying = false
+        anchorBeat = 0
+    }
+
+    /// Steps to the next whole bpm up or down.
+    func incrementBPM(_ amount: Int) {
+        setBPM(bpm.rounded() + Double(amount))
     }
 }

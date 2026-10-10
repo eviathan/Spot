@@ -54,10 +54,8 @@ final class SequenceEditorState {
     }
     private var selectionAnchor: Double = 0
 
-    /// The chord being typed in the editor bar.
-    var chordText = ""
+    /// Why the last chord picked couldn't be used.
     var chordError: String?
-    var sectionName = ""
     /// How many beats before a change the next chord starts to show on the fretboard.
     var ghostBeats: Double = 2
     var neckView: NeckView = .followHand {
@@ -244,9 +242,7 @@ final class SequenceEditorState {
     }
 
     func playback(for sequence: ChordSequence) -> SequencePlayback {
-        SequencePlayback(notes: Backing.notes(for: sequence, chords: analysis.chords),
-                         length: sequence.lengthInBeats,
-                         loop: sequence.loop)
+        SequencePlayback(length: sequence.lengthInBeats, loop: sequence.loop)
     }
 
     // MARK: - Selection
@@ -261,7 +257,7 @@ final class SequenceEditorState {
             selection = BeatRange(start, start + unit)
             selectionAnchor = start
         }
-        loadChordText(from: sequence)
+        chordError = nil
     }
 
     /// Selects exactly `range` (a chord), or extends the selection to cover it.
@@ -272,7 +268,7 @@ final class SequenceEditorState {
             selection = range
             selectionAnchor = range.start
         }
-        loadChordText(from: sequence)
+        chordError = nil
     }
 
     /// Selects from one beat to another as dragged, out to the grid unless `free`.
@@ -288,7 +284,7 @@ final class SequenceEditorState {
         end = min(sequence.lengthInBeats, max(end, start + (unit > 0 ? unit : 1.0 / 16)))
         selection = BeatRange(start, end)
         selectionAnchor = start
-        loadChordText(from: sequence)
+        chordError = nil
     }
 
     /// Moves the selection along by its own length, for typing a chart chord after chord.
@@ -297,22 +293,13 @@ final class SequenceEditorState {
         let start = min(selection.end, sequence.lengthInBeats - length)
         selection = BeatRange(start, start + length)
         selectionAnchor = start
-        loadChordText(from: sequence)
-    }
-
-    func loadChordText(from sequence: ChordSequence) {
-        chordText = sequence.chord(at: selection.start)?.symbol ?? ""
         chordError = nil
     }
 
-    /// Puts the typed chord over the selection. Returns false (and sets `chordError`) if it isn't a chord.
+    /// Puts a chord over the selection. Returns false (and sets `chordError`) if it isn't a chord.
     @discardableResult
-    func applyChord(to sequence: inout ChordSequence) -> Bool {
-        let text = chordText.trimmingCharacters(in: .whitespaces)
-        guard !text.isEmpty else {
-            sequence.clearChords(in: selection)
-            return true
-        }
+    func applyChord(_ symbol: String, to sequence: inout ChordSequence) -> Bool {
+        let text = symbol.trimmingCharacters(in: .whitespaces)
         guard ChordSymbolParser(chords: library.chords).parse(text) != nil else {
             chordError = "“\(text)” isn't a chord Spot knows"
             return false

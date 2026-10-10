@@ -34,8 +34,17 @@ struct Transport: View {
         TransportActions.record(ui: ui, session: session)
     }
     
+    /// Loops the selection, or stops looping.
     func onClickTransportLoop() -> Void {
-        transport.isLooping.toggle()
+        TransportActions.toggleLoop(session: session)
+    }
+    
+    private var editsSequence: Bool {
+        ui.tab == .Sequence && session.isOpen
+    }
+    
+    private var isLooping: Bool {
+        editsSequence && session.sequence?.loop != nil
     }
     
     func onClickTransportMetronome() -> Void {
@@ -102,13 +111,15 @@ struct Transport: View {
         
         Button(action: onClickTransportLoop)
         {
-            Image(systemName: "recordingtape")
+            Image(systemName: "repeat")
                 .imageScale(.large)
-                .foregroundColor(transport.isLooping ? .white : Color(hue: 0.62, saturation: 0.38, brightness: 0.38, opacity: 1.00))
+                .foregroundColor(isLooping ? .yellow : Color(hue: 0.62, saturation: 0.38, brightness: 0.38, opacity: 1.00))
             
         }
         .buttonStyle(PlainButtonStyle())
         .frame(width: 30, height: 30)
+        .disabled(!editsSequence)
+        .help(isLooping ? "Stop looping" : "Loop the selection")
         
         PositionDisplay()
     }
@@ -171,6 +182,12 @@ enum TransportActions {
                 ui.errorMessage = "Couldn't start recording: \(error.localizedDescription)"
             }
         }
+    }
+    
+    /// Loops the open sequence's selection, or turns the loop off.
+    static func toggleLoop(session: SequenceSession) {
+        guard let editor = session.editor, session.sequence != nil else { return }
+        session.sequence?.loop = session.sequence?.loop == nil ? editor.selection : nil
     }
     
     static func toStart(ui: UIState, session: SequenceSession, playback: PlaybackController) {

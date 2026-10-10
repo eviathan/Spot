@@ -63,17 +63,6 @@ public struct SequenceSection: Identifiable, Hashable, Codable, Sendable, BeatRa
     }
 }
 
-/// How the chords are played back when there's no audio (or alongside it).
-public enum BackingStyle: String, Codable, CaseIterable, Sendable {
-    case off
-    /// Held chords.
-    case pad
-    /// A strum on every beat.
-    case strum
-    /// Short stabs on 1 and the "and" of 2.
-    case comp
-}
-
 /// A song's chords on a beat grid: the contents of a `.spot` file.
 public struct ChordSequence: Hashable, Codable, Sendable {
     public static let currentVersion = 1
@@ -89,10 +78,9 @@ public struct ChordSequence: Hashable, Codable, Sendable {
     /// Kept sorted by start and never overlapping.
     public private(set) var sections: [SequenceSection]
     public var loop: BeatRange?
-    public var backing: BackingStyle
     /// A recording to play along with, lined up by warp markers.
     public var audio: AudioTrack?
-    /// Practice speed: 1 is full tempo, 0.5 half. Slows audio and backing together.
+    /// Practice speed: 1 is full tempo, 0.5 half. Slows the audio and the clock together.
     public var practiceRate: Double
     /// Your recordings, oldest first.
     public var takes: [RecordedTake]
@@ -106,7 +94,6 @@ public struct ChordSequence: Hashable, Codable, Sendable {
         self.chords = []
         self.sections = []
         self.loop = nil
-        self.backing = .pad
         self.audio = nil
         self.practiceRate = 1
         self.takes = []
@@ -225,7 +212,7 @@ public struct ChordSequence: Hashable, Codable, Sendable {
     // MARK: - Files
 
     enum CodingKeys: String, CodingKey {
-        case version, tempo, beatsPerBar, lengthInBars, key, chords, sections, loop, backing, audio, practiceRate, takes
+        case version, tempo, beatsPerBar, lengthInBars, key, chords, sections, loop, audio, practiceRate, takes
     }
 
     public init(from decoder: Decoder) throws {
@@ -242,7 +229,6 @@ public struct ChordSequence: Hashable, Codable, Sendable {
         chords = (try container.decodeIfPresent([ChordRegion].self, forKey: .chords) ?? []).sorted { $0.range.start < $1.range.start }
         sections = (try container.decodeIfPresent([SequenceSection].self, forKey: .sections) ?? []).sorted { $0.range.start < $1.range.start }
         loop = try container.decodeIfPresent(BeatRange.self, forKey: .loop)
-        backing = try container.decodeIfPresent(BackingStyle.self, forKey: .backing) ?? .pad
         audio = try container.decodeIfPresent(AudioTrack.self, forKey: .audio)
         practiceRate = try container.decodeIfPresent(Double.self, forKey: .practiceRate) ?? 1
         takes = try container.decodeIfPresent([RecordedTake].self, forKey: .takes) ?? []

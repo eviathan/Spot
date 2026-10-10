@@ -12,9 +12,8 @@ import SpotCore
 /// Nothing is sent far ahead of time, because some MIDI receivers act on messages as soon as they
 /// arrive rather than at their timestamp. A timer sends whatever falls due in the next `lookahead`
 /// seconds, stamped with the exact time it should sound.
-/// A sequence's backing ready to play: notes in beats, plus where it ends or loops.
+/// A sequence ready to play: where it ends or loops, the recording and the takes.
 struct SequencePlayback {
-    var notes: [BeatNote]
     var length: Double
     var loop: BeatRange?
     /// The recording, already lined up with the grid.
@@ -47,16 +46,12 @@ final class PlaybackController {
     @ObservationIgnored private var timer: DispatchSourceTimer?
     /// MIDI messages waiting to be sent, kept in time order.
     @ObservationIgnored private var pending: [(time: UInt64, note: Int, velocity: Int?)] = []
-    /// Clicks and sequence notes are scheduled up to (but not including) this beat.
+    /// Clicks and audio are scheduled up to (but not including) this beat.
     @ObservationIgnored private var scheduledUntil: Double = 0
     /// Clicks before this beat are the count-in, and sound even with the metronome off.
     @ObservationIgnored private var countInEnd: Double = 0
     @ObservationIgnored private var countInStart: Double = 0
     @ObservationIgnored private var sequence: SequencePlayback?
-    /// Notes already sounding at this beat start here too (playing from the middle of a chord, or looping).
-    @ObservationIgnored private var carryInBeat: Double?
-    /// Sequence notes sounding now, by note number, so a loop or stop can cut them off.
-    @ObservationIgnored private var sounding: [Int: Int] = [:]
     @ObservationIgnored private var track: TrackPlayer?
     /// Audio is queued up to this beat; nil until the first slice has started.
     @ObservationIgnored private var audioCursor: Double?
@@ -84,7 +79,7 @@ final class PlaybackController {
         play(from: 0)
     }
 
-    /// Plays a sequence's backing from `beat`, after the count-in (skipped when resuming from a pause).
+    /// Plays a sequence from `beat`, after the count-in (skipped when resuming from a pause).
     func play(_ sequence: SequencePlayback, from beat: Double, id: UUID, countIn: Bool = true) {
         if transport.isPlaying {
             stop()
@@ -94,7 +89,7 @@ final class PlaybackController {
         play(from: beat, countIn: countIn)
     }
 
-    /// Swaps in edited backing while playing; anything already sent still sounds.
+    /// Swaps in an edited sequence (a new render, loop or takes) while playing.
     func update(_ sequence: SequencePlayback, id: UUID) {
         guard playingSequence == id else { return }
         self.sequence = sequence
@@ -107,7 +102,6 @@ final class PlaybackController {
         scheduledUntil = beat - countIn
         countInStart = beat - countIn
         countInEnd = beat
-        carryInBeat = beat
         audioCursor = nil
         takesStarted = false
         startTimer()
@@ -122,7 +116,6 @@ final class PlaybackController {
     func stop() {
         sequence = nil
         playingSequence = nil
-        sounding.removeAll()
         track?.stop()
         audioCursor = nil
         stopTakes()
@@ -213,7 +206,6 @@ final class PlaybackController {
         if let loop = sequence?.loop, loop.length > 0, until >= loop.end, scheduledUntil < loop.end {
             scheduleWindow(from: scheduledUntil, to: loop.end)
             let loopEndTime = transport.hostTime(forBeat: loop.end)
-            releaseSounding(at: loopEndTime)
             transport.jump(toBeat: loop.start, atHostTime: loopEndTime)
             scheduledUntil = loop.start
             // Audio carries straight on from the loop start, queued after the slice that ended at the loop end
@@ -224,7 +216,6 @@ final class PlaybackController {
                 stopTakes()
                 startTakes(fromBeat: loop.start, atHostTime: loopEndTime)
             }
-            carryInBeat = loop.start
             until = transport.position(at: horizon)
         }
         
@@ -235,9 +226,6 @@ final class PlaybackController {
     private func scheduleWindow(from: Double, to: Double) {
         guard to > from else { return }
         scheduleClicks(from: from, to: to)
-        if let sequence, let midi = midiOutput() {
-            scheduleNotes(sequence, from: from, to: to, midi: midi)
-        }
         if let sequence, let audio = sequence.audio {
             scheduleAudio(audio, gain: sequence.audioGain, loopEnd: sequence.loop?.end, to: to)
         }
@@ -314,37 +302,6 @@ final class PlaybackController {
         }
     }
     
-    private func scheduleNotes(_ sequence: SequencePlayback, from: Double, to: Double, midi: MIDIOutput) {
-        midi.channel = UInt8(max(1, min(16, settings.midiChannel)) - 1)
-        var ons: [(beat: Double, note: BeatNote)] = []
-        
-        if let carry = carryInBeat, carry >= from, carry < to {
-            ons += sequence.notes.filter { $0.start < carry && $0.end > carry }.map { (carry, $0) }
-            carryInBeat = nil
-        }
-        // Nothing sounds during the count-in, even if the count-in overlaps earlier chords
-        ons += sequence.notes.filter { $0.start >= max(from, countInEnd) && $0.start < to }.map { ($0.start, $0) }
-        
-        for (beat, note) in ons {
-            midi.noteOn(note.note, velocity: note.velocity, at: transport.hostTime(forBeat: beat))
-            sounding[note.note, default: 0] += 1
-        }
-        for note in sequence.notes where note.end >= from && note.end < to && (sounding[note.note] ?? 0) > 0 {
-            midi.noteOff(note.note, at: transport.hostTime(forBeat: note.end))
-            sounding[note.note]! -= 1
-        }
-    }
-    
-    private func releaseSounding(at time: UInt64) {
-        guard let midi = midiOutput() else { return }
-        for (note, count) in sounding where count > 0 {
-            for _ in 0..<count {
-                midi.noteOff(note, at: time)
-            }
-        }
-        sounding.removeAll()
-    }
-
     // MARK: - Devices, created on first use
 
     private func midiOutput() -> MIDIOutput? {

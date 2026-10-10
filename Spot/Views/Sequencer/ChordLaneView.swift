@@ -617,19 +617,6 @@ private struct WaveformRow: View {
                         path.addLine(to: CGPoint(x: column, y: middle - CGFloat(low) * middle * 0.95 + 0.5))
                     }
                     context.stroke(path, with: .color(.cyan.opacity(audio.isMuted ? 0.25 : 0.75)), lineWidth: 1)
-
-                    // Beats heard by the analysis, where they land now (bar starts taller)
-                    if let analysis = session.analysis, session.showsAnalysis {
-                        var ticks = Path()
-                        for (index, time) in analysis.beats.enumerated() {
-                            let x = CGFloat(map.beat(atSourceTime: time)) * beatWidth - left
-                            guard x >= 0, x <= size.width else { continue }
-                            let isBarStart = (index - analysis.downbeat) % analysis.beatsPerBar == 0
-                            ticks.move(to: CGPoint(x: x, y: size.height))
-                            ticks.addLine(to: CGPoint(x: x, y: size.height * (isBarStart ? 0.35 : 0.7)))
-                        }
-                        context.stroke(ticks, with: .color(.teal), lineWidth: 1.5)
-                    }
                 }
                 .frame(width: width, height: height)
                 .offset(x: left)
