@@ -6,18 +6,20 @@
 import SwiftUI
 import SpotCore
 
-/// The Sequence tab with a sequence open: now/next, the chord lane and its controls.
-/// The fretboard above is `SequencerFretboard`; play, loop, key, tempo and time signature are in the main footer,
-/// and file and view options in the menu bar.
+/// The Sequence tab with a sequence open, under the fretboard (`SequencerFretboard`):
+/// - what's playing: the chord now, its chord and scale intervals, and the next chord (`PerformanceHeader`)
+/// - the lane, with a header for each row on its left (the recording's controls sit beside its waveform)
+/// - tools for the selection, and which sequence this is
+/// Play, loop, key, tempo and time signature are in the main footer; file and view options in the menu bar.
 struct SequenceEditorView: View {
     @Environment(SequenceSession.self) private var session
-    
+
     var body: some View {
         if let editor = session.editor, let sequence = session.sequence {
             let binding = Binding(get: { session.sequence ?? sequence }, set: { session.sequence = $0 })
             VStack(spacing: 0) {
-                AudioBar(sequence: binding, editor: editor)
-                ChordScaleIntervals(sequence: sequence, editor: editor)
+                PerformanceHeader(sequence: sequence, editor: editor)
+                Divider()
                 ChordLaneView(sequence: sequence, editor: editor)
                 Divider()
                 LaneEditorBar(sequence: binding, editor: editor)
@@ -26,28 +28,36 @@ struct SequenceEditorView: View {
     }
 }
 
+/// How wide the column of row headers to the left of the lane is.
+let laneHeaderWidth: CGFloat = 196
+
 // MARK: - Editing
 
+/// Tools for the selection on the left; the sequence's name and whether it's saved on the right.
 private struct LaneEditorBar: View {
     @Binding var sequence: ChordSequence
     let editor: SequenceEditorState
+
+    @Environment(SequenceSession.self) private var session
 
     var body: some View {
         @Bindable var editor = editor
         let region = sequence.chord(at: editor.selection.start)
         let section = sequence.section(at: editor.selection.start)
 
-        HStack(spacing: 14) {
+        HStack(spacing: 12) {
             Text(editor.describe(editor.selection, beatsPerBar: sequence.beatsPerBar))
-                .font(.headline)
-                .frame(width: 110, alignment: .leading)
+                .font(.system(.callout, design: .monospaced).weight(.semibold))
+                .lineLimit(1)
+                .frame(width: 96, alignment: .leading)
+                .help("The playhead, or the selected range")
 
             Button {
                 editor.showsPalette.toggle()
             } label: {
                 Label("Chords", systemImage: "square.grid.3x3")
             }
-            .help("Pick chords without typing (or double-click a bar)")
+            .help("Pick a chord for the selection (or double-click in the lane)")
             .popover(isPresented: $editor.showsPalette, arrowEdge: .top) {
                 ChordPalette(key: editor.analysis.key) { symbol in
                     // Set it and move on, keeping the palette open to enter the next chord
@@ -62,6 +72,7 @@ private struct LaneEditorBar: View {
                 let range = editor.selection.length > 0 ? editor.selection : sequence.chord(at: editor.selection.start)?.range
                 if let range { sequence.clearChords(in: range) }
             }
+            .help("Remove the chords in the selection, or the chord at the playhead")
 
             if let region, let suggestions = editor.analysis.suggestions[region.id] {
                 Picker("Scale", selection: Binding(get: { region.scaleId ?? "" },
@@ -71,15 +82,13 @@ private struct LaneEditorBar: View {
                         Text(suggestion.scale.name).tag(suggestion.scale.id)
                     }
                 }
-                .frame(maxWidth: 260)
+                .frame(maxWidth: 250)
+                .help("The scale to play over this chord")
             }
 
             if let section {
-                Divider().frame(height: 20)
                 Button("Remove Section “\(section.name)”") { sequence.removeSection(section.id) }
             }
-
-            Divider().frame(height: 20)
 
             Picker("Snap", selection: $editor.snap) {
                 Text("Bar").tag(Double(sequence.beatsPerBar))
@@ -92,43 +101,31 @@ private struct LaneEditorBar: View {
                 Divider()
                 Text("Off").tag(0.0)
             }
-            .frame(width: 140)
-            .help("The grid for selecting, moving and resizing chords. Chords also stick to each other's edges; hold ⌥ while dragging to ignore both.")
+            .fixedSize()
+            .help("The grid for the playhead, selecting, and moving and resizing chords. Chords also stick to each other's edges; hold ⌥ while dragging to ignore both.")
 
             if let error = editor.chordError {
                 Label(error, systemImage: "exclamationmark.triangle")
                     .foregroundStyle(.orange)
+                    .lineLimit(1)
             }
-            Spacer()
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-    }
-}
 
-// MARK: - Now, next and the recording
+            Spacer(minLength: 12)
 
-/// One row: the chord now and the beat, what's next, which sequence, then the recording's tempos and level.
-private struct AudioBar: View {
-    @Binding var sequence: ChordSequence
-    let editor: SequenceEditorState
-    
-    @Environment(SequenceSession.self) private var session
-    @Environment(UIState.self) private var ui
-    
-    var body: some View {
-        HStack(spacing: 14) {
-            NowNextView(sequence: sequence, editor: editor)
-            
-            Spacer(minLength: 8)
-            
             // Which sequence (Save, Close and the rest are in the File menu)
-            HStack(spacing: 5) {
+            HStack(spacing: 6) {
+                if session.isRecording {
+                    Label("Recording", systemImage: "record.circle")
+                        .foregroundStyle(.red)
+                        .fontWeight(.semibold)
+                }
                 Image(systemName: "music.note.list")
+                    .opacity(0.6)
                 Text(session.displayName)
                     .lineLimit(1)
+                    .truncationMode(.middle)
                 if session.hasUnsavedChanges && session.fileURL == nil {
-                    Text("not saved")
+                    Text("Not saved")
                         .foregroundStyle(.orange)
                 } else if let error = session.saveError {
                     Image(systemName: "exclamationmark.triangle")
@@ -136,76 +133,115 @@ private struct AudioBar: View {
                         .help(error)
                 }
             }
-            .font(.caption)
-            .opacity(0.8)
-            
-            Divider().frame(height: 18)
-            
-            if session.isRecording {
-                Label("Recording", systemImage: "record.circle")
-                    .foregroundStyle(.red)
-                    .font(.callout.weight(.semibold))
-            }
-            
-            if let audio = sequence.audio {
-                HStack(spacing: 5) {
-                    Image(systemName: "waveform")
-                    Text(audio.reference.fileName)
-                        .lineLimit(1)
-                        .frame(maxWidth: 160, alignment: .leading)
-                }
-                .font(.callout)
-                .help("Double-click the waveform to add a warp marker, drag a marker onto its beat (⇧ to slide it along the audio instead)")
-                status(audio)
-                
-                RecordingTempo(sequence: $sequence, editor: editor)
-                
-                Toggle(isOn: Binding(get: { !(sequence.audio?.isMuted ?? false) }, set: { sequence.audio?.isMuted = !$0 })) {
-                    Image(systemName: audio.isMuted ? "speaker.slash" : "speaker.wave.2")
-                }
-                .toggleStyle(.button)
-                .help(audio.isMuted ? "The recording is muted: click to hear it" : "Mute the recording")
-                
-                Slider(value: Binding(get: { sequence.audio?.gain ?? 0 }, set: { sequence.audio?.gain = $0 }), in: -24...6)
-                    .frame(width: 90)
-                    .help("Recording level (dB)")
-                
-                Menu("Audio") {
-                    Button("Clear Warp Markers") { sequence.audio?.removeAllMarkers() }
-                        .disabled(audio.warpMarkers.count <= 1)
-                    Button("Locate File…") { ui.isRelinkingAudio = true }
-                    Button("Replace Audio…") { ui.isImportingAudio = true }
-                    Divider()
-                    Button("Remove Audio", role: .destructive) { session.removeAudio() }
-                }
-                .menuStyle(.borderlessButton)
-                .fixedSize()
-            } else {
-                Button("Add Audio…") { ui.isImportingAudio = true }
-                    .help("Play along with a recording: it stays where it is and is lined up with the grid")
-            }
+            .font(.callout)
+            .frame(maxWidth: 260, alignment: .trailing)
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 4)
+        .padding(.vertical, 8)
     }
-    
+}
+
+// MARK: - The recording's row header
+
+/// Beside the waveform: the file, its tempo, mute and level, and the Audio menu; or a way to add one.
+struct AudioTrackHeader: View {
+    let sequence: ChordSequence
+    let editor: SequenceEditorState
+    let height: CGFloat
+
+    @Environment(SequenceSession.self) private var session
+    @Environment(UIState.self) private var ui
+
+    var body: some View {
+        let binding = Binding(get: { session.sequence ?? sequence }, set: { session.sequence = $0 })
+
+        VStack(alignment: .leading, spacing: 6) {
+            if let audio = sequence.audio {
+                HStack(spacing: 6) {
+                    Image(systemName: "waveform")
+                        .foregroundStyle(.cyan)
+                    Text(audio.reference.fileName)
+                        .font(.callout.weight(.semibold))
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                    Spacer(minLength: 0)
+                    status
+                    Menu {
+                        Button("Clear Warp Markers") { session.sequence?.audio?.removeAllMarkers() }
+                            .disabled(audio.warpMarkers.count <= 1)
+                        Button("Locate File…") { ui.isRelinkingAudio = true }
+                        Button("Replace Audio…") { ui.isImportingAudio = true }
+                        Divider()
+                        Button("Remove Audio", role: .destructive) { session.removeAudio() }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                    }
+                    .menuStyle(.borderlessButton)
+                    .menuIndicator(.hidden)
+                    .fixedSize()
+                    .help("Audio")
+                }
+                .help("Double-click the waveform to add a warp marker and drag it onto its beat. Markers are picked up by their arrows (⇧ slides one along the audio).")
+
+                RecordingTempo(sequence: binding, editor: editor)
+
+                HStack(spacing: 6) {
+                    Button {
+                        session.sequence?.audio?.isMuted.toggle()
+                    } label: {
+                        Image(systemName: audio.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill")
+                            .foregroundStyle(audio.isMuted ? .orange : .primary)
+                            .frame(width: 18)
+                    }
+                    .buttonStyle(.plain)
+                    .help(audio.isMuted ? "The recording is muted: click to hear it" : "Mute the recording")
+
+                    Slider(value: Binding(get: { sequence.audio?.gain ?? 0 }, set: { session.sequence?.audio?.gain = $0 }), in: -24...6)
+                        .controlSize(.small)
+                        .help("Recording level")
+                    Text("\(Int(audio.gain.rounded())) dB")
+                        .font(.caption.monospacedDigit())
+                        .opacity(0.7)
+                        .frame(width: 40, alignment: .trailing)
+                }
+            } else {
+                Label("Audio", systemImage: "waveform")
+                    .font(.callout.weight(.semibold))
+                    .opacity(0.7)
+                Button("Add Audio…") { ui.isImportingAudio = true }
+                Text("Play along with a recording, lined up with the grid.")
+                    .font(.caption)
+                    .opacity(0.6)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .frame(width: laneHeaderWidth, height: height, alignment: .topLeading)
+    }
+
     @ViewBuilder
-    private func status(_ audio: AudioTrack) -> some View {
+    private var status: some View {
         switch session.audioStatus {
         case .loading:
-            ProgressView().controlSize(.small)
+            ProgressView().controlSize(.mini)
         case .missing:
-            Label("File not found", systemImage: "exclamationmark.triangle")
-                .foregroundStyle(.orange)
-                .font(.caption)
-            Button("Locate…") { ui.isRelinkingAudio = true }
+            Button {
+                ui.isRelinkingAudio = true
+            } label: {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.orange)
+            }
+            .buttonStyle(.plain)
+            .help("The file can't be found. Click to locate it.")
         case .failed(let message):
-            Image(systemName: "exclamationmark.triangle")
+            Image(systemName: "exclamationmark.triangle.fill")
                 .foregroundStyle(.orange)
                 .help(message)
         case .ready, .none:
             if let warning = session.audioWarning {
-                Image(systemName: "exclamationmark.triangle")
+                Image(systemName: "exclamationmark.triangle.fill")
                     .foregroundStyle(.orange)
                     .help(warning)
             }
@@ -216,31 +252,31 @@ private struct AudioBar: View {
 /// The recording's own tempo where the playhead is (between two markers, that section's) and the tempo
 /// it's playing at, like Seg. BPM in Live. Drag the number to change it (⌥ for tenths), double-click to
 /// type it, or tap along.
-private struct RecordingTempo: View {
+struct RecordingTempo: View {
     @Binding var sequence: ChordSequence
     let editor: SequenceEditorState
-    
+
     @Environment(SequenceSession.self) private var session
     @State private var dragStart: Double?
     @State private var isTyping = false
     @State private var typed = ""
-    
+
     private var beat: Double {
         editor.selection.start
     }
-    
+
     var body: some View {
         let original = sequence.audio?.segmentTempo(atBeat: beat) ?? sequence.tempo
         let isSection = (sequence.audio?.warpMarkers.count ?? 0) > 1 && abs(original - (sequence.audio?.tempo ?? original)) > 0.001
-        
-        HStack(spacing: 6) {
+
+        HStack(spacing: 5) {
             Text(isSection ? "Section" : "Original")
                 .font(.caption)
                 .opacity(0.6)
             Text(String(format: "%.1f", original))
-                .font(.system(.body, design: .monospaced))
-                .padding(.horizontal, 5)
-                .background(RoundedRectangle(cornerRadius: 4).fill(Color.white.opacity(0.1)))
+                .font(.system(.callout, design: .monospaced))
+                .padding(.horizontal, 4)
+                .background(RoundedRectangle(cornerRadius: 4).fill(Color.white.opacity(0.12)))
                 .contentShape(Rectangle())
                 .gesture(DragGesture(minimumDistance: 1)
                     .onChanged { value in
@@ -267,11 +303,12 @@ private struct RecordingTempo: View {
                         }
                 }
             Image(systemName: "arrow.right")
-                .font(.caption)
+                .font(.caption2)
                 .opacity(0.6)
             Text("\(Int(sequence.tempo.rounded()))")
-                .font(.system(.body, design: .monospaced))
+                .font(.system(.callout, design: .monospaced))
                 .help("The tempo it's playing at (in the footer)")
+            Spacer(minLength: 0)
             Button {
                 session.tapRecordingTempo(atBeat: beat)
             } label: {
@@ -281,10 +318,10 @@ private struct RecordingTempo: View {
             .help("Tap along with the recording to set its own tempo here (after four taps)")
         }
         .help(isSection
-              ? "The tempo of the recording between the warp markers around the playhead. Drag to change it (⌥ for tenths), double-click to type it."
-              : "The tempo the recording was played at. Drag to change it (⌥ for tenths), double-click to type it.")
+              ? "The tempo of the recording between the warp markers around the playhead, then the tempo it's playing at. Drag to change it (⌥ for tenths), double-click to type it."
+              : "The tempo the recording was played at, then the tempo it's playing at. Drag to change it (⌥ for tenths), double-click to type it.")
     }
-    
+
     private func setTempo(_ bpm: Double) {
         sequence.audio?.setSegmentTempo((bpm * 10).rounded() / 10, atBeat: beat)
     }

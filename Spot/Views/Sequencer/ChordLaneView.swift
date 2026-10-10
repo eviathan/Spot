@@ -20,7 +20,7 @@ struct ChordLaneView: View {
     /// The height the lane has to fill.
     @State private var availableHeight: CGFloat = 0
 
-    /// Chords and sections, plus a waveform row when there's audio and a row of takes when there are any.
+    /// Sections and chords, the recording's row (empty until there is one), and a row of takes when there are any.
     private var laneHeight: CGFloat {
         takesTop + (sequence.takes.isEmpty ? 0 : takesHeight + 4) + 20
     }
@@ -28,10 +28,10 @@ struct ChordLaneView: View {
     let takesHeight: CGFloat = 22
     /// The waveform takes whatever room the rest of the lane leaves.
     private var waveformHeight: CGFloat {
-        max(60, availableHeight - waveformTop - 4 - (sequence.takes.isEmpty ? 0 : takesHeight + 4) - 20)
+        max(84, availableHeight - waveformTop - 4 - (sequence.takes.isEmpty ? 0 : takesHeight + 4) - 20)
     }
     private var takesTop: CGFloat {
-        sequence.audio == nil ? waveformTop : waveformTop + waveformHeight + 4
+        waveformTop + waveformHeight + 4
     }
 
     private var beatWidth: CGFloat {
@@ -42,59 +42,98 @@ struct ChordLaneView: View {
         let isPlaying = playback.playingSequence == editor.id
 
         VStack(spacing: 0) {
-            // The view stays put while playing; the playhead moves across it (and turns the page, if following)
-            GeometryReader { geometry in
-                let viewport = geometry.size.width
-                let left = CGFloat(editor.viewStart) * beatWidth
-                lane(visible: left...(left + viewport))
-                    .overlay(alignment: .topLeading) {
-                        if isPlaying {
-                            PlayingPlayhead(editor: editor, beatWidth: beatWidth, height: laneHeight)
-                        } else {
-                            StoppedPlayhead(editor: editor, beatWidth: beatWidth, height: laneHeight)
+            HStack(spacing: 0) {
+                rowHeaders
+                // The view stays put while playing; the playhead moves across it (and turns the page, if following)
+                GeometryReader { geometry in
+                    let viewport = geometry.size.width
+                    let left = CGFloat(editor.viewStart) * beatWidth
+                    lane(visible: left...(left + viewport))
+                        .overlay(alignment: .topLeading) {
+                            if isPlaying {
+                                PlayingPlayhead(editor: editor, beatWidth: beatWidth, height: laneHeight)
+                            } else {
+                                StoppedPlayhead(editor: editor, beatWidth: beatWidth, height: laneHeight)
+                            }
                         }
-                    }
-                    .offset(x: -left)
-                    .frame(width: viewport, alignment: .leading)
-                    .clipped()
-                    .contentShape(Rectangle())
-            }
-            .frame(minHeight: sequence.audio == nil ? laneHeight : waveformTop + 84 + (sequence.takes.isEmpty ? 0 : takesHeight + 4) + 20,
-                   maxHeight: sequence.audio == nil ? laneHeight : .infinity)
-            // Trackpad: swipe to pan, pinch (or ⌘/⌥ + scroll) to zoom around the pointer
-            .background(ScrollCatcher(
-                onScroll: { event, x in
-                    var dx = event.scrollingDeltaX
-                    var dy = event.scrollingDeltaY
-                    if !event.hasPreciseScrollingDeltas {
-                        dx *= 8
-                        dy *= 8
-                    }
-                    if event.modifierFlags.contains(.command) || event.modifierFlags.contains(.option) {
-                        editor.zoom(by: exp(Double(dy) * 0.01), around: Double(x))
-                    } else {
-                        editor.pan(by: -Double(abs(dx) >= abs(dy) ? dx : dy))
-                        if isPlaying { editor.viewMovedByHand() }
-                    }
-                },
-                onMagnify: { magnification, x in
-                    editor.zoom(by: 1 + Double(magnification), around: Double(x))
-                }))
-            .background(GeometryReader { geometry in
-                Color.clear
-                    .onAppear {
-                        updateViewport(geometry.size.width)
-                        availableHeight = geometry.size.height
-                    }
-                    .onChange(of: geometry.size.width) { _, width in updateViewport(width) }
-                    .onChange(of: geometry.size.height) { _, height in availableHeight = height }
-                    .onChange(of: sequence.lengthInBeats) { updateViewport(geometry.size.width) }
-                    .onChange(of: sequence.beatsPerBar) { updateViewport(geometry.size.width) }
-            })
+                        .offset(x: -left)
+                        .frame(width: viewport, alignment: .leading)
+                        .clipped()
+                        .contentShape(Rectangle())
+                }
+                .frame(minHeight: waveformTop + 84 + (sequence.takes.isEmpty ? 0 : takesHeight + 4) + 20, maxHeight: .infinity)
+                // Trackpad: swipe to pan, pinch (or ⌘/⌥ + scroll) to zoom around the pointer
+                .background(ScrollCatcher(
+                    onScroll: { event, x in
+                        var dx = event.scrollingDeltaX
+                        var dy = event.scrollingDeltaY
+                        if !event.hasPreciseScrollingDeltas {
+                            dx *= 8
+                            dy *= 8
+                        }
+                        if event.modifierFlags.contains(.command) || event.modifierFlags.contains(.option) {
+                            editor.zoom(by: exp(Double(dy) * 0.01), around: Double(x))
+                        } else {
+                            editor.pan(by: -Double(abs(dx) >= abs(dy) ? dx : dy))
+                            if isPlaying { editor.viewMovedByHand() }
+                        }
+                    },
+                    onMagnify: { magnification, x in
+                        editor.zoom(by: 1 + Double(magnification), around: Double(x))
+                    }))
+                .background(GeometryReader { geometry in
+                    Color.clear
+                        .onAppear {
+                            updateViewport(geometry.size.width)
+                            availableHeight = geometry.size.height
+                        }
+                        .onChange(of: geometry.size.width) { _, width in updateViewport(width) }
+                        .onChange(of: geometry.size.height) { _, height in availableHeight = height }
+                        .onChange(of: sequence.lengthInBeats) { updateViewport(geometry.size.width) }
+                        .onChange(of: sequence.beatsPerBar) { updateViewport(geometry.size.width) }
+                })
 
-            LaneOverview(editor: editor, lengthInBeats: sequence.lengthInBeats, isPlaying: isPlaying)
-                .padding(.top, 4)
+            }
+
+            HStack(spacing: 0) {
+                Color.clear.frame(width: laneHeaderWidth, height: 1)
+                LaneOverview(editor: editor, lengthInBeats: sequence.lengthInBeats, isPlaying: isPlaying)
+            }
+            .padding(.vertical, 5)
         }
+    }
+
+    /// What each row of the lane is, lined up with it: sections and chords, the recording (with its
+    /// controls), and takes.
+    private var rowHeaders: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 0) {
+                rowTitle("Sections", systemImage: "rectangle.split.3x1")
+                    .frame(height: 30, alignment: .center)
+                rowTitle("Chords", systemImage: "music.quarternote.3")
+                    .frame(height: 46, alignment: .center)
+            }
+            .frame(height: waveformTop, alignment: .top)
+            Divider()
+            AudioTrackHeader(sequence: sequence, editor: editor, height: waveformHeight + 3)
+            if !sequence.takes.isEmpty {
+                Divider()
+                rowTitle("Takes", systemImage: "mic")
+                    .frame(height: takesHeight + 3, alignment: .center)
+            }
+            Spacer(minLength: 0)
+        }
+        .frame(width: laneHeaderWidth)
+        .frame(maxHeight: .infinity, alignment: .top)
+        .background(Color.black.opacity(0.14))
+        .overlay(alignment: .trailing) { Divider() }
+    }
+
+    private func rowTitle(_ title: String, systemImage: String) -> some View {
+        Label(title, systemImage: systemImage)
+            .font(.callout.weight(.semibold))
+            .opacity(0.75)
+            .padding(.horizontal, 10)
     }
 
     private func updateViewport(_ width: CGFloat) {
