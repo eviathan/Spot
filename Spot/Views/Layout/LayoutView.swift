@@ -33,10 +33,12 @@ struct LayoutView: View {
                     FretboardReadout(sequence: sequence, editor: editor, card: .now)
                 }
                 InstrumentView()
-                    .environment(\.fretboardMaxHeight, 480)
+                    .environment(\.fretboardMaxHeight, 620)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 if sequenceOpen, let sequence = session.sequence, let editor = session.editor {
                     FretboardReadout(sequence: sequence, editor: editor, card: .next)
+                        // Lifts it a little, to balance the fret numbers under the neck
+                        .padding(.bottom, 16)
                 }
             } else {
                 InstrumentView()
