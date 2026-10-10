@@ -6,12 +6,14 @@
 //
 
 import SwiftUI
+import UniformTypeIdentifiers
 import SpotCore
 
 struct LayoutView: View {
     @Environment(UIState.self) private var ui
     @Environment(LibraryStore.self) private var library
     @Environment(SequenceSession.self) private var session
+    @Environment(TabSession.self) private var tabSession
     @Environment(PlaybackController.self) private var playback
 
     let headerHeight: CGFloat = 52
@@ -54,11 +56,11 @@ struct LayoutView: View {
         .edgesIgnoringSafeArea(.all)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
-            SpaceBarMonitor.install { [ui, session, playback] option in
+            SpaceBarMonitor.install { [ui, session, tabSession, playback] option in
                 if option {
-                    TransportActions.playSelection(ui: ui, session: session, playback: playback)
+                    TransportActions.playSelection(ui: ui, session: session, tab: tabSession, playback: playback)
                 } else {
-                    TransportActions.playPause(ui: ui, session: session, playback: playback)
+                    TransportActions.playPause(ui: ui, session: session, tab: tabSession, playback: playback)
                 }
             }
         }
@@ -83,9 +85,29 @@ struct LayoutView: View {
         }
         .fileExporter(isPresented: Binding(get: { ui.savePanel != nil }, set: { if !$0 { ui.savePanel = nil } }),
                       document: exportDocument,
-                      contentType: ui.lastSavePanel == .library ? .spotLibrary : .spotSequence,
-                      defaultFilename: ui.lastSavePanel == .library ? (ui.exportFile?.bundle.bundle.name ?? "Library") : session.displayName) { result in
+                      contentType: saveType,
+                      defaultFilename: saveName) { result in
             handleSave(result, panel: ui.lastSavePanel)
+        }
+        // An Untitled tab with changes, about to be replaced
+        .confirmationDialog("Save changes to “\(tabSession.displayName)”?",
+                            isPresented: Binding(get: { ui.pendingTabAction != nil },
+                                                 set: { if !$0 { ui.pendingTabAction = nil } }),
+                            titleVisibility: .visible) {
+            Button("Save…") {
+                ui.tabActionAfterSave = ui.pendingTabAction
+                ui.pendingTabAction = nil
+                ui.savePanel = .tab
+            }
+            Button("Don't Save", role: .destructive) {
+                if let action = ui.pendingTabAction {
+                    ui.pendingTabAction = nil
+                    ui.perform(action, session: tabSession)
+                }
+            }
+            Button("Cancel", role: .cancel) { ui.pendingTabAction = nil }
+        } message: {
+            Text("This tab hasn't been saved to a file yet.")
         }
         .confirmationDialog("Save changes to “\(session.displayName)”?",
                             isPresented: Binding(get: { ui.pendingSequenceAction != nil },
@@ -109,6 +131,8 @@ struct LayoutView: View {
         .onOpenURL { url in
             if url.pathExtension == "spot" {
                 ui.requestSequenceAction(.openURL(url), session: session)
+            } else if url.pathExtension == "spottab" {
+                ui.requestTabAction(.openURL(url), session: tabSession)
             } else {
                 openLibraryFile(url)
             }
@@ -128,6 +152,7 @@ struct LayoutView: View {
         switch ui.lastSavePanel {
         case .library: return ui.exportFile.map { ExportDocument(.library($0)) }
         case .sequence: return session.document.map { ExportDocument(.sequence($0)) }
+        case .tab: return tabSession.document.map { ExportDocument(.tab($0)) }
         }
     }
 
@@ -145,6 +170,8 @@ struct LayoutView: View {
             openLibraryFile(url)
         case .sequence:
             ui.requestSequenceAction(.openURL(url), session: session)
+        case .tab:
+            ui.requestTabAction(.openURL(url), session: tabSession)
         case .audio, .relinkAudio:
             do {
                 try panel == .relinkAudio ? session.relinkAudio(url) : session.importAudio(url)
@@ -170,6 +197,31 @@ struct LayoutView: View {
         case (.sequence, .failure(let error)):
             ui.errorMessage = error.localizedDescription
             ui.sequenceActionAfterSave = nil
+        case (.tab, .success(let url)):
+            tabSession.didSave(to: url)
+            if let next = ui.tabActionAfterSave {
+                ui.tabActionAfterSave = nil
+                ui.perform(next, session: tabSession)
+            }
+        case (.tab, .failure(let error)):
+            ui.errorMessage = error.localizedDescription
+            ui.tabActionAfterSave = nil
+        }
+    }
+
+    private var saveType: UTType {
+        switch ui.lastSavePanel {
+        case .library: return .spotLibrary
+        case .sequence: return .spotSequence
+        case .tab: return .spotTab
+        }
+    }
+
+    private var saveName: String {
+        switch ui.lastSavePanel {
+        case .library: return ui.exportFile?.bundle.bundle.name ?? "Library"
+        case .sequence: return session.displayName
+        case .tab: return tabSession.score.map { $0.title.isEmpty ? tabSession.displayName : $0.title } ?? "Untitled"
         }
     }
 

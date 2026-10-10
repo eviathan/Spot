@@ -20,7 +20,7 @@ struct SpotApp: App {
     @State private var transport: TransportState
     @State private var audioSettings: AudioSettings
     @State private var playback: PlaybackController
-    @State private var practice: PracticeState
+    @State private var tabSession: TabSession
     @State private var session: SequenceSession
 
     init() {
@@ -45,8 +45,8 @@ struct SpotApp: App {
         _audioSettings = State(initialValue: audioSettings)
         let playback = PlaybackController(transport: transport, settings: audioSettings)
         _playback = State(initialValue: playback)
-        _practice = State(initialValue: PracticeState(library: library))
         _session = State(initialValue: SequenceSession(library: library, playback: playback, transport: transport))
+        _tabSession = State(initialValue: TabSession(playback: playback, transport: transport))
     }
 
     var body: some Scene {
@@ -60,7 +60,7 @@ struct SpotApp: App {
                 .environment(transport)
                 .environment(audioSettings)
                 .environment(playback)
-                .environment(practice)
+                .environment(tabSession)
                 .environment(session)
                 .toolbar {
                     Color.clear
@@ -70,19 +70,35 @@ struct SpotApp: App {
         .windowStyle(.hiddenTitleBar)
         .windowToolbarStyle(UnifiedWindowToolbarStyle(showsTitle: false))
         .commands {
+            // New, Open, Close and Save act on the Tab tab's file when it's showing, otherwise on the sequence
             CommandGroup(replacing: .newItem) {
-                Button("New Sequence") { ui.requestSequenceAction(.new, session: session) }
-                    .keyboardShortcut("n", modifiers: [.command])
-                Button("Open Sequence…") { ui.requestSequenceAction(.open, session: session) }
-                    .keyboardShortcut("o", modifiers: [.command])
-                Menu("Open Recent") {
-                    ForEach(session.recents) { recent in
-                        Button(recent.name) { ui.requestSequenceAction(.openRecent(recent), session: session) }
+                if ui.tab == .Tab {
+                    Button("New Tab") { ui.requestTabAction(.new, session: tabSession) }
+                        .keyboardShortcut("n", modifiers: [.command])
+                    Button("Open Tab…") { ui.requestTabAction(.open, session: tabSession) }
+                        .keyboardShortcut("o", modifiers: [.command])
+                    Menu("Open Recent") {
+                        ForEach(tabSession.recents) { recent in
+                            Button(recent.name) { ui.requestTabAction(.openRecent(recent), session: tabSession) }
+                        }
                     }
+                    .disabled(tabSession.recents.isEmpty)
+                    Button("Close Tab") { ui.requestTabAction(.close, session: tabSession) }
+                        .disabled(!tabSession.isOpen)
+                } else {
+                    Button("New Sequence") { ui.requestSequenceAction(.new, session: session) }
+                        .keyboardShortcut("n", modifiers: [.command])
+                    Button("Open Sequence…") { ui.requestSequenceAction(.open, session: session) }
+                        .keyboardShortcut("o", modifiers: [.command])
+                    Menu("Open Recent") {
+                        ForEach(session.recents) { recent in
+                            Button(recent.name) { ui.requestSequenceAction(.openRecent(recent), session: session) }
+                        }
+                    }
+                    .disabled(session.recents.isEmpty)
+                    Button("Close Sequence") { ui.requestSequenceAction(.close, session: session) }
+                        .disabled(!session.isOpen)
                 }
-                .disabled(session.recents.isEmpty)
-                Button("Close Sequence") { ui.requestSequenceAction(.close, session: session) }
-                    .disabled(!session.isOpen)
                 Divider()
                 Button("New Scale…") { ui.definitionEditor = .new(.scale) }
                     .keyboardShortcut("n", modifiers: [.command, .option])
@@ -90,8 +106,7 @@ struct SpotApp: App {
                     .keyboardShortcut("n", modifiers: [.command, .option, .shift])
             }
             
-            // Undo and Redo act on what you're working on: text being typed, the open sequence, or the
-            // Chord Practice progression
+            // Undo and Redo act on what you're working on: text being typed, the open sequence, or the open tab
             CommandGroup(replacing: .undoRedo) {
                 Button("Undo") { undoOrRedo(redo: false) }
                     .keyboardShortcut("z", modifiers: [.command])
@@ -100,18 +115,33 @@ struct SpotApp: App {
             }
 
             CommandGroup(replacing: .saveItem) {
-                Button("Save") {
-                    if session.fileURL == nil {
-                        ui.isSavingSequenceAs = true
-                    } else {
-                        do { try session.save() } catch { ui.errorMessage = error.localizedDescription }
+                if ui.tab == .Tab {
+                    Button("Save") {
+                        if tabSession.fileURL == nil {
+                            ui.savePanel = .tab
+                        } else {
+                            do { try tabSession.save() } catch { ui.errorMessage = error.localizedDescription }
+                        }
                     }
-                }
-                .keyboardShortcut("s", modifiers: [.command])
-                .disabled(!session.isOpen)
-                Button("Save As…") { ui.isSavingSequenceAs = true }
-                    .keyboardShortcut("s", modifiers: [.command, .shift])
+                    .keyboardShortcut("s", modifiers: [.command])
+                    .disabled(!tabSession.isOpen)
+                    Button("Save As…") { ui.savePanel = .tab }
+                        .keyboardShortcut("s", modifiers: [.command, .shift])
+                        .disabled(!tabSession.isOpen)
+                } else {
+                    Button("Save") {
+                        if session.fileURL == nil {
+                            ui.isSavingSequenceAs = true
+                        } else {
+                            do { try session.save() } catch { ui.errorMessage = error.localizedDescription }
+                        }
+                    }
+                    .keyboardShortcut("s", modifiers: [.command])
                     .disabled(!session.isOpen)
+                    Button("Save As…") { ui.isSavingSequenceAs = true }
+                        .keyboardShortcut("s", modifiers: [.command, .shift])
+                        .disabled(!session.isOpen)
+                }
             }
             
             CommandGroup(replacing: .importExport) {
@@ -122,33 +152,33 @@ struct SpotApp: App {
             }
             
             CommandMenu("Playback") {
-                Button(transport.isPlaying ? "Stop Playing" : "Play from 1.1.1 (Space)") {
-                    TransportActions.playPause(ui: ui, session: session, playback: playback)
+                Button(transport.isPlaying ? "Stop Playing" : (ui.tab == .Tab ? "Play from Start (Space)" : "Play from 1.1.1 (Space)")) {
+                    TransportActions.playPause(ui: ui, session: session, tab: tabSession, playback: playback)
                 }
                 .keyboardShortcut("p", modifiers: [.command])
                 // ⌥Space does this too (handled with the space bar, so it isn't listed here)
-                Button("Play from Playhead (⌥Space)") {
-                    TransportActions.playSelection(ui: ui, session: session, playback: playback)
+                Button(ui.tab == .Tab ? "Play from Cursor (⌥Space)" : "Play from Playhead (⌥Space)") {
+                    TransportActions.playSelection(ui: ui, session: session, tab: tabSession, playback: playback)
                 }
-                .disabled(ui.tab != .Sequence || !session.isOpen)
+                .disabled(ui.tab == .Tab ? !tabSession.isOpen : (ui.tab != .Sequence || !session.isOpen))
                 Button(session.sequence?.loop == nil ? "Loop" : "Stop Looping") {
                     TransportActions.toggleLoop(session: session)
                 }
                 .keyboardShortcut("l", modifiers: [.command])
                 .disabled(ui.tab != .Sequence || !session.isOpen)
                 Button("Stop") {
-                    TransportActions.stop(ui: ui, session: session, playback: playback)
+                    TransportActions.stop(ui: ui, session: session, tab: tabSession, playback: playback)
                 }
                 .keyboardShortcut(".", modifiers: [.command])
                 Button("Back to Start") {
-                    TransportActions.toStart(ui: ui, session: session, playback: playback)
+                    TransportActions.toStart(ui: ui, session: session, tab: tabSession, playback: playback)
                 }
                 Button(transport.isMetronomeOn ? "Metronome Off" : "Metronome On") { transport.isMetronomeOn.toggle() }
                     .keyboardShortcut("m", modifiers: [.command, .shift])
                 Divider()
-                Button(ui.tab == .Practice ? "Preview Chord" : "Preview Shape") { previewCurrentShape() }
+                Button("Preview Shape") { previewCurrentShape() }
                     .keyboardShortcut(.return, modifiers: [.command])
-                    .disabled(ui.tab == .Sequence)
+                    .disabled(ui.tab != .Library)
             }
             
             CommandGroup(before: .toolbar) {
@@ -156,12 +186,12 @@ struct SpotApp: App {
                     .keyboardShortcut("f", modifiers: [.command, .shift])
                     .disabled(ui.tab == .Settings)
                 Divider()
-                Button("Zoom In") { session.editor?.zoom(by: 1.5) }
+                Button("Zoom In") { ui.tab == .Tab ? tabSession.editor?.zoom(by: 1.25) : session.editor?.zoom(by: 1.5) }
                     .keyboardShortcut("=", modifiers: [.command])
-                    .disabled(ui.tab != .Sequence || !session.isOpen)
-                Button("Zoom Out") { session.editor?.zoom(by: 1 / 1.5) }
+                    .disabled(ui.tab == .Tab ? !tabSession.isOpen : (ui.tab != .Sequence || !session.isOpen))
+                Button("Zoom Out") { ui.tab == .Tab ? tabSession.editor?.zoom(by: 1 / 1.25) : session.editor?.zoom(by: 1 / 1.5) }
                     .keyboardShortcut("-", modifiers: [.command])
-                    .disabled(ui.tab != .Sequence || !session.isOpen)
+                    .disabled(ui.tab == .Tab ? !tabSession.isOpen : (ui.tab != .Sequence || !session.isOpen))
                 Toggle("Follow Playhead", isOn: Binding(get: { session.editor?.followsPlayhead ?? false },
                                                         set: { session.editor?.followsPlayhead = $0 }))
                     .disabled(!session.isOpen)
@@ -201,7 +231,6 @@ struct SpotApp: App {
             CommandMenu("Shape") {
                 Button(ui.tab == .Library ? "Next Shape" : "Next Voicing") {
                     switch ui.tab {
-                    case .Practice: practice.nextVoicing()
                     case .Sequence: session.cycleVoicing(by: 1)
                     default: selection.nextShape()
                     }
@@ -209,19 +238,11 @@ struct SpotApp: App {
                 .keyboardShortcut("]", modifiers: [.command])
                 Button(ui.tab == .Library ? "Previous Shape" : "Previous Voicing") {
                     switch ui.tab {
-                    case .Practice: practice.previousVoicing()
                     case .Sequence: session.cycleVoicing(by: -1)
                     default: selection.previousShape()
                     }
                 }
                 .keyboardShortcut("[", modifiers: [.command])
-                Divider()
-                Button("Next Chord") { practice.nextChord() }
-                    .keyboardShortcut("]", modifiers: [.command, .shift])
-                    .disabled(ui.tab != .Practice)
-                Button("Previous Chord") { practice.previousChord() }
-                    .keyboardShortcut("[", modifiers: [.command, .shift])
-                    .disabled(ui.tab != .Practice)
                 Divider()
                 Button("New Shape") { selection.startNewShape(copyingCurrent: false) }
                     .disabled(selection.kind == .interval)
@@ -255,8 +276,8 @@ struct SpotApp: App {
         let isTyping = NSApp.keyWindow?.firstResponder is NSText
         if !isTyping && ui.tab == .Sequence && session.isOpen {
             redo ? session.redo() : session.undo()
-        } else if !isTyping && ui.tab == .Practice {
-            redo ? practice.redo() : practice.undo()
+        } else if !isTyping && ui.tab == .Tab && tabSession.isOpen {
+            redo ? tabSession.redo() : tabSession.undo()
         } else {
             // Text fields (and anything else with its own undo) handle it themselves
             NSApp.sendAction(Selector(redo ? "redo:" : "undo:"), to: nil, from: nil)
@@ -264,10 +285,6 @@ struct SpotApp: App {
     }
 
     private func previewCurrentShape() {
-        if ui.tab == .Practice {
-            playback.preview(practice.chordEvents(clock: transport.clock))
-            return
-        }
         guard let shape = selection.currentShape,
               let placement = shape.placements(root: selection.root, on: selection.fretboard).first else { return }
         playback.preview(Audition.events(for: shape, placement: placement, on: selection.fretboard, clock: transport.clock))

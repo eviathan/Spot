@@ -22,6 +22,18 @@
 		</dict>
 		<dict>
 			<key>CFBundleTypeName</key>
+			<string>Spot Tab</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>iko.spot.tab</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
 			<string>Spot Library</string>
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
@@ -67,6 +79,23 @@
 				<key>public.filename-extension</key>
 				<array>
 					<string>spotlib</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.json</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Spot Tab</string>
+			<key>UTTypeIdentifier</key>
+			<string>iko.spot.tab</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>spottab</string>
 				</array>
 			</dict>
 		</dict>

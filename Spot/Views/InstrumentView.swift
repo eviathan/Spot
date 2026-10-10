@@ -15,7 +15,7 @@ struct InstrumentView: View {
     var body: some View {
         switch ui.tab {
         case .Library: LibraryFretboard()
-        case .Practice: PracticeFretboard()
+        case .Tab: TabFretboard()
         case .Sequence:
             if let sequence = session.sequence, let editor = session.editor {
                 SequencerFretboard(sequence: sequence, editor: editor)
@@ -83,5 +83,42 @@ struct LibraryFretboard: View {
 struct InstrumentView_Previews: PreviewProvider {
     static var previews: some View {
         InstrumentView()
+    }
+}
+
+/// The Tab tab's fretboard: the notes in the beat at the cursor (in the track's tuning, capo included),
+/// named as notes, with the cursor's string picked out.
+struct TabFretboard: View {
+    @Environment(TabSession.self) private var session
+    @Environment(\.theme) private var theme
+
+    var body: some View {
+        let track = session.score.flatMap { score in
+            session.editor.flatMap { score.tracks.indices.contains($0.track) ? score.tracks[$0.track] : nil }
+        }
+        let fretboard = Fretboard(tuning: track?.tuning ?? .standard)
+        FretboardView(fretboard: fretboard, markers: markers(track: track, on: fretboard))
+    }
+
+    private func markers(track: TabTrack?, on fretboard: Fretboard) -> [FretboardMarker] {
+        guard let track, let score = session.score, let editor = session.editor else { return [] }
+        // While playing, the beat being played; otherwise the one at the cursor
+        let playing = session.playhead.flatMap { playhead -> TabBeat? in
+            let beats = score.beats(track: editor.track, bar: playhead.bar)
+            return beats.indices.contains(playhead.beat) ? beats[playhead.beat] : nil
+        }
+        guard let beat = playing ?? editor.beat(in: score) else { return [] }
+        return beat.notes.compactMap { note -> FretboardMarker? in
+            let position = FretPosition(string: note.string, fret: note.fret + track.capo)
+            guard note.string < fretboard.stringCount, position.fret <= fretboard.fretCount else { return nil }
+            let pitchClass = fretboard.pitchClass(at: position)
+            let name = SpelledNote.conventional(pitchClass)
+            let marker = FretMarker(position: position, pitchClass: pitchClass, semitonesAboveRoot: 0, degree: nil,
+                                    isInPosition: true, finger: nil, noteName: name, intervalName: name.description)
+            let isCursorString = playing == nil && note.string == editor.cursor.string
+            return FretboardMarker(marker: marker, label: note.isDead ? "x" : name.description,
+                                   ring: theme.chordToneColor, fill: isCursorString ? theme.chordToneColor : .black,
+                                   text: isCursorString ? .black : .white)
+        }
     }
 }

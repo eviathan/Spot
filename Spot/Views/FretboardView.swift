@@ -7,7 +7,7 @@
 import SwiftUI
 import SpotCore
 
-/// How one note is drawn. The Library and Chord Practice tabs each decide this for themselves.
+/// How one note is drawn. Each tab decides this for itself.
 struct FretboardMarker: Identifiable {
     var marker: FretMarker
     var label: String

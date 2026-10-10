@@ -212,7 +212,21 @@ Built-in bundle, roughly 60+ scales and 100+ chord types:
 
 ---
 
-## Tab 2 — Chord Practice
+## Tab 2 — Tab editor (replaces Chord Practice, Oct 2026)
+
+Chord Practice is removed: the Sequencer now does its job (a scale, voicing and position per chord, intervals, what's next). Its unique parts (ranked scale list with reasons, arpeggio/upper-structure suggestions, voicing browser) can return later as a chord inspector in the Sequencer. The second tab becomes a **tab (tablature) editor**.
+
+Decisions:
+- **Files:** Spot's own format, `.spottab` (JSON, UTI `iko.spot.tab`), opened in the tab like sequences (New / Open / Recent / Save / autosave, one at a time).
+- **Guitar Pro:** import `.gp` (GP7/8), `.gpx` (GP6), `.gp5` / `.gp4` / `.gp3`; export `.gp` (GP7) so files go back into Guitar Pro. Readers and writers are written in SpotCore (no permissively licensed Swift library exists), tested against small files built in the tests and, where possible, real files. Formats: GP7/8 is a zip holding `Content/score.gpif` (XML); GP6 wraps the same XML in a compressed container (BCFZ/BCFS); GP3–5 are a documented binary format. Zip reading/writing uses the Compression framework (raw deflate) with our own container code.
+- **Scope v1:** core notation (notes by string and fret, durations with dots and tuplets, rests, ties, bars, time and key signatures, tempo and tempo changes, repeats and section markers), techniques (hammer-on / pull-off, slides, bends with amounts, vibrato, palm mute, let ring, dead and ghost notes, harmonics, tapping), and multiple tracks (each with tuning, string count and capo). Tab only: no standard-notation staff in v1.
+- **Sequences:** tab files stay separate, but a sequence can link one so it plays along with the sequence's audio and chords, and a tab's chord names can become sequence chords.
+
+Model (`SpotCore/Tab`): `TabScore` (title, artist, tempo, master bars, tracks) → `MasterBar` (time signature, key, repeats, marker, tempo change) and per-track `TabBar` → voices → `TabBeat` (duration, dots, tuplet, rest, notes, chord name, text) → `TabNote` (string, fret, tie, techniques).
+
+Editing (v1): a cursor on string + beat; type fret numbers, arrows to move, number-row keys or a palette for durations, shortcuts for techniques (H/P, S, B, V, M, L, X…), insert/delete beats and bars, copy/paste, undo/redo. The fretboard above shows the notes at the cursor (or playing), with fingers.
+
+## Tab 2 (old) — Chord Practice (removed Oct 2026)
 
 *Original:* see which scales and arpeggios you can play over different chords, highlighting the chord position in all voicings and positions, and the scale positions relative to them.
 
@@ -374,6 +388,16 @@ Suggestions, best first. I'd build **A + B** first and add **C** later.
    - ✅ Transport: Play/Pause (resumes where it stopped, no count-in), Stop (back to the selection), Back to Start; space bar toggles play/pause except while typing.
    - ✅ Warping, Live-style: waveform draws only what's visible (also fixes it vanishing while playing), redraws live while dragging; double-click to add/remove markers; drag to stretch (snaps to 16ths, ⌥ free); ⇧-drag slides a marker along the audio; drag the waveform to grab a moment onto a beat; ⌘= / ⌘− zoom. Only the stretch between neighbouring markers is re-rendered (~0.02 s). Audio before bar 1 is rendered and plays during the count-in.
 11. **Piano:** keyboard view, piano voicings and fingerings.
+12. **Tab editor** (replaces Chord Practice; see Tab 2):
+    - 12a. ✅ Remove Chord Practice. Tab model in SpotCore (`TabScore`, `MasterBar`, `TabTrack`, `TabBar`/`TabVoice`, `TabBeat`, `TabDuration` in ticks of 960 per quarter, `TabNote` with every v1 technique), `.spottab` format (JSON, `iko.spot.tab`) with tests, `TabSession` (New / Open / Recent / Save / Save As / autosave / Untitled draft / undo), the tab's launcher and an overview (title, artist, tempo, bars, tracks with tuning, capo and sound). File menu items act on the tab that's showing.
+    - 12b. ✅ Tab rendering (`TabStaffView`): bars wrapped into lines that fill the width (each bar sized by its rhythm, stretched per line), one track at a time with a track picker, ⌘= / ⌘− spacing. Staff with TAB, fret numbers breaking the strings, x / (ghost, tied) / ⟨harmonic⟩, rests drawn as shapes, stems and beams under the staff grouped by beat (dotted quarter in compound time), dots, tuplet numbers; time signatures where they change, repeats with counts, 1st/2nd endings, section markers, tempo marks, chord names, bar numbers. Click to put the cursor on a string at a beat (or after the last); the fretboard shows that beat's notes. Details popover for title, artist, tempo, bars and tracks.
+    - 12c. ✅ Editing (`TabEditing` in SpotCore, tested; keys in the Tab tab): 0–9 frets (two quick digits for 10–29), ← → beats (past a full bar into the next, adding bars at the end), ↑ ↓ strings, ⇧← ⇧→ select, − = note value, . dot, / triplet, R rest, L tie, I insert, ⌫ delete, ⌘C/X/V; undo/redo. Toolbar for the same, Bar popover (time signature until the next change, repeats, endings, marker, tempo, insert/delete bar), Beat popover (chord name, text, strum), Keys list, cursor position, and a warning (and red bar number) when a bar doesn't add up.
+    - 12d. ✅ Techniques: keys (H hammer-on/pull-off, S / ⇧S slides, B bends, V vibrato, M palm mute, ⇧L let ring, X dead, G ghost, N harmonic, T tapping, A accent) and a Technique menu (exact bends, every slide and harmonic), applied to the note at the cursor or every note in the selection. Drawn Guitar Pro style: H/P arcs, slide lines, bend arrows with amounts and dashed releases, vibrato waves, T / > / harmonic types / strum marks, "let ring" and "P.M." runs; beats with techniques get more room.
+    - 12e. ✅ Playback over MIDI with the metronome (repeats, endings, tempo changes, bends, slides, vibrato, let ring, palm mute, ghost/dead/accent velocities). Space plays from the start, ⌥Space from the cursor; the playing beat is highlighted and kept in view, and the fretboard shows it. The footer's tempo, tap and time signature edit the tab at the cursor's bar.
+    - 12f. Guitar Pro 7/8 (`.gp`) import and export (zip + GPIF XML).
+    - 12g. Guitar Pro 3–5 import.
+    - 12h. Guitar Pro 6 (`.gpx`) import.
+    - 12i. Linking a tab to a sequence.
 
 ---
 

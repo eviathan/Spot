@@ -52,6 +52,11 @@ final class PlaybackController {
     @ObservationIgnored private var countInEnd: Double = 0
     @ObservationIgnored private var countInStart: Double = 0
     @ObservationIgnored private var sequence: SequencePlayback?
+    /// A tab playing (on its own clock: one beat is a second), and how far through its events and clicks.
+    @ObservationIgnored private var tab: TabPerformance?
+    @ObservationIgnored private var tabEvent = 0
+    @ObservationIgnored private var tabClick = 0
+    private(set) var isPlayingTab = false
     @ObservationIgnored private var track: TrackPlayer?
     /// Audio is queued up to this beat; nil until the first slice has started.
     @ObservationIgnored private var audioCursor: Double?
@@ -91,6 +96,76 @@ final class PlaybackController {
         play(from: beat, countIn: countIn)
     }
 
+    /// Plays a tab from `time` seconds in. The clock runs at 60 bpm, so its beats are the tab's seconds.
+    @ObservationIgnored private var bpmBeforeTab: Double?
+
+    func play(tab: TabPerformance, from time: Double) {
+        if transport.isPlaying {
+            stop()
+        }
+        self.tab = tab
+        isPlayingTab = true
+        // The tab's times are in seconds, so the transport counts seconds as beats; the metronome's tempo comes
+        // back afterwards
+        bpmBeforeTab = transport.bpm
+        transport.setBPM(60)
+        transport.barOrigin = 0
+        let start = HostTime.adding(startLatency, to: HostTime.now)
+        // Every channel's sound and bend range, wherever it starts
+        if midiOutput() != nil {
+            for event in tab.events where event.time == 0 {
+                switch event.message {
+                case .program, .controller, .pitchBend: send(event.message, at: start)
+                default: break
+                }
+            }
+        }
+        tabEvent = tab.events.firstIndex { $0.time >= time - 0.0005 } ?? tab.events.count
+        tabClick = tab.clicks.firstIndex { $0.time >= time - 0.0005 } ?? tab.clicks.count
+        transport.start(atBeat: time, hostTime: start)
+        scheduledUntil = time
+        countInStart = time
+        countInEnd = time
+        startTimer()
+    }
+
+    private func send(_ message: TabPerformance.Message, at time: UInt64) {
+        guard let midi = midiOutput() else { return }
+        switch message {
+        case .noteOn(let channel, let note, let velocity):
+            midi.channel = UInt8(channel)
+            midi.noteOn(note, velocity: velocity, at: time)
+        case .noteOff(let channel, let note):
+            midi.channel = UInt8(channel)
+            midi.noteOff(note, at: time)
+        case .pitchBend(let channel, let value):
+            midi.channel = UInt8(channel)
+            midi.pitchBend(value, at: time)
+        case .program(let channel, let program):
+            midi.channel = UInt8(channel)
+            midi.programChange(program, at: time)
+        case .controller(let channel, let number, let value):
+            midi.channel = UInt8(channel)
+            midi.controlChange(number, value: value, at: time)
+        }
+    }
+
+    /// The tab's events and (with the metronome on) clicks due before `to`.
+    private func scheduleTab(_ tab: TabPerformance, from: Double, to: Double) {
+        while tabEvent < tab.events.count, tab.events[tabEvent].time < to {
+            let event = tab.events[tabEvent]
+            tabEvent += 1
+            send(event.message, at: transport.hostTime(forBeat: event.time))
+        }
+        let clicks = transport.isMetronomeOn ? clickPlayer() : nil
+        clicks?.volume = Float(settings.metronomeVolume)
+        while tabClick < tab.clicks.count, tab.clicks[tabClick].time < to {
+            let click = tab.clicks[tabClick]
+            tabClick += 1
+            clicks?.click(accent: click.isAccent, atHostTime: transport.hostTime(forBeat: click.time))
+        }
+    }
+
     /// Swaps in an edited sequence (a new render, loop or takes) while playing.
     func update(_ sequence: SequencePlayback, id: UUID) {
         guard playingSequence == id else { return }
@@ -118,6 +193,20 @@ final class PlaybackController {
     }
     
     func stop() {
+        if let tab, let midi = midiOutput() {
+            // Silence and unbend every channel the tab used
+            for channel in tab.channels {
+                midi.channel = UInt8(channel)
+                midi.controlChange(123, value: 0)
+                midi.pitchBend(8192)
+            }
+        }
+        tab = nil
+        isPlayingTab = false
+        if let bpmBeforeTab {
+            transport.setBPM(bpmBeforeTab)
+            self.bpmBeforeTab = nil
+        }
         sequence = nil
         playingSequence = nil
         track?.stop()
@@ -186,6 +275,10 @@ final class PlaybackController {
                 stop()
                 return
             }
+            if transport.isPlaying, let tab, transport.position() >= tab.length + 0.3 {
+                stop()
+                return
+            }
         }
 
         if !pending.isEmpty, let midi = midiOutput() {
@@ -232,6 +325,10 @@ final class PlaybackController {
     
     private func scheduleWindow(from: Double, to: Double) {
         guard to > from else { return }
+        if let tab {
+            scheduleTab(tab, from: from, to: to)
+            return
+        }
         scheduleClicks(from: from, to: to)
         if let sequence, let audio = sequence.audio {
             scheduleAudio(audio, gain: sequence.audioGain, loopEnd: sequence.loop?.end, from: from, to: to)

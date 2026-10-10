@@ -79,6 +79,20 @@ public final class MIDIOutput {
         send(status: 0x80, note, 0, at: time)
     }
 
+    /// 14-bit, 8192 is no bend.
+    public func pitchBend(_ value: Int, at time: MIDITimeStamp = 0) {
+        let value = min(max(value, 0), 16383)
+        send(status: 0xE0, value & 0x7F, value >> 7, at: time)
+    }
+
+    public func controlChange(_ number: Int, value: Int, at time: MIDITimeStamp = 0) {
+        send(status: 0xB0, number, value, at: time)
+    }
+
+    public func programChange(_ program: Int, at time: MIDITimeStamp = 0) {
+        send(status: 0xC0, program, 0, at: time)
+    }
+
     /// Silences anything still sounding (All Notes Off) and drops events queued for the destination.
     public func allNotesOff() {
         if let destination {

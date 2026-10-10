@@ -21,13 +21,14 @@ struct ModeSwitcher: View {
         .buttonStyle(PlainButtonStyle())
         .frame(width: 30, height: 30)
         
-        Button(action: { ui.tab = .Practice }) {
+        Button(action: { ui.tab = .Tab }) {
             Image(systemName: "rectangle.split.3x3")
                 .imageScale(.large)
-                .foregroundColor(ui.tab == .Practice ? .white : unselectedColor)
+                .foregroundColor(ui.tab == .Tab ? .white : unselectedColor)
         }
         .buttonStyle(PlainButtonStyle())
         .frame(width: 30, height: 30)
+        .help("Tab")
         
         Button(action: { ui.tab = .Sequence }) {
             Image(systemName: "text.justify")

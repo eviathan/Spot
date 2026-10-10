@@ -14,6 +14,7 @@ struct Footer: View {
     @Environment(SelectionState.self) private var selection
     @Environment(TransportState.self) private var transport
     @Environment(SequenceSession.self) private var session
+    @Environment(TabSession.self) private var tabSession
     @Environment(UIState.self) private var ui
     @State private var previousBPMChangeValue: CGFloat = 0
 
@@ -21,6 +22,11 @@ struct Footer: View {
 
     private var editsSequence: Bool {
         ui.tab == .Sequence && session.isOpen
+    }
+
+    /// On the Tab tab with a tab open, tempo and time signature are the tab's (at the cursor's bar).
+    private var editsTab: Bool {
+        ui.tab == .Tab && tabSession.isOpen
     }
 
     // MARK: Root / key
@@ -42,11 +48,16 @@ struct Footer: View {
     // MARK: Tempo
 
     private var bpm: Int {
-        Int((editsSequence ? session.sequence?.tempo ?? transport.bpm : transport.bpm).rounded())
+        if editsTab, let tempo = tabSession.tempoAtCursor {
+            return Int(tempo.rounded())
+        }
+        return Int((editsSequence ? session.sequence?.tempo ?? transport.bpm : transport.bpm).rounded())
     }
 
     func incrementBPM(_ value: Int) {
-        if editsSequence, let tempo = session.sequence?.tempo {
+        if editsTab, let tempo = tabSession.tempoAtCursor {
+            tabSession.tempoAtCursor = tempo.rounded() + Double(value)
+        } else if editsSequence, let tempo = session.sequence?.tempo {
             session.sequence?.tempo = min(max(tempo.rounded() + Double(value), 20), 300)
             if !session.isPlaying, let tempo = session.sequence?.tempo {
                 transport.setBPM(tempo)
@@ -57,7 +68,11 @@ struct Footer: View {
     }
 
     private func tap() {
-        if editsSequence {
+        if editsTab {
+            if let tapped = session.tap() {
+                tabSession.tempoAtCursor = tapped.rounded()
+            }
+        } else if editsSequence {
             session.tapTempo()
         } else if let tapped = session.tap() {
             transport.setBPM(tapped.rounded())
@@ -67,14 +82,19 @@ struct Footer: View {
     // MARK: Time signature
 
     private var beatsPerBar: Int {
-        editsSequence ? session.sequence?.beatsPerBar ?? 4 : transport.beatsPerBar
+        if editsTab, let signature = tabSession.timeSignatureAtCursor {
+            return signature.numerator
+        }
+        return editsSequence ? session.sequence?.beatsPerBar ?? 4 : transport.beatsPerBar
     }
 
     /// Chords, sections, loops and warp markers are all in beats, so changing this just regroups them into
     /// bars (and can be undone).
     private func setBeatsPerBar(_ value: Int) {
         let value = min(max(value, 2), 7)
-        if editsSequence, let editor = session.editor, let old = session.sequence?.beatsPerBar {
+        if editsTab {
+            tabSession.setBeatsPerBar(value)
+        } else if editsSequence, let editor = session.editor, let old = session.sequence?.beatsPerBar {
             guard value != old else { return }
             session.sequence?.beatsPerBar = value
             // A grid of a bar stays a bar
@@ -184,10 +204,10 @@ struct Footer: View {
                 .foregroundColor(.white)
             Menu {
                 ForEach(2...7, id: \.self) { value in
-                    Button("\(value)/4") { setBeatsPerBar(value) }
+                    Button("\(value)/\(editsTab ? tabSession.timeSignatureAtCursor?.denominator ?? 4 : 4)") { setBeatsPerBar(value) }
                 }
             } label: {
-                Text("\(beatsPerBar)/4")
+                Text("\(beatsPerBar)/\(editsTab ? tabSession.timeSignatureAtCursor?.denominator ?? 4 : 4)")
                     .font(.system(size: 20))
                     .foregroundColor(.white)
             }

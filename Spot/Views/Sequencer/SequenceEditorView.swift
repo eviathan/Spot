@@ -114,6 +114,16 @@ private struct LaneEditorBar: View {
                             sequence.update(region.id, scaleId: .some(suggestion.scale.id))
                         }
                     }
+                    Divider()
+                    // Any scale at all, with its other name, for when the one you want isn't among the matches
+                    Menu("All Scales") {
+                        ForEach(editor.library.scales.sorted { $0.name < $1.name }) { scale in
+                            choice(scale.aliases.first.map { "\(scale.name) (\($0))" } ?? scale.name,
+                                   editor.analysis.scales[region.id]?.id == scale.id) {
+                                sequence.update(region.id, scaleId: .some(scale.id))
+                            }
+                        }
+                    }
                 }
             }
 

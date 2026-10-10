@@ -224,9 +224,9 @@
     },
     {
       "id": "builtin.scale.aeolian-b5",
-      "name": "Aeolian ♭5",
+      "name": "Locrian ♮2",
       "aliases": [
-        "Locrian ♮2",
+        "Aeolian ♭5",
         "Half-Diminished"
       ],
       "formula": "1 2 b3 4 b5 b6 b7",

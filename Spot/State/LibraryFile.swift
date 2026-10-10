@@ -34,13 +34,14 @@ struct LibraryFile: FileDocument {
     }
 }
 
-/// Whatever the window's single Save panel is saving: a library export or a sequence.
+/// Whatever the window's single Save panel is saving: a library export, a sequence or a tab.
 struct ExportDocument: FileDocument {
-    static var readableContentTypes: [UTType] { [.spotLibrary, .spotSequence] }
+    static var readableContentTypes: [UTType] { [.spotLibrary, .spotSequence, .spotTab] }
 
     enum Content {
         case library(LibraryFile)
         case sequence(SequenceDocument)
+        case tab(TabDocument)
     }
 
     var content: Content
@@ -57,6 +58,7 @@ struct ExportDocument: FileDocument {
         switch content {
         case .library(let file): return try file.fileWrapper(configuration: configuration)
         case .sequence(let document): return try document.fileWrapper(configuration: configuration)
+        case .tab(let document): return try document.fileWrapper(configuration: configuration)
         }
     }
 }

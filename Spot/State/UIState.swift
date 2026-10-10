@@ -15,11 +15,13 @@ enum OpenPanel: Equatable {
     case sequence
     case audio
     case relinkAudio
+    case tab
 
     var contentTypes: [UTType] {
         switch self {
         case .library: return [.spotLibrary, .json]
         case .sequence: return [.spotSequence]
+        case .tab: return [.spotTab]
         case .audio, .relinkAudio: return [.audio]
         }
     }
@@ -29,6 +31,16 @@ enum OpenPanel: Equatable {
 enum SavePanel: Equatable {
     case library
     case sequence
+    case tab
+}
+
+/// Something that replaces the open tab, held back while asking whether to save it first.
+enum TabAction: Equatable {
+    case new
+    case open
+    case openURL(URL)
+    case openRecent(TabSession.Recent)
+    case close
 }
 
 /// Which scale or chord the definition editor is working on.
@@ -119,6 +131,9 @@ final class UIState {
             savePanel = nil
         }
     }
+    /// Waiting on "save changes to Untitled?" for a tab.
+    var pendingTabAction: TabAction?
+    var tabActionAfterSave: TabAction?
     /// Waiting on "save changes to Untitled?"
     var pendingSequenceAction: SequenceAction?
     /// Carry on with this once Save As finishes.
@@ -146,6 +161,37 @@ final class UIState {
         isFretboardOnly = defaults.bool(forKey: "ui.isFretboardOnly")
     }
     
+    /// Does `action` now, or first asks whether to save an unsaved tab.
+    func requestTabAction(_ action: TabAction, session: TabSession) {
+        if action != .open && session.needsSaveBeforeClosing {
+            pendingTabAction = action
+        } else {
+            perform(action, session: session)
+        }
+    }
+
+    func perform(_ action: TabAction, session: TabSession) {
+        do {
+            switch action {
+            case .new:
+                session.newScore()
+                tab = .Tab
+            case .open:
+                openPanel = .tab
+            case .openURL(let url):
+                try session.open(url)
+                tab = .Tab
+            case .openRecent(let recent):
+                try session.open(recent)
+                tab = .Tab
+            case .close:
+                session.close()
+            }
+        } catch {
+            errorMessage = "Couldn't open the tab: \(error.localizedDescription)"
+        }
+    }
+
     /// Does `action` now, or first asks whether to save an unsaved sequence.
     func requestSequenceAction(_ action: SequenceAction, session: SequenceSession) {
         if action != .open && session.needsSaveBeforeClosing {

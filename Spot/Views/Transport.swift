@@ -13,6 +13,7 @@ struct Transport: View {
     @Environment(TransportState.self) private var transport
     @Environment(PlaybackController.self) private var playback
     @Environment(SequenceSession.self) private var session
+    @Environment(TabSession.self) private var tabSession
     @Environment(UIState.self) private var ui
     
     func onClickTransport() -> Void {
@@ -20,15 +21,15 @@ struct Transport: View {
     }
     
     func onClickTransportRestart() -> Void {
-        TransportActions.toStart(ui: ui, session: session, playback: playback)
+        TransportActions.toStart(ui: ui, session: session, tab: tabSession, playback: playback)
     }
     
     func onClickTransportPlay() -> Void {
-        TransportActions.playPause(ui: ui, session: session, playback: playback)
+        TransportActions.playPause(ui: ui, session: session, tab: tabSession, playback: playback)
     }
     
     func onClickTransportStop() -> Void {
-        TransportActions.stop(ui: ui, session: session, playback: playback)
+        TransportActions.stop(ui: ui, session: session, tab: tabSession, playback: playback)
     }
     
     func onClickTransportRecord() -> Void {
@@ -92,7 +93,9 @@ struct Transport: View {
         }
         .buttonStyle(PlainButtonStyle())
         .frame(width: 30, height: 30)
-        .help("Play from 1.1.1, or stop (space). ⌥Space plays from the playhead (or just the selected range).")
+        .help(ui.tab == .Tab
+              ? "Play the tab from the start, or stop (space). ⌥Space plays from the cursor."
+              : "Play from 1.1.1, or stop (space). ⌥Space plays from the playhead (or just the selected range).")
         
         Button(action: onClickTransportStop)
         {
@@ -134,7 +137,8 @@ private struct PositionDisplay: View {
     var body: some View {
         TimelineView(.animation(minimumInterval: 1 / 30, paused: !transport.isPlaying)) { context in
             let position = transport.clock.barAndBeat(transport.position() - transport.barOrigin)
-            Text(transport.isPlaying ? "\(position.bar).\(position.beat)" : "1.1")
+            let label = transport.positionLabel.map { $0(transport.position()) } ?? "\(position.bar).\(position.beat)"
+            Text(transport.isPlaying ? label : "1.1")
                 .font(.system(size: 16, design: .monospaced))
                 .foregroundColor(transport.isPlaying && position.bar < 1 ? .orange : .white)
                 .frame(width: 56)
@@ -153,8 +157,10 @@ private struct PositionDisplay: View {
 /// On the Sequence tab they control the open sequence; elsewhere, the metronome transport.
 enum TransportActions {
     /// Space: play from the start marker (1.1.1), or stop.
-    static func playPause(ui: UIState, session: SequenceSession, playback: PlaybackController) {
-        if session.isPlaying || (ui.tab == .Sequence && session.isOpen && !playback.transport.isPlaying) {
+    static func playPause(ui: UIState, session: SequenceSession, tab: TabSession, playback: PlaybackController) {
+        if tab.isPlaying || (ui.tab == .Tab && tab.isOpen && !playback.transport.isPlaying) {
+            tab.togglePlay()
+        } else if session.isPlaying || (ui.tab == .Sequence && session.isOpen && !playback.transport.isPlaying) {
             session.togglePlay()
         } else {
             playback.togglePlay()
@@ -163,15 +169,21 @@ enum TransportActions {
 
     /// ⌥Space: play from the playhead (a selected range on its own, stopping at its end); while playing,
     /// jump back to the playhead.
-    static func playSelection(ui: UIState, session: SequenceSession, playback: PlaybackController) {
-        if session.isPlaying || (ui.tab == .Sequence && session.isOpen && !playback.transport.isPlaying) {
+    static func playSelection(ui: UIState, session: SequenceSession, tab: TabSession, playback: PlaybackController) {
+        if ui.tab == .Tab && tab.isOpen {
+            // From the cursor (while playing, jump back to it)
+            tab.play(fromCursor: true)
+        } else if session.isPlaying || (ui.tab == .Sequence && session.isOpen && !playback.transport.isPlaying) {
             session.playSelection()
         } else {
-            playPause(ui: ui, session: session, playback: playback)
+            playPause(ui: ui, session: session, tab: tab, playback: playback)
         }
     }
     
-    static func stop(ui: UIState, session: SequenceSession, playback: PlaybackController) {
+    static func stop(ui: UIState, session: SequenceSession, tab: TabSession, playback: PlaybackController) {
+        if tab.isPlaying {
+            tab.stopPlaying()
+        }
         if session.isOpen {
             session.stopPlayback()
         }
@@ -202,8 +214,13 @@ enum TransportActions {
         session.toggleLoop()
     }
     
-    static func toStart(ui: UIState, session: SequenceSession, playback: PlaybackController) {
-        if ui.tab == .Sequence && session.isOpen {
+    static func toStart(ui: UIState, session: SequenceSession, tab: TabSession, playback: PlaybackController) {
+        if ui.tab == .Tab && tab.isOpen {
+            let wasPlaying = tab.isPlaying
+            tab.stopPlaying()
+            tab.editor?.cursor = TabEditorState.Cursor()
+            if wasPlaying { tab.play(fromCursor: false) }
+        } else if ui.tab == .Sequence && session.isOpen {
             session.returnToStart()
         } else if playback.transport.isPlaying {
             playback.stop()
