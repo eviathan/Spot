@@ -104,17 +104,14 @@ private struct LaneEditorBar: View {
                         help: region.scaleId == nil
                             ? "Scale: \(inUse), the best fit for this chord. Pick another to use it instead."
                             : "Scale: \(inUse), picked for this chord (the pin). Choose Automatic to go back to the best fit.") {
-                    Button {
+                    choice("Automatic (\(suggestions.first?.scale.name ?? "none"))", region.scaleId == nil) {
                         sequence.update(region.id, scaleId: .some(nil))
-                    } label: {
-                        checked("Automatic (\(suggestions.first?.scale.name ?? "none"))", region.scaleId == nil)
                     }
                     Divider()
+                    // The scale in use is ticked, whether picked or automatic
                     ForEach(suggestions.prefix(12)) { suggestion in
-                        Button {
+                        choice(suggestion.scale.name, editor.analysis.scales[region.id]?.id == suggestion.scale.id) {
                             sequence.update(region.id, scaleId: .some(suggestion.scale.id))
-                        } label: {
-                            checked(suggestion.scale.name, region.scaleId == suggestion.scale.id)
                         }
                     }
                 }
@@ -142,10 +139,8 @@ private struct LaneEditorBar: View {
                     help: "The grid for the playhead, selecting, and moving and resizing chords. Chords also stick to each other's edges; hold ⌥ while dragging to ignore both.") {
                 ForEach(grids, id: \.beats) { grid in
                     if grid.beats == 0 { Divider() }
-                    Button {
+                    choice(grid.name, editor.snap == grid.beats) {
                         editor.snap = grid.beats
-                    } label: {
-                        checked(grid.name, editor.snap == grid.beats)
                     }
                 }
             }
@@ -200,19 +195,16 @@ extension LaneEditorBar {
                 help: picked == nil
                     ? "\(title): \(current?.label ?? "none"), chosen automatically to stay near your hand. Pick one to use it for this chord\(title == "Voicing" ? " (or ⌘[ ⌘] to step through them)" : "")."
                     : "\(title): \(current?.label ?? "none"), picked for this chord (the pin). Choose Automatic to let Spot choose again.") {
-            Button {
+            choice("Automatic", picked == nil) {
                 choose(nil)
-            } label: {
-                checked("Automatic", picked == nil)
             }
             Divider()
+            // The shape in use is ticked (picked or automatic), and so is the group it's in
             ForEach(systems, id: \.self) { system in
-                Menu(system) {
+                Menu(current?.shape.system == system ? "\(system)  ✓" : system) {
                     ForEach(options.filter { $0.shape.system == system }) { option in
-                        Button {
+                        choice(option.shortLabel, option.pick == current?.pick) {
                             choose(option.pick)
-                        } label: {
-                            checked(option.shortLabel, option.pick == picked)
                         }
                     }
                 }
@@ -221,10 +213,10 @@ extension LaneEditorBar {
         .disabled(options.isEmpty)
     }
 
-    /// A menu item, ticked when it's the one in use.
-    @ViewBuilder
-    func checked(_ title: String, _ isOn: Bool) -> some View {
-        if isOn { Label(title, systemImage: "checkmark") } else { Text(title) }
+    /// A menu item with a native checkmark when it's the one in use. (A label with a checkmark icon doesn't
+    /// reliably show its icon in a macOS menu; a toggle always shows its tick.)
+    func choice(_ title: String, _ isOn: Bool, action: @escaping () -> Void) -> some View {
+        Toggle(title, isOn: Binding(get: { isOn }, set: { _ in action() }))
     }
 }
 
