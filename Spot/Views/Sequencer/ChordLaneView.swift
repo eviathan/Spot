@@ -19,6 +19,8 @@ struct ChordLaneView: View {
 
     /// The height the lane has to fill.
     @State private var availableHeight: CGFloat = 0
+    /// The loop brace as it's being dragged.
+    @State private var loopDrag: BeatRange?
     /// The start or end marker as it's being dragged, so the grid follows it.
     @State private var markerDrag: (marker: SongMarker, beat: Double)?
     /// Where the pointer is over the lane, for the right-click menu. Kept in a plain object so moving
@@ -174,13 +176,6 @@ struct ChordLaneView: View {
         return ZStack(alignment: .topLeading) {
             // Selection (shown while playing too, like Live) and loop
             SelectionHighlight(editor: editor, beatWidth: beatWidth, height: laneHeight, visible: visible)
-            if let loop = sequence.loop, let span = LaneSpan(loop.start, loop.end, beatWidth: beatWidth, visible: visible) {
-                Rectangle()
-                    .fill(Color.yellow.opacity(0.7))
-                    .frame(width: span.width, height: 4)
-                    .offset(x: span.x, y: 0)
-                    .allowsHitTesting(false)
-            }
 
             // Sections
             ForEach(sequence.sections) { section in
@@ -262,7 +257,12 @@ struct ChordLaneView: View {
                 }
             }
         }
-        .overlay(alignment: .topLeading) { songMarkers(width: width, visible: visible) }
+        .overlay(alignment: .topLeading) {
+            ZStack(alignment: .topLeading) {
+                songMarkers(width: width, visible: visible)
+                loopBrace(visible: visible)
+            }
+        }
         .frame(width: width, height: laneHeight, alignment: .topLeading)
         .contentShape(Rectangle())
         .gesture(laneClick)
@@ -278,6 +278,83 @@ struct ChordLaneView: View {
             Button("Automatic End") { session.sequence?.endBeat = nil }
                 .disabled(sequence.endBeat == nil)
         }
+    }
+
+    // MARK: - Loop brace
+
+    private enum LoopPart { case body, start, end }
+
+    /// The loop range along the top: yellow while looping, grey when not (so it can be turned back on).
+    /// Drag it to move it, drag an end to resize it (on the grid; ⌥ for free), click it to loop or not.
+    @ViewBuilder
+    private func loopBrace(visible: ClosedRange<CGFloat>) -> some View {
+        if let range = loopDrag ?? sequence.loopRange,
+           let span = LaneSpan(range.start, range.end, beatWidth: beatWidth, visible: visible, margin: 0) {
+            let handle = min(8, span.width / 3)
+            // Separate plain shapes: the bar, then the body and ends to grab, on top
+            RoundedRectangle(cornerRadius: 2)
+                .fill(sequence.isLooping ? Color.yellow.opacity(0.85) : Color.gray.opacity(0.55))
+                .frame(width: span.width, height: 6)
+                .offset(x: span.x)
+                .allowsHitTesting(false)
+            Color.clear
+                .frame(width: span.width, height: 10)
+                .contentShape(Rectangle())
+                .gesture(loopGesture(.body))
+                .help(sequence.isLooping
+                      ? "The loop: drag to move it, drag an end to resize it (⌥ for free). Click to stop looping (⌘L)."
+                      : "The loop, turned off: click to loop it again (⌘L). Drag to move it, drag an end to resize it.")
+                .offset(x: span.x)
+            if !span.startCut {
+                loopHandle(.start, width: handle)
+                    .offset(x: span.x)
+            }
+            if !span.endCut {
+                loopHandle(.end, width: handle)
+                    .offset(x: span.x + span.width - handle)
+            }
+        }
+    }
+
+    private func loopHandle(_ part: LoopPart, width: CGFloat) -> some View {
+        Color.clear
+            .frame(width: width, height: 10)
+            .contentShape(Rectangle())
+            .onHover { inside in
+                if inside { NSCursor.resizeLeftRight.push() } else { NSCursor.pop() }
+            }
+            .gesture(loopGesture(part))
+    }
+
+    private func loopGesture(_ part: LoopPart) -> some Gesture {
+        DragGesture(minimumDistance: 0, coordinateSpace: .named(ChordLaneView.contentSpace))
+            .onChanged { value in
+                guard let original = sequence.loopRange,
+                      loopDrag != nil || abs(value.translation.width) >= 3 else { return }
+                let free = NSEvent.modifierFlags.contains(.option) || editor.snap == 0
+                let snap = { (beat: Double) in free ? beat : sequence.onGrid(beat, unit: editor.snap, .toNearestOrAwayFromZero) }
+                let shortest = free ? 1.0 / 16 : editor.snap
+                let delta = Double(value.translation.width / beatWidth)
+                let length = sequence.lengthInBeats
+                switch part {
+                case .body:
+                    let start = min(max(0, snap(original.start + delta)), length - original.length)
+                    loopDrag = BeatRange(start, start + original.length)
+                case .start:
+                    loopDrag = BeatRange(max(0, min(snap(original.start + delta), original.end - shortest)), original.end)
+                case .end:
+                    loopDrag = BeatRange(original.start, min(length, max(snap(original.end + delta), original.start + shortest)))
+                }
+            }
+            .onEnded { _ in
+                if let loopDrag {
+                    // Moving or resizing it leaves looping as it was
+                    session.sequence?.loopRange = loopDrag
+                } else if part == .body {
+                    session.sequence?.isLooping.toggle()
+                }
+                loopDrag = nil
+            }
     }
 
     // MARK: - Start (1.1.1) and end markers

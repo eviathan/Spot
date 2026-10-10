@@ -213,3 +213,25 @@ final class ShapePickTests: XCTestCase {
         XCTAssertNil(sequence.chords[0].voicing)
     }
 }
+
+final class LoopBraceTests: XCTestCase {
+    func testTurningTheLoopOffKeepsItsRange() throws {
+        var sequence = ChordSequence(lengthInBars: 8)
+        sequence.loop = BeatRange(4, 12)
+        XCTAssertTrue(sequence.isLooping)
+        sequence.loop = nil
+        XCTAssertNil(sequence.loop, "not looping")
+        XCTAssertEqual(sequence.loopRange, BeatRange(4, 12), "but the brace is still there")
+        sequence.isLooping = true
+        XCTAssertEqual(sequence.loop, BeatRange(4, 12))
+
+        // Saved as both; files from before load with the loop on
+        sequence.isLooping = false
+        let decoded = try JSONDecoder().decode(ChordSequence.self, from: sequence.encoded())
+        XCTAssertEqual(decoded.loopRange, BeatRange(4, 12))
+        XCTAssertFalse(decoded.isLooping)
+        let old = #"{"version": 1, "tempo": 100, "beatsPerBar": 4, "lengthInBars": 4, "loop": {"start": 0, "end": 8}}"#
+        let legacy = try JSONDecoder().decode(ChordSequence.self, from: Data(old.utf8))
+        XCTAssertEqual(legacy.loop, BeatRange(0, 8))
+    }
+}

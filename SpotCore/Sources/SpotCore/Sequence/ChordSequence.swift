@@ -92,7 +92,22 @@ public struct ChordSequence: Hashable, Codable, Sendable {
     public private(set) var chords: [ChordRegion]
     /// Kept sorted by start and never overlapping.
     public private(set) var sections: [SequenceSection]
-    public var loop: BeatRange?
+    /// The loop brace: kept when looping is off, so it can be shown and turned back on.
+    public var loopRange: BeatRange?
+    public var isLooping: Bool
+    /// The loop in use: the range while looping, otherwise nil. Setting a range turns looping on; nil turns it
+    /// off (the range is kept).
+    public var loop: BeatRange? {
+        get { isLooping ? loopRange : nil }
+        set {
+            if let newValue {
+                loopRange = newValue
+                isLooping = true
+            } else {
+                isLooping = false
+            }
+        }
+    }
     /// A recording to play along with, lined up by warp markers.
     public var audio: AudioTrack?
     /// Your recordings, oldest first.
@@ -111,7 +126,8 @@ public struct ChordSequence: Hashable, Codable, Sendable {
         self.key = nil
         self.chords = []
         self.sections = []
-        self.loop = nil
+        self.loopRange = nil
+        self.isLooping = false
         self.audio = nil
         self.takes = []
         self.startBeat = 0
@@ -208,10 +224,11 @@ public struct ChordSequence: Hashable, Codable, Sendable {
         let end = lengthInBeats
         chords = ChordSequence.carve(chords, removing: BeatRange(end, .infinity))
         sections = ChordSequence.carve(sections, removing: BeatRange(end, .infinity))
-        if let loop, loop.start >= end {
-            self.loop = nil
-        } else if let loop {
-            self.loop = BeatRange(loop.start, min(loop.end, end))
+        if let loopRange, loopRange.start >= end {
+            self.loopRange = nil
+            isLooping = false
+        } else if let loopRange {
+            self.loopRange = BeatRange(loopRange.start, min(loopRange.end, end))
         }
         startBeat = min(startBeat, max(0, end - 1))
         if let endBeat, endBeat > end || endBeat <= startBeat {
@@ -297,11 +314,11 @@ public struct ChordSequence: Hashable, Codable, Sendable {
     // MARK: - Files
 
     enum CodingKeys: String, CodingKey {
-        case version, tempo, beatsPerBar, lengthInBars, key, chords, sections, loop, audio, takes, startBeat, endBeat
+        case version, tempo, beatsPerBar, lengthInBars, key, chords, sections, loopRange, isLooping, audio, takes, startBeat, endBeat
     }
 
     private enum LegacyKeys: String, CodingKey {
-        case practiceRate
+        case practiceRate, loop
     }
 
     public init(from decoder: Decoder) throws {
@@ -317,7 +334,13 @@ public struct ChordSequence: Hashable, Codable, Sendable {
         key = try container.decodeIfPresent(Key.self, forKey: .key)
         chords = (try container.decodeIfPresent([ChordRegion].self, forKey: .chords) ?? []).sorted { $0.range.start < $1.range.start }
         sections = (try container.decodeIfPresent([SequenceSection].self, forKey: .sections) ?? []).sorted { $0.range.start < $1.range.start }
-        loop = try container.decodeIfPresent(BeatRange.self, forKey: .loop)
+        loopRange = try container.decodeIfPresent(BeatRange.self, forKey: .loopRange)
+        isLooping = try container.decodeIfPresent(Bool.self, forKey: .isLooping) ?? false
+        // Older files: a loop was on whenever there was one
+        if let oldLoop = try decoder.container(keyedBy: LegacyKeys.self).decodeIfPresent(BeatRange.self, forKey: .loop) {
+            loopRange = oldLoop
+            isLooping = true
+        }
         audio = try container.decodeIfPresent(AudioTrack.self, forKey: .audio)
         // Older files: the sequence tempo was the recording's, and a practice speed slowed both
         let legacy = try decoder.container(keyedBy: LegacyKeys.self)

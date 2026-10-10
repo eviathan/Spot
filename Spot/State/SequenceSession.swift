@@ -496,33 +496,22 @@ final class SequenceSession {
         playback.setAudioRate(sequence.audio.map { sequence.tempo / $0.tempo } ?? 1)
     }
 
-    /// The loop last turned off, so ⌘L with nothing selected can bring it back.
-    @ObservationIgnored private var lastLoop: BeatRange?
-
     /// ⌘L and the Loop button. With a range selected: loop it (or, if it's already the loop, stop looping).
-    /// With just a playhead: turn the loop off, or back on as it was (the first time, the bar the playhead is in).
+    /// With just a playhead: turn looping off, or back on over the loop brace (the first time, the bar the
+    /// playhead is in).
     func toggleLoop() {
         guard let editor, let sequence else { return }
         let selection = editor.selection
         if selection.length > 0 {
-            if sequence.loop == selection {
-                lastLoop = selection
-                self.sequence?.loop = nil
-            } else {
-                self.sequence?.loop = selection
-            }
-        } else if let loop = sequence.loop {
-            lastLoop = loop
+            self.sequence?.loop = sequence.loop == selection ? nil : selection
+        } else if sequence.isLooping {
             self.sequence?.loop = nil
+        } else if sequence.loopRange != nil {
+            self.sequence?.isLooping = true
         } else {
             let bar = Double(sequence.beatsPerBar)
             let start = sequence.onGrid(selection.start, unit: bar)
-            let loop = lastLoop ?? BeatRange(start, start + bar)
-            // Kept inside the sequence, in case it's been shortened since
-            let clamped = BeatRange(min(loop.start, sequence.lengthInBeats), min(loop.end, sequence.lengthInBeats))
-            if clamped.length > 0 {
-                self.sequence?.loop = clamped
-            }
+            self.sequence?.loop = BeatRange(start, min(start + bar, sequence.lengthInBeats))
         }
     }
 
