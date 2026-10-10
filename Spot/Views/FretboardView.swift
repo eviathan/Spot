@@ -233,9 +233,13 @@ private struct FretMarkerView: View {
             .background(Circle().fill(item.fill))
             .frame(width: scaledSize, height: scaledSize)
             .overlay(
+                // Longer labels (m13, ♭13) shrink to fit inside the ring; short ones stay as they are
                 Text(item.label)
                     .font(.caption)
                     .foregroundColor(item.text)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+                    .frame(width: max(1, scaledSize - 5 * item.scale - 3))
             )
             .onTapGesture(perform: onSelect)
             .onHover { hovering in
