@@ -82,7 +82,13 @@ struct ChordLaneView: View {
                         .clipped()
                         .contentShape(Rectangle())
                 }
-                .frame(minHeight: waveformTop + 84 + (sequence.takes.isEmpty ? 0 : takesHeight + 4) + 20, maxHeight: .infinity)
+                // Stopping (or reaching the end) brings the playhead back into view, if following
+            .onChange(of: isPlaying) { _, playing in
+                if !playing {
+                    editor.revealPlayhead()
+                }
+            }
+            .frame(minHeight: waveformTop + 84 + (sequence.takes.isEmpty ? 0 : takesHeight + 4) + 20, maxHeight: .infinity)
                 // Trackpad: swipe to pan, pinch (or ⌘/⌥ + scroll) to zoom around the pointer
                 .background(ScrollCatcher(
                     onScroll: { event, x in
@@ -412,7 +418,13 @@ private struct PlayingPlayhead: View {
                 .frame(width: 2, height: height)
                 .offset(x: CGFloat(transport.position()) * beatWidth)
                 .allowsHitTesting(false)
-                .onChange(of: context.date) { editor.follow(transport.position()) }
+                // Only while really playing: once stopped the clock reads 0, and following that would
+                // throw the view back to the start
+                .onChange(of: context.date) {
+                    if transport.isPlaying {
+                        editor.follow(transport.position())
+                    }
+                }
         }
     }
 }

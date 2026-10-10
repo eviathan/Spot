@@ -129,6 +129,16 @@ final class SequenceEditorState {
         clampView()
     }
 
+    /// After playback stops: if following, scroll to the playhead when it's off screen. Otherwise the
+    /// view stays where it is.
+    func revealPlayhead() {
+        guard followsPlayhead, viewportWidth > 0 else { return }
+        let beat = selection.start
+        if beat < viewStart || beat > viewStart + visibleBeats * 0.97 {
+            scroll(to: beat - visibleBeats * 0.03)
+        }
+    }
+
     /// The person moved the view themselves (only matters while playing).
     func viewMovedByHand() {
         followSuspended = true
