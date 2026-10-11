@@ -73,9 +73,26 @@ final class SelectionState {
         }
     }
 
-    /// The key used to spell notes: minor-sounding collections spell from a minor key (C♯ minor, not D♭ minor).
+    /// The key used to spell notes: minor-sounding collections spell from a minor key (C♯ minor, not D♭ minor), and
+    /// a scale that's a key's notes (a mode) from that key.
     var key: Key {
-        SelectionState.key(root: root, formula: formula)
+        if kind == .scale, let quality = KeyQuality(scaleId: scale.id) {
+            return Key(conventional: root, quality)
+        }
+        return SelectionState.key(root: root, formula: formula)
+    }
+
+    /// The key the Library is in: when the selected scale is a key's notes (major, minor or a mode).
+    var keyQuality: KeyQuality? {
+        kind == .scale ? KeyQuality(scaleId: scale.id) : nil
+    }
+
+    /// Shows a scale (picked from the key control), as if picked in the list.
+    func selectScale(_ scale: ScaleDefinition) {
+        self.scale = scale
+        kind = .scale
+        scaleContext = nil
+        shapeDraft = nil
     }
     
     static func key(root: PitchClass, formula: Formula) -> Key {

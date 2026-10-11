@@ -16,7 +16,9 @@ struct Footer: View {
     @Environment(SequenceSession.self) private var session
     @Environment(TabSession.self) private var tabSession
     @Environment(UIState.self) private var ui
+    @Environment(LibraryStore.self) private var library
     @State private var previousBPMChangeValue: CGFloat = 0
+    @State private var isPickingKey = false
     @State private var isTypingTimeSignature = false
     @State private var otherTimeSignature = ""
     @State private var isTypingTempo = false
@@ -203,31 +205,106 @@ struct Footer: View {
                 .font(.system(size: 16))
                 .foregroundColor(.white)
 
-            if editsSequence {
-                // Click for major / minor, or to go back to working the key out
-                Menu {
-                    let tonic = sequenceKey?.tonic.pitchClass ?? PitchClass(0)
-                    Button("Major") { session.sequence?.key = Key(conventional: tonic, .major) }
-                    Button("Minor") { session.sequence?.key = Key(conventional: tonic, .minor) }
-                    Divider()
-                    Button("Work It Out from the Chords") { session.sequence?.key = nil }
-                } label: {
-                    Text(sequenceKey.map { "\($0.tonic.description)\($0.quality == .minor ? "m" : "")" } ?? "–")
-                        .font(.system(size: 20))
-                        .foregroundColor(session.sequence?.key == nil ? dimmed : .white)
+            // Click to choose major, minor or a mode; ⇧-click to swap between major and minor
+            Button {
+                if NSEvent.modifierFlags.contains(.shift) {
+                    swapMajorMinor()
+                } else {
+                    isPickingKey = true
                 }
-                .menuStyle(.borderlessButton)
-                .menuIndicator(.hidden)
-                .fixedSize()
-                .frame(minWidth: 50)
-                .help("The sequence's key\(session.sequence?.key == nil ? " (worked out from the chords; change it to choose one)" : "")")
-            } else {
-                Text(selection.spelledRoot.description)
+            } label: {
+                Text(keyLabel)
                     .font(.system(size: 20))
-                    .foregroundColor(.white)
+                    .foregroundColor(editsSequence && session.sequence?.key == nil ? dimmed : .white)
                     .frame(minWidth: 50)
+                    .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
+            .popover(isPresented: $isPickingKey, arrowEdge: .top) {
+                keyPicker
+            }
+            .help(editsSequence
+                  ? "The sequence's key\(session.sequence?.key == nil ? " (worked out from the chords)" : ""). Click to choose major, minor or a mode; ⇧-click to swap major and minor. The arrows change the root."
+                  : "The root, and the key: click to choose major, minor or a mode (it picks that scale); ⇧-click to swap major and minor. The arrows change the root.")
         }
+    }
+
+    /// The key as shown: "B", "Bm", "B dor"; in the Library, just the root unless a key's scale is showing.
+    private var keyLabel: String {
+        if editsSequence {
+            return sequenceKey?.shortName ?? "–"
+        }
+        return "\(selection.spelledRoot)\(selection.keyQuality?.shortSuffix ?? "")"
+    }
+
+    /// The quality chosen now (the sequence's, or the Library's scale if it's a key's).
+    private var currentQuality: KeyQuality? {
+        editsSequence ? sequenceKey?.quality : selection.keyQuality
+    }
+
+    private func setQuality(_ quality: KeyQuality) {
+        if editsSequence {
+            let tonic = sequenceKey?.tonic.pitchClass ?? PitchClass(0)
+            session.sequence?.key = Key(conventional: tonic, quality)
+        } else if let scale = library.scale(quality.scaleId) {
+            selection.selectScale(scale)
+        }
+    }
+
+    /// ⇧-click: major to minor (on the same root), and anything minor-sounding to major.
+    private func swapMajorMinor() {
+        setQuality(currentQuality?.isMinor == true ? .major : .minor)
+    }
+
+    /// Major or minor, the other modes, and (for a sequence) working the key out from its chords.
+    private var keyPicker: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(editsSequence ? "Key" : "Key (picks its scale)")
+                .font(.headline)
+            HStack(spacing: 6) {
+                keyChoice(.major, title: "Major")
+                keyChoice(.minor, title: "Minor")
+            }
+            Text("Modes")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 3), spacing: 6) {
+                ForEach([KeyQuality.dorian, .phrygian, .lydian, .mixolydian, .locrian], id: \.self) { quality in
+                    keyChoice(quality, title: quality.name)
+                }
+            }
+            if editsSequence {
+                Divider()
+                Toggle("Work it out from the chords", isOn: Binding(
+                    get: { session.sequence?.key == nil },
+                    set: { automatic in
+                        if automatic {
+                            session.sequence?.key = nil
+                        } else if let key = sequenceKey {
+                            session.sequence?.key = key
+                        }
+                    }))
+            }
+            Text("⇧-click the key to swap major and minor")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding(14)
+        .frame(width: 280)
+    }
+
+    private func keyChoice(_ quality: KeyQuality, title: String) -> some View {
+        let isOn = currentQuality == quality && !(editsSequence && session.sequence?.key == nil)
+        return Button {
+            setQuality(quality)
+        } label: {
+            Text(title)
+                .font(.system(size: 13, weight: isOn ? .semibold : .regular))
+                .frame(maxWidth: .infinity, minHeight: 26)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .background(RoundedRectangle(cornerRadius: 5).fill(isOn ? Color.accentColor.opacity(0.45) : Color.primary.opacity(0.08)))
     }
 
     private var timeSignatureLabel: some View {

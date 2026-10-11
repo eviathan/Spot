@@ -111,4 +111,31 @@ final class SpellingTests: XCTestCase {
         XCTAssertEqual(major.modePitchClassOffsets(startingAt: 2), Formula("1 2 b3 4 5 6 b7")!.pitchClassOffsets)
         XCTAssertEqual(major.modePitchClassOffsets(startingAt: 7), Formula("1 b2 b3 4 b5 b6 b7")!.pitchClassOffsets)
     }
+
+    /// Modes take their relative major's key signature, and name themselves.
+    func testModalKeys() {
+        let cases: [(Int, KeyQuality, String)] = [
+            (11, .dorian, "B C# D E F# G# A"),
+            (1, .phrygian, "C# D E F# G# A B"),
+            (3, .lydian, "Eb F G A Bb C D"),
+            (6, .mixolydian, "F# G# A# B C# D# E"),
+            (11, .locrian, "B C D E F G A"),
+            (2, .dorian, "D E F G A B C"),
+        ]
+        for (pitchClass, quality, expected) in cases {
+            let key = Key(conventional: PitchClass(pitchClass), quality)
+            XCTAssertEqual(names(key.scale), expected, key.description)
+        }
+        let dorian = Key(conventional: PitchClass(2), .dorian)
+        XCTAssertEqual(dorian.description, "D Dorian")
+        XCTAssertEqual(dorian.shortName, "D dor")
+        XCTAssertEqual(Key(conventional: PitchClass(9), .minor).shortName, "Am")
+        // Outside the mode: the nearest common alteration
+        XCTAssertEqual(dorian.spell(PitchClass(10)).asciiDescription, "Bb")
+        XCTAssertEqual(dorian.spell(PitchClass(6)).asciiDescription, "F#")
+        XCTAssertEqual(KeyQuality(scaleId: "builtin.scale.mixolydian"), .mixolydian)
+        XCTAssertEqual(KeyQuality(scaleId: "builtin.scale.natural-minor"), .minor)
+        XCTAssertTrue(KeyQuality.phrygian.isMinor)
+        XCTAssertFalse(KeyQuality.lydian.isMinor)
+    }
 }

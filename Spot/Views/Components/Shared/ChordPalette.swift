@@ -94,6 +94,8 @@ struct ChordPalette: View {
                         let pitchClass = PitchClass(value)
                         Button { root = pitchClass } label: {
                             Text(spell(pitchClass).description)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.7)
                                 .frame(maxWidth: .infinity, minHeight: 24)
                                 .fontWeight(root == pitchClass ? .bold : .regular)
                         }
@@ -175,11 +177,10 @@ struct ChordPalette: View {
         }
     }
 
-    /// The chords built on each degree of the key's scale.
+    /// The chords built on each degree of the key's scale (a mode's own: B Dorian has E7, not Em7).
     private func diatonic(in key: Key) -> [(symbol: String, display: String, numeral: String, root: PitchClass, chordId: String)] {
-        let scaleId = key.quality == .major ? "builtin.scale.major" : "builtin.scale.natural-minor"
-        guard let scale = library.scale(scaleId) else { return [] }
-        return DiatonicChords.build(scale: scale.formula, size: useSevenths ? 4 : 3, chords: library.chords).compactMap { diatonic in
+        // The key's own notes: major, minor or a mode
+        return DiatonicChords.build(scale: key.quality.formula, size: useSevenths ? 4 : 3, chords: library.chords).compactMap { diatonic in
             guard let chord = diatonic.chord else { return nil }
             let root = key.tonic.spelling(diatonic.scaleDegree)
             return (root.asciiDescription + chord.displaySymbol, root.description + chord.displaySymbol, diatonic.numeral,
