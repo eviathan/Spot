@@ -173,6 +173,8 @@ final class SequenceEditorState {
     var showsNextScale = false
     /// The chord palette is open for the selection.
     var showsPalette = false
+    /// A chord the fretboard holds on (its id), whatever's playing; nil to follow the playhead. One at a time.
+    var pinnedChord: UUID?
     /// A pattern being renamed (its id), while the name box is up.
     var renamingPattern: UUID?
     /// Lane zoom: how wide a bar is, in points.
@@ -481,6 +483,17 @@ final class SequenceEditorState {
     func chordRange(in sequence: ChordSequence) -> BeatRange {
         guard selection.length == 0 else { return selection }
         return BeatRange(selection.start, min(selection.start + chordUnit, sequence.lengthInBeats))
+    }
+
+    /// The pinned chord, while it's still in the sequence.
+    func pinnedRegion(in sequence: ChordSequence) -> ChordRegion? {
+        guard let pinnedChord else { return nil }
+        return sequence.chords.first { $0.id == pinnedChord }
+    }
+
+    /// Unpins whatever's pinned, or with nothing pinned, pins the chord at the selection.
+    func togglePin(in sequence: ChordSequence) {
+        pinnedChord = pinnedChord == nil ? sequence.chord(at: selection.start)?.id : nil
     }
 
     /// Moves the selection along by its own length (a grid unit from a playhead), for entering chord after chord.

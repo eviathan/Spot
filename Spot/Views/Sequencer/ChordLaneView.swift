@@ -686,6 +686,8 @@ private struct ChordClipsLayer: View {
     /// The chord being moved or resized, where it is now.
     @State private var dragged: ChordRegion?
     @State private var isSelectingRange = false
+    /// The chord under the mouse, which shows its pin button.
+    @State private var hovered: UUID?
 
     private enum Part { case body, start, end }
 
@@ -762,12 +764,39 @@ private struct ChordClipsLayer: View {
                 // Resize handles only on the clip's real edges, not where it's cut off at the screen's edge
                 .overlay(alignment: .leading) { if !span.startCut { edgeHandle(region, .start, width: handle) } }
                 .overlay(alignment: .trailing) { if !span.endCut { edgeHandle(region, .end, width: handle) } }
+                // Pin: the fretboard holds on this chord (works while playing too)
+                .overlay(alignment: .topTrailing) {
+                    let isPinned = editor.pinnedChord == region.id
+                    if clipWidth >= 36, isPinned || hovered == region.id, !isDragged {
+                        pinButton(region, isPinned: isPinned)
+                            .padding(.trailing, handle + 1)
+                            .padding(.top, 3)
+                    }
+                }
+                .onHover { inside in
+                    if inside { hovered = region.id } else if hovered == region.id { hovered = nil }
+                }
                 .offset(x: span.x + 1, y: 30)
                 }
             }
         }
         .frame(width: width, height: height, alignment: .topLeading)
         .coordinateSpace(name: Self.space)
+    }
+
+    private func pinButton(_ region: ChordRegion, isPinned: Bool) -> some View {
+        Button {
+            editor.pinnedChord = isPinned ? nil : region.id
+        } label: {
+            Image(systemName: isPinned ? "pin.fill" : "pin")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(isPinned ? Color.primary : Color.primary.opacity(0.6))
+                .frame(width: 16, height: 16)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help(isPinned ? "Unpin: the fretboard follows the playhead again (⌥⌘P)"
+                       : "Pin: hold the fretboard on this chord, whatever's playing (⌥⌘P)")
     }
 
     @ViewBuilder

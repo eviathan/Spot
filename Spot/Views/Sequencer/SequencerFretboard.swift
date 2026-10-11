@@ -44,7 +44,9 @@ struct SequencerFretboard: View {
         let fretboard = editor.fretboard
         let analysis = editor.analysis
 
-        guard let region = sequence.chord(at: max(position, 0)) ?? sequence.chord(after: position),
+        // A pinned chord holds the fretboard, with nothing coming next
+        let pinned = editor.pinnedRegion(in: sequence)
+        guard let region = pinned ?? sequence.chord(at: max(position, 0)) ?? sequence.chord(after: position),
               let chord = analysis.chords[region.id] else { return [] }
 
         let scale = analysis.scales[region.id]
@@ -59,7 +61,7 @@ struct SequencerFretboard: View {
 
         // The next chord: where the hand goes for it, its notes named from its own root, and stronger as it nears
         // (Round to the start of the loop at its end, while looping)
-        let upcoming = sequence.upcomingChord(at: position)
+        let upcoming = pinned == nil ? sequence.upcomingChord(at: position) : nil
         let nextRegion = upcoming?.chord
         let nextChord = nextRegion.flatMap { analysis.chords[$0.id] }
         let nextNeck = nextRegion.flatMap { analysis.positions[$0.id] }
@@ -200,9 +202,11 @@ struct PerformanceHeader: View {
         let isPlaying = playback.playingSequence == editor.id
         TimelineView(.animation(minimumInterval: 1 / 30, paused: !isPlaying)) { _ in
             let position = sequencePosition(editor, playback, transport)
-            let region = sequence.chord(at: max(position, 0))
+            // A pinned chord holds, with nothing coming next
+            let pinned = editor.pinnedRegion(in: sequence)
+            let region = pinned ?? sequence.chord(at: max(position, 0))
             // (Round to the start of the loop at its end, while looping)
-            let upcoming = sequence.upcomingChord(at: position)
+            let upcoming = pinned == nil ? sequence.upcomingChord(at: position) : nil
             let next = upcoming?.chord
 
             HStack(spacing: 0) {
@@ -227,7 +231,7 @@ struct PerformanceHeader: View {
     private func now(_ region: ChordRegion?, position: Double, isPlaying: Bool) -> some View {
         let beatInBar = Int(sequence.barAndBeat(at: position).beat)
         // The section (there's no count-in for now, so nothing else goes here)
-        let caption = sequence.partName(at: max(position, 0))
+        let caption = editor.pinnedRegion(in: sequence) != nil ? "Pinned" : sequence.partName(at: max(position, 0))
 
         return VStack(alignment: .leading, spacing: 5) {
             HStack(spacing: 6) {
@@ -494,9 +498,11 @@ struct FretboardReadout: View {
         let isPlaying = playback.playingSequence == editor.id
         TimelineView(.animation(minimumInterval: 1 / 30, paused: !isPlaying)) { _ in
             let position = sequencePosition(editor, playback, transport)
-            let region = sequence.chord(at: max(position, 0))
+            // A pinned chord holds, with nothing coming next
+            let pinned = editor.pinnedRegion(in: sequence)
+            let region = pinned ?? sequence.chord(at: max(position, 0))
             // (Round to the start of the loop at its end, while looping)
-            let upcoming = sequence.upcomingChord(at: position)
+            let upcoming = pinned == nil ? sequence.upcomingChord(at: position) : nil
             let next = upcoming?.chord
             let beatInBar = Int(sequence.barAndBeat(at: position).beat)
 
@@ -504,7 +510,7 @@ struct FretboardReadout: View {
                 if card == .now {
                     cardView(region, accent: .primary) {
                         title("NOW")
-                        if let caption = sequence.partName(at: max(position, 0)) {
+                        if let caption = pinned != nil ? "Pinned" : sequence.partName(at: max(position, 0)) {
                             Text(caption).font(.callout).opacity(0.6).lineLimit(1)
                         }
                         BeatDots(count: sequence.timeSignature.numerator, current: isPlaying ? beatInBar : nil)

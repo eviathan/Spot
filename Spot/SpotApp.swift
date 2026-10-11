@@ -336,8 +336,15 @@ struct SpotApp: App {
                 Toggle("Follow Playhead", isOn: Binding(get: { session.editor?.followsPlayhead ?? false },
                                                         set: { session.editor?.followsPlayhead = $0 }))
                     .disabled(!session.isOpen)
+                // Hold the fretboard on the selected chord (or let it follow the playhead again)
+                Button(session.editor?.pinnedChord != nil ? "Unpin Chord" : "Pin Chord on Fretboard") {
+                    guard let editor = session.editor, let sequence = session.sequence else { return }
+                    editor.togglePin(in: sequence)
+                }
+                .keyboardShortcut("p", modifiers: [.command, .option])
+                .disabled(ui.tab != .Sequence || !session.isOpen)
                 Divider()
-                
+
                 // How the Sequence tab shows each chord's scale on the neck
                 Picker("Sequence Neck", selection: Binding(get: { session.editor?.neckView ?? .followHand },
                                                            set: { session.editor?.neckView = $0 })) {
