@@ -202,8 +202,8 @@ struct PerformanceHeader: View {
                 Divider().padding(.vertical, 12)
                 intervals(region ?? sequence.chord(after: position))
                     .frame(maxWidth: .infinity, alignment: .leading)
-                MarkerLegend()
-                    .padding(.trailing, 14)
+                // MarkerLegend()
+                //     .padding(.trailing, 14)
                 Divider().padding(.vertical, 12)
                 upNext(next, after: region, beatsAway: upcoming?.beatsAway ?? 0, isPlaying: isPlaying)
                     .frame(width: 300, alignment: .leading)
@@ -439,15 +439,28 @@ struct IntervalChips: View {
                 }
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
-                // (The root's chip is in the text colour, so its own text is the page's)
-                .foregroundStyle(!solid ? SpotStyle.text
-                                 : degree.pitchClassOffset % 12 == 0 ? SpotStyle.page : theme.textColor(onInterval: degree.pitchClassOffset))
+                // Outlined: the text colour of wherever they are (light on the page, dark on the fretboard's cards)
+                .foregroundStyle(solid ? AnyShapeStyle(theme.textColor(onInterval: degree.pitchClassOffset)) : AnyShapeStyle(.primary))
                 .frame(width: 32 * size, height: 28 * size)
-                .background(RoundedRectangle(cornerRadius: 5).fill(colour(degree).opacity(solid ? 0.9 : 0.12)))
-                .overlay(RoundedRectangle(cornerRadius: 5).stroke(colour(degree), lineWidth: 1.2))
+                .background(RoundedRectangle(cornerRadius: 5).fill(fill(degree)))
+                // The root's chip is its colour (black), as on the fretboard, with an edge in the text colour so it
+                // shows on a dark page
+                .overlay(RoundedRectangle(cornerRadius: 5)
+                    .stroke(isRoot(degree) ? AnyShapeStyle(.primary.opacity(0.6)) : AnyShapeStyle(colour(degree)), lineWidth: 1.2))
                 .opacity(dimmed(degree) ? 0.45 : 1)
             }
         }
+    }
+
+    private func isRoot(_ degree: Degree) -> Bool {
+        ((degree.pitchClassOffset % 12) + 12) % 12 == 0
+    }
+
+    private func fill(_ degree: Degree) -> Color {
+        if isRoot(degree) {
+            return solid ? theme.intervalColor(0) : theme.intervalColor(0).opacity(0.35)
+        }
+        return colour(degree).opacity(solid ? 0.9 : 0.12)
     }
 }
 
