@@ -22,6 +22,7 @@ struct SpotApp: App {
     @State private var playback: PlaybackController
     @State private var tabSession: TabSession
     @State private var session: SequenceSession
+    @State private var themes = ThemeStore.shared
 
     init() {
         NSWindow.allowsAutomaticWindowTabbing = false
@@ -67,6 +68,9 @@ struct SpotApp: App {
                 .environment(playback)
                 .environment(tabSession)
                 .environment(session)
+                .environment(themes)
+                // The theme in use: switching it redraws everything
+                .environment(\.theme, themes.current)
                 .toolbar {
                     Color.clear
                 }

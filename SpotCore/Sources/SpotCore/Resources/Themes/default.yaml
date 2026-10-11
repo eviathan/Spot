@@ -1,0 +1,88 @@
+# Spot theme
+#
+# Colours are #RRGGBB, #RRGGBBAA, rgb(r, g, b) or rgba(r, g, b, a) (channels 0–255, alpha 0–1).
+# A theme only needs the colours it changes: anything left out comes from this, the default theme.
+
+name: Default
+
+# The window: pages, panels, text and the transport
+interface:
+  page: "#262C3D"   # behind the pages (and the tab)
+  panel: "#2A2D3D"   # side menus (the Library's)
+  panelHover: "#252833"   # a side menu item under the pointer
+  card: "#222530"   # cards on a page (Settings)
+  header: "#CBCACC"   # the bar at the top, with the ♮
+  headerText: "#FFFFFF"   # the ♮
+  footer: "#000000"   # the bar at the bottom
+  text: "#FFFFFF"   # text on the page
+  secondaryText: "#8B96B2"   # headings and notes
+  dimmed: "#3C4661"   # icons that are off
+  accent: "#8CD973"   # play, switches, actions
+  warning: "#FF9F0A"   # things to look at
+  error: "#FF8080"   # problems and deleting
+  control: rgba(255, 255, 255, 0.08)   # a control's fill on a card
+  divider: rgba(255, 255, 255, 0.07)   # lines between rows
+  border: rgba(255, 255, 255, 0.06)   # the edges of cards
+
+# The Library's list
+list:
+  background: "#E3E3E3"   # behind the list
+  row: "#FFFFFF"
+  alternateRow: rgba(203, 202, 204, 0.30)   # every other row
+  hover: "#4C4C4C"   # the row under the pointer
+  selected: "#282C3D"   # the chosen row
+  text: "#000000"
+  selectedText: "#FFFFFF"   # on the hovered and chosen rows
+
+# The neck
+fretboard:
+  background: "#ECECEE"   # behind the neck
+  ink: "#2E394F"   # fret numbers, and text on light notes
+  strings: "#ADB3C7"
+  frets: "#545761"
+  inlays: rgba(62, 64, 71, 0.20)   # the dots at frets 3, 5, 7…
+  nut: "#CBCACC"
+  note: "#F7F7F7"   # notes outside what's shown (⌘U)
+  openNote: "#4C4C4C"   # open strings outside what's shown
+
+# Each interval's colour, by what it does: the chord's own notes (3rds red, 5ths blue, 7ths yellow) stronger, colour tones (2nds orange, 4ths green, 6ths purple) softer; minor deep, major light
+intervals:
+  root: "#000000"   # black, and white on dark backgrounds
+  m2: "#CC8D6A"
+  M2: "#FFCFA8"
+  m3: "#D14F53"
+  M3: "#FF8D8A"
+  P4: "#8AD195"
+  TT: "#5D70B2"   # the ♭5
+  P5: "#7FBCF5"
+  m6: "#9B76B8"
+  M6: "#DFC1F7"
+  m7: "#DBB153"
+  M7: "#FFEE7A"
+
+# How a note sits over a chord (where it's not shown by interval)
+roles:
+  chordTone: "#5CCC6E"
+  tension: "#6AB4EB"
+  avoid: "#EB525B"
+
+# The sequence: chords, patterns, the recording and markers
+sequencer:
+  chord: "#0A84FF"   # chord clips
+  invalidChord: "#FF453A"   # a chord that can't be read
+  pattern: "#9E73F2"
+  nextChord: "#9E5CF2"   # the next chord's name
+  waveform: "#64D2FF"
+  playhead: "#FF9F0A"
+  loop: "#FFD60A"
+  warpMarker: "#FFD60A"
+  activeWarpMarker: "#FF9F0A"   # one being dragged or hovered
+  songMarker: "#5CD19E"   # 1.1.1 and the end
+  take: "#FF453A"   # recorded takes
+
+# The tab editor
+tab:
+  selection: "#F2C759"   # selected beats and the loop
+  playhead: "#8CD973"
+  chordName: "#CCB2FF"   # the sequence's chords over the tab
+  error: "#FF6666"   # a bar that's too long

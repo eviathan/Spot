@@ -130,7 +130,7 @@ struct DefinitionEditorView: View {
 
             ForEach(issues, id: \.self) { issue in
                 Label(issue, systemImage: "exclamationmark.triangle")
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(SpotStyle.warning)
                     .font(.callout)
             }
 

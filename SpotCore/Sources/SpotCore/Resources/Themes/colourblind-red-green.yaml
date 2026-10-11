@@ -1,0 +1,48 @@
+# Colour-blind safe (red–green): for deuteranopia and protanopia. Built on the Okabe–Ito palette, which keeps
+# its colours apart for most kinds of colour blindness; each pair's minor is darker than its major, so lightness
+# tells them apart too. No red against green anywhere: actions are blue, warnings orange, problems vermillion.
+
+name: Colour-blind (Red–Green)
+
+interface:
+  accent: "#56B4E9"
+  warning: "#E69F00"
+  error: "#D55E00"
+
+intervals:
+  root: "#000000"
+  m3: "#D55E00"   # vermillion
+  M3: "#F0A06B"
+  TT: "#0072B2"   # blue
+  P5: "#56B4E9"   # sky blue
+  m7: "#B8860B"   # dark yellow
+  M7: "#F0E442"   # yellow
+  m2: "#B0577F"   # reddish purple
+  M2: "#E3A9C8"
+  P4: "#009E73"   # bluish green
+  m6: "#6E6E6E"   # greys
+  M6: "#BDBDBD"
+
+roles:
+  chordTone: "#0072B2"
+  tension: "#E69F00"
+  avoid: "#D55E00"
+
+sequencer:
+  chord: "#0072B2"
+  invalidChord: "#D55E00"
+  pattern: "#CC79A7"
+  nextChord: "#CC79A7"
+  waveform: "#56B4E9"
+  playhead: "#E69F00"
+  loop: "#F0E442"
+  warpMarker: "#F0E442"
+  activeWarpMarker: "#E69F00"
+  songMarker: "#009E73"
+  take: "#D55E00"
+
+tab:
+  selection: "#F0E442"
+  playhead: "#56B4E9"
+  chordName: "#CC79A7"
+  error: "#D55E00"

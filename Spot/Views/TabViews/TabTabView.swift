@@ -100,11 +100,11 @@ private struct TabEditorView: View {
                             .lineLimit(1)
                         if session.needsSaveBeforeClosing {
                             Text("Not saved")
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(SpotStyle.warning)
                                 .font(.callout)
                         } else if let error = session.saveError {
                             Image(systemName: "exclamationmark.triangle")
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(SpotStyle.warning)
                                 .help(error)
                         }
                     }
@@ -113,7 +113,7 @@ private struct TabEditorView: View {
                     if session.linkedSequence != nil {
                         Label("Sequence tab", systemImage: "music.note.list")
                             .font(.callout)
-                            .foregroundStyle(.cyan)
+                            .foregroundStyle(ThemeStore.shared.current.waveform)
                             .help("The open sequence's tab, saved with it. They play together: Space, ⌥Space (from the cursor), the loop (⌘L loops the selected beats), the start marker, end and playhead are shared, and so are tempo and time signature in the footer. Open… brings a .spottab or Guitar Pro file into it (⌘Z to undo).")
                     }
 
@@ -362,7 +362,7 @@ private struct TabToolbar: View {
             if fill != 0 {
                 Label(fill < 0 ? "Bar \(editor.cursor.bar + 1) is short by \(describe(-fill))" : "Bar \(editor.cursor.bar + 1) is over by \(describe(fill))",
                       systemImage: "exclamationmark.triangle")
-                    .foregroundStyle(fill < 0 ? .orange : .red)
+                    .foregroundStyle(fill < 0 ? SpotStyle.warning : SpotStyle.error)
             }
             if let track, track.tuning.strings.indices.contains(editor.cursor.string) {
                 let open = SpelledNote.conventional(PitchClass(track.tuning.strings[editor.cursor.string] + track.capo))

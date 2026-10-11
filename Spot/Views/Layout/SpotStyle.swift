@@ -7,19 +7,26 @@ import SwiftUI
 
 /// The colours and pieces the panels share (Settings, the Library's detail): dark cards on the navy page, white
 /// text, blue-grey for headings and notes, the transport's green for actions.
+/// From the theme in use (read in a view's body, so views redraw when it changes).
 enum SpotStyle {
+    private static var theme: Theme { ThemeStore.shared.current }
+
     /// The page (as behind the tab and the Library).
-    static let page = Color(hue: 0.62, saturation: 0.38, brightness: 0.24)
+    static var page: Color { theme.page }
     /// A panel or card on it (as the Library's menu).
-    static let card = Color(hue: 0.63, saturation: 0.30, brightness: 0.19)
+    static var card: Color { theme.card }
     /// A control's fill on a card.
-    static let control = Color.white.opacity(0.08)
+    static var control: Color { theme.control }
     /// Headings and notes (as the dimmed footer icons, a little lighter to read as text).
-    static let secondary = Color(hue: 0.62, saturation: 0.22, brightness: 0.70)
-    static let divider = Color.white.opacity(0.07)
-    static let border = Color.white.opacity(0.06)
+    static var secondary: Color { theme.secondaryText }
+    static var divider: Color { theme.divider }
+    static var border: Color { theme.border }
     /// As the play button while playing.
-    static let accent = Color(red: 0.55, green: 0.85, blue: 0.45)
+    static var accent: Color { theme.accent }
+    static var text: Color { theme.text }
+    static var dimmed: Color { theme.dimmed }
+    static var warning: Color { theme.warning }
+    static var error: Color { theme.error }
 }
 
 /// A small capitalised heading over a card or a group.
@@ -45,7 +52,7 @@ struct SpotPillButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 12, weight: .medium))
-            .foregroundStyle(isDestructive ? Color(red: 1, green: 0.5, blue: 0.5) : .white)
+            .foregroundStyle(isDestructive ? SpotStyle.error : SpotStyle.text)
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
             .background(Capsule().fill(Color.white.opacity(configuration.isPressed ? 0.16 : 0.08)))

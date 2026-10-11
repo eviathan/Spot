@@ -151,7 +151,7 @@ private struct LaneEditorBar: View {
 
             if let error = editor.chordError {
                 Label(error, systemImage: "exclamationmark.triangle")
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(SpotStyle.warning)
                     .lineLimit(1)
             }
 
@@ -161,7 +161,7 @@ private struct LaneEditorBar: View {
             HStack(spacing: 6) {
                 if session.isRecording {
                     Label("Recording", systemImage: "record.circle")
-                        .foregroundStyle(.red)
+                        .foregroundStyle(SpotStyle.error)
                         .fontWeight(.semibold)
                 }
                 Image(systemName: "music.note.list")
@@ -171,10 +171,10 @@ private struct LaneEditorBar: View {
                     .truncationMode(.middle)
                 if session.hasUnsavedChanges && session.fileURL == nil {
                     Text("Not saved")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(SpotStyle.warning)
                 } else if let error = session.saveError {
                     Image(systemName: "exclamationmark.triangle")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(SpotStyle.warning)
                         .help(error)
                 }
             }
@@ -421,7 +421,7 @@ struct AudioTrackHeader: View {
     private func title(_ audio: AudioTrack) -> some View {
         HStack(spacing: 6) {
             Image(systemName: audio.reference.hasVideo ? "film" : "waveform")
-                .foregroundStyle(.cyan)
+                .foregroundStyle(ThemeStore.shared.current.waveform)
             Text(audio.reference.fileName)
                 .font(.callout.weight(.semibold))
                 .lineLimit(1)
@@ -453,7 +453,7 @@ struct AudioTrackHeader: View {
                 session.sequence?.audio?.isMuted.toggle()
             } label: {
                 Image(systemName: audio.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill")
-                    .foregroundStyle(audio.isMuted ? .orange : .primary)
+                    .foregroundStyle(audio.isMuted ? SpotStyle.warning : .primary)
                     .frame(width: 18)
             }
             .buttonStyle(.plain)
@@ -479,18 +479,18 @@ struct AudioTrackHeader: View {
                 ui.isRelinkingAudio = true
             } label: {
                 Image(systemName: "exclamationmark.triangle.fill")
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(SpotStyle.warning)
             }
             .buttonStyle(.plain)
             .help("The file can't be found. Click to locate it.")
         case .failed(let message):
             Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundStyle(.orange)
+                .foregroundStyle(SpotStyle.warning)
                 .help(message)
         case .ready, .none:
             if let warning = session.audioWarning {
                 Image(systemName: "exclamationmark.triangle.fill")
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(SpotStyle.warning)
                     .help(warning)
             }
         }

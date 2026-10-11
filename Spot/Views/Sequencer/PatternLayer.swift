@@ -58,7 +58,7 @@ struct PatternLayer: View {
         let uses = sequence.uses(of: pattern.id)
         let rounds = Int(ceil((range.length + phase) / pattern.length - 1e-9))
         let isSelected = editor.selection == instance.range
-        let purple = Color(red: 0.62, green: 0.45, blue: 0.95)
+        let purple = ThemeStore.shared.current.pattern
 
         if !showsBars {
             tint(range: range, phase: phase, span: span, pattern: pattern, purple: purple)

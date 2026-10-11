@@ -1,0 +1,47 @@
+# Colour-blind safe (blue–yellow): for tritanopia, where blue and green, and yellow and pink, run together. The
+# colours keep to reds against teals, with strong differences in lightness; each pair's minor is darker.
+
+name: Colour-blind (Blue–Yellow)
+
+interface:
+  accent: "#4DB6AC"
+  warning: "#F28C8C"
+  error: "#C2185B"
+
+intervals:
+  root: "#000000"
+  m3: "#B71C3C"   # crimson
+  M3: "#F28C9B"   # rose
+  TT: "#00695C"   # deep teal
+  P5: "#4DB6AC"   # teal
+  m7: "#4A4A4A"   # charcoal
+  M7: "#A8A8A8"   # grey
+  m2: "#8D5A4A"   # brown
+  M2: "#D9B0A2"   # tan
+  P4: "#9E9E6B"   # olive
+  m6: "#6A1B4D"   # plum
+  M6: "#C98FB5"   # orchid
+
+roles:
+  chordTone: "#4DB6AC"
+  tension: "#F28C9B"
+  avoid: "#B71C3C"
+
+sequencer:
+  chord: "#00897B"
+  invalidChord: "#C2185B"
+  pattern: "#C98FB5"
+  nextChord: "#F28C9B"
+  waveform: "#80CBC4"
+  playhead: "#F28C9B"
+  loop: "#FFFFFF"
+  warpMarker: "#E0E0E0"
+  activeWarpMarker: "#F28C9B"
+  songMarker: "#4DB6AC"
+  take: "#C2185B"
+
+tab:
+  selection: "#E0E0E0"
+  playhead: "#4DB6AC"
+  chordName: "#F28C9B"
+  error: "#C2185B"

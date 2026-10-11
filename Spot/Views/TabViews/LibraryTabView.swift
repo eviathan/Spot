@@ -18,7 +18,7 @@ struct LibraryTabView: View {
     private let maxWidth: CGFloat = 400
     
     let geometryProxy: GeometryProxy
-    let panelBackgroundColor = Color(hue: 1.00, saturation: 0.00, brightness: 0.89, opacity: 1.00)
+    var panelBackgroundColor: Color { ThemeStore.shared.current.listBackground }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -36,7 +36,7 @@ struct LibraryTabView: View {
                             Rectangle()
                                 .fill(Color.clear)
                                 .frame(width: 5)
-                                .background(Color(hue: 0.64, saturation: 0.30, brightness: 0.24, opacity: 1.00))
+                                .background(ThemeStore.shared.current.panel)
                                 .gesture(
                                     DragGesture()
                                         .onChanged { value in

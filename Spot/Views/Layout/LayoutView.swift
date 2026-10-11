@@ -15,6 +15,7 @@ struct LayoutView: View {
     @Environment(SequenceSession.self) private var session
     @Environment(TabSession.self) private var tabSession
     @Environment(PlaybackController.self) private var playback
+    @Environment(\.theme) private var theme
 
     let headerHeight: CGFloat = 52
     let footerHeight: CGFloat = 50
@@ -43,6 +44,7 @@ struct LayoutView: View {
                 InstrumentView()
                     .environment(\.fretboardMaxHeight, 620)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(theme.fretboardBackground, ignoresSafeAreaEdges: [])
 
                 if sequenceOpen, let sequence = session.sequence, let editor = session.editor {
                     FretboardReadout(sequence: sequence, editor: editor, card: .next)
@@ -52,6 +54,7 @@ struct LayoutView: View {
                 if !ui.hidesFretboard {
                     InstrumentView()
                         .frame(maxWidth: .infinity)
+                        .background(theme.fretboardBackground, ignoresSafeAreaEdges: [])
                 }
 
                 // Clipped: backgrounds reach up into the title bar area by default, which (with the fretboard hidden)

@@ -17,7 +17,7 @@ struct LibraryMenu: View {
     @FocusState private var isFocused: Bool
     @State private var isSearching = false
     
-    let unselectedColor: Color = Color(hue: 0.62, saturation: 0.38, brightness: 0.38, opacity: 1.00)
+    var unselectedColor: Color { SpotStyle.dimmed }
     
     var body: some View {
         HStack {
@@ -94,6 +94,6 @@ struct LibraryMenu: View {
             .buttonStyle(PlainButtonStyle())
             .frame(width: buttonSize, height: buttonSize)
         }
-        .background(Color(hue: 0.63, saturation: 0.30, brightness: 0.20, opacity: 1.00))
+        .background(ThemeStore.shared.current.card)
     }
 }

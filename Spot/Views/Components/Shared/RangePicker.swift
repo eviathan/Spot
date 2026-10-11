@@ -20,7 +20,7 @@ struct RangePicker<Data, Content>: View where
     var onIncrement: () -> Void
     let content: (Data.Element) -> Content
 
-    let unselectedColor: Color = Color(hue: 0.62, saturation: 0.38, brightness: 0.38, opacity: 1.00)
+    var unselectedColor: Color { SpotStyle.dimmed }
     
     init(data: Data, onDecrement: @escaping () -> Void, onIncrement: @escaping () -> Void, @ViewBuilder content: @escaping (Data.Element) -> Content) {
         self.data = data

@@ -52,7 +52,7 @@ struct ChordLaneView: View {
 
     private enum SongMarker { case start, end }
     static let contentSpace = "lane-content"
-    private let markerColour = Color(red: 0.36, green: 0.82, blue: 0.62)
+    private var markerColour: Color { ThemeStore.shared.current.songMarker }
 
     /// 1.1.1 and the end, following a drag in progress.
     private var origin: Double {
@@ -308,7 +308,7 @@ struct ChordLaneView: View {
                                        beatWidth: beatWidth, visible: visible) {
                 // Box and contents as separate shapes (a box as a background stopped drawing when zoomed in)
                 RoundedRectangle(cornerRadius: 3)
-                    .fill(Color.red.opacity(take.isMuted ? 0.15 : 0.4))
+                    .fill(ThemeStore.shared.current.take.opacity(take.isMuted ? 0.15 : 0.4))
                     .frame(width: span.width, height: takesHeight)
                     .offset(x: span.x, y: takesTop)
                 HStack(spacing: 4) {
@@ -366,7 +366,7 @@ struct ChordLaneView: View {
            let span = LaneSpan(range.start, range.end, beatWidth: beatWidth,
                                visible: loopDrag != nil ? -CGFloat.infinity...CGFloat.infinity : visible, margin: 0) {
             let handle = min(8, span.width / 3)
-            let colour = sequence.isLooping ? Color.yellow : Color.gray
+            let colour = sequence.isLooping ? ThemeStore.shared.current.loop : Color.gray
             // Lines down the lane at each end, so the looped stretch reads over the chords and the waveform
             // (plain rectangles ignoring clicks draw fine at any zoom, like the bar lines)
             if !span.startCut {
@@ -394,7 +394,7 @@ struct ChordLaneView: View {
             // Separate plain shapes: the bar, then the body and ends to grab, on top
             // (No allowsHitTesting: with it this stopped drawing when zoomed in. The body above takes the clicks.)
             RoundedRectangle(cornerRadius: 2)
-                .fill(sequence.isLooping ? Color.yellow.opacity(0.85) : Color.gray.opacity(0.55))
+                .fill(sequence.isLooping ? ThemeStore.shared.current.loop.opacity(0.85) : Color.gray.opacity(0.55))
                 .frame(width: span.width, height: 6)
                 .offset(x: span.x)
             Color.clear
@@ -626,7 +626,7 @@ private struct PlayingPlayhead: View {
     var body: some View {
         TimelineView(.animation) { context in
             Rectangle()
-                .fill(Color.orange)
+                .fill(ThemeStore.shared.current.playhead)
                 .frame(width: 2, height: height)
                 .offset(x: CGFloat(transport.position()) * beatWidth)
                 .allowsHitTesting(false)
@@ -649,7 +649,7 @@ private struct StoppedPlayhead: View {
 
     var body: some View {
         Rectangle()
-            .fill(Color.orange.opacity(0.8))
+            .fill(ThemeStore.shared.current.playhead.opacity(0.8))
             .frame(width: 2, height: height)
             .offset(x: CGFloat(editor.selection.start) * beatWidth)
             .allowsHitTesting(false)
@@ -734,7 +734,7 @@ private struct ChordClipsLayer: View {
                 // A pattern's repeats are fainter, as in Live (they're the same chords, edited together)
                 let isRepeat = (sequence.chordSources[region.id]?.round ?? 0) > 0
                 RoundedRectangle(cornerRadius: 4)
-                    .fill(parsed == nil ? Color.red.opacity(0.4) : Color.blue.opacity(isDragged ? 0.55 : isRepeat ? 0.2 : 0.35))
+                    .fill(parsed == nil ? ThemeStore.shared.current.invalidChord.opacity(0.4) : ThemeStore.shared.current.chordClip.opacity(isDragged ? 0.55 : isRepeat ? 0.2 : 0.35))
                     .frame(width: clipWidth, height: 46)
                     .offset(x: span.x + 1, y: 30)
                 if isDragged {
@@ -1117,7 +1117,7 @@ private struct WaveformRow: View {
                             .fill(Color.black.opacity(0.45))
                         Text(String(format: "%.1f", (b.beat - a.beat) / (b.sourceTime - a.sourceTime) * 60))
                             .font(.system(size: 10, design: .monospaced))
-                            .foregroundColor(.yellow)
+                            .foregroundColor(ThemeStore.shared.current.warpMarker)
                     }
                     .frame(width: 40, height: 14)
                     .offset(x: max(start, left) + 8, y: 13)
@@ -1176,7 +1176,7 @@ private struct WaveformRow: View {
                         path.move(to: CGPoint(x: column, y: y(high)))
                         path.addLine(to: CGPoint(x: column, y: y(low) + 0.5))
                     }
-                    context.stroke(path, with: .color(.cyan.opacity(audio.isMuted ? 0.25 : 0.75)), lineWidth: 1)
+                    context.stroke(path, with: .color(ThemeStore.shared.current.waveform.opacity(audio.isMuted ? 0.25 : 0.75)), lineWidth: 1)
                 }
                 .frame(width: width, height: height)
                 // Clickable where it's drawn: the shape and gesture go on before it's moved into place
@@ -1201,7 +1201,7 @@ private struct WaveformRow: View {
                     let isActive = dragging?.id == marker.id || hovered == marker.id
                     // The line is only drawn: clicks on it go to the waveform (playhead, ranges, new markers)
                     Rectangle()
-                        .fill(isActive ? Color.orange : Color.yellow)
+                        .fill(isActive ? ThemeStore.shared.current.activeWarpMarker : ThemeStore.shared.current.warpMarker)
                         .frame(width: isActive ? 2 : 1.5, height: height - 11)
                         .offset(x: x - (isActive ? 1 : 0.75), y: 11)
                         .allowsHitTesting(false)
@@ -1423,7 +1423,7 @@ private struct WarpFlag: View {
     var body: some View {
         Image(systemName: "arrowtriangle.down.fill")
             .font(.system(size: 11))
-            .foregroundColor(isActive ? .orange : .yellow)
+            .foregroundColor(isActive ? ThemeStore.shared.current.activeWarpMarker : ThemeStore.shared.current.warpMarker)
             .frame(width: 12, height: 13)
             .contentShape(Rectangle())
     }

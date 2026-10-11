@@ -41,7 +41,7 @@ struct ImportReviewView: View {
                     Text("Problems in this file").font(.headline)
                     ForEach(plan.issues, id: \.self) { issue in
                         Label(issue, systemImage: "exclamationmark.triangle")
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(SpotStyle.warning)
                             .font(.callout)
                     }
                 }

@@ -6,79 +6,237 @@
 //
 import SwiftUI
 import Foundation
+import Observation
 import SpotCore
 
-class Theme {
-    /// An interval's colour on a dark background: the root (black on the fretboard) shown white.
-    func chipColour(_ degree: SpotCore.Degree) -> Color {
-        let semitones = ((degree.pitchClassOffset % 12) + 12) % 12
-        return semitones == 0 ? .white : intervalColors[semitones]
+/// Every colour in the app, from a theme file (see SpotCore's `ThemeFile`, and default.yaml for what each key
+/// is). A theme can leave colours out: they come from the default theme.
+final class Theme {
+    let name: String
+    private let colors: [String: RGBA]
+
+    init(_ definition: ThemeDefinition = BuiltInThemes.defaultTheme, fallback: ThemeDefinition = BuiltInThemes.defaultTheme) {
+        name = definition.name
+        colors = fallback.colors.merging(definition.colors) { _, mine in mine }
+    }
+
+    /// A colour by its key ("fretboard.strings"); magenta if a key is missing altogether, so it shows up.
+    func color(_ key: String) -> Color {
+        colors[key].map(Color.init) ?? Color(red: 1, green: 0, blue: 1)
+    }
+
+    private func rgba(_ key: String) -> RGBA? {
+        colors[key]
+    }
+
+    // MARK: Interface
+
+    var page: Color { color("interface.page") }
+    var panel: Color { color("interface.panel") }
+    var panelHover: Color { color("interface.panelHover") }
+    var card: Color { color("interface.card") }
+    var header: Color { color("interface.header") }
+    var headerText: Color { color("interface.headerText") }
+    var footer: Color { color("interface.footer") }
+    var text: Color { color("interface.text") }
+    var secondaryText: Color { color("interface.secondaryText") }
+    var dimmed: Color { color("interface.dimmed") }
+    var accent: Color { color("interface.accent") }
+    var warning: Color { color("interface.warning") }
+    var error: Color { color("interface.error") }
+    var control: Color { color("interface.control") }
+    var divider: Color { color("interface.divider") }
+    var border: Color { color("interface.border") }
+
+    // MARK: The Library's list
+
+    var listBackground: Color { color("list.background") }
+    var listRow: Color { color("list.row") }
+    var listAlternateRow: Color { color("list.alternateRow") }
+    var listHover: Color { color("list.hover") }
+    var listSelected: Color { color("list.selected") }
+    var listText: Color { color("list.text") }
+    var listSelectedText: Color { color("list.selectedText") }
+
+    // MARK: The fretboard
+
+    var fretboardBackground: Color { color("fretboard.background") }
+    /// Fret numbers, and text on light notes.
+    var fretboardColor: Color { color("fretboard.ink") }
+    var stringColor: Color { color("fretboard.strings") }
+    var fretColor: Color { color("fretboard.frets") }
+    var fretMarkerColor: Color { color("fretboard.inlays") }
+    var nutColor: Color { color("fretboard.nut") }
+    var defaultMarkerColor: Color { color("fretboard.note") }
+    var openMarkerColor: Color { color("fretboard.openNote") }
+
+    // MARK: Intervals and roles
+
+    static let intervalKeys = ["root", "m2", "M2", "m3", "M3", "P4", "TT", "P5", "m6", "M6", "m7", "M7"]
+
+    /// By semitones above the root.
+    var intervalColors: [Color] {
+        Theme.intervalKeys.map { color("intervals." + $0) }
     }
 
     /// An interval's colour by semitones above the root (any number: it's taken round the octave).
     func intervalColor(_ semitones: Int) -> Color {
-        intervalColors[((semitones % 12) + 12) % 12]
+        color("intervals." + Theme.intervalKeys[Theme.octave(semitones)])
     }
 
-    /// Readable text on a solid interval colour: white on the root's black and the deep colours.
+    /// An interval's colour on a dark background: the root (black on the fretboard) in the text colour.
+    func chipColour(_ degree: SpotCore.Degree) -> Color {
+        let semitones = Theme.octave(degree.pitchClassOffset)
+        return semitones == 0 ? text : intervalColor(semitones)
+    }
+
+    /// Readable text on a solid interval colour: white on dark ones, black on light ones.
     func textColor(onInterval semitones: Int) -> Color {
-        ((semitones % 12) + 12) % 12 == 0 || Theme.isDarkInterval(semitones) ? .white : .black
+        isDark(intervalKey: Theme.intervalKeys[Theme.octave(semitones)]) ? .white : .black
     }
 
-    /// The interval colours dark enough to want white text on them (the deep blue of the ♭5).
-    static func isDarkInterval(_ semitones: Int) -> Bool {
-        ((semitones % 12) + 12) % 12 == 6
+    /// Whether an interval's colour is dark enough to want white text on it.
+    func isDarkInterval(_ semitones: Int) -> Bool {
+        isDark(intervalKey: Theme.intervalKeys[Theme.octave(semitones)])
     }
 
-    let fretboardColor = Color(hue: 0.61, saturation: 0.42, brightness: 0.31, opacity: 1.00)
-    let stringColor = Color(hue: 0.63, saturation: 0.13, brightness: 0.78, opacity: 1.00)
-    let fretColor = Color(hue: 0.63, saturation: 0.13, brightness: 0.38, opacity: 1.00)
-    let fretMarkerColor = Color(hue: 0.63, saturation: 0.13, brightness: 0.28, opacity: 0.20)
-    let nutColor = Color(hue: 0.75, saturation: 0.01, brightness: 0.80, opacity: 1.00)
-    
+    private func isDark(intervalKey: String) -> Bool {
+        guard let rgba = rgba("intervals." + intervalKey) else { return false }
+        // Relative luminance (WCAG): white text wins below about 0.18
+        let channel = { (value: Double) in value <= 0.03928 ? value / 12.92 : pow((value + 0.055) / 1.055, 2.4) }
+        let luminance = 0.2126 * channel(rgba.red) + 0.7152 * channel(rgba.green) + 0.0722 * channel(rgba.blue)
+        return luminance < 0.18
+    }
+
+    private static func octave(_ semitones: Int) -> Int {
+        ((semitones % 12) + 12) % 12
+    }
+
     /// Chord Practice colours by what a note does over the chord.
-    let chordToneColor = Color(hue: 0.36, saturation: 0.55, brightness: 0.80, opacity: 1.00)
-    let tensionColor = Color(hue: 0.57, saturation: 0.55, brightness: 0.92, opacity: 1.00)
-    let avoidColor = Color(hue: 0.99, saturation: 0.65, brightness: 0.92, opacity: 1.00)
-    
-    let defaultMarkerColor: Color = Color(hue: 0.00, saturation: 0.00, brightness: 0.97, opacity: 1.00)
-    let openMarkerColor: Color = Color(hue: 0.00, saturation: 0.00, brightness: 0.3, opacity: 1.00)
-    
-    /// One colour per interval (by semitones above the root), by what it does in a chord. The notes that make the
-    /// chord get the primary colours, the colour tones and extensions the secondaries (softer, so they sit back);
-    /// within each, the minor (or flattened) one deep and the major one bright. The root is black.
-    /// - 3rds red, 5ths blue (the tritone as the ♭5, deep blue), 7ths yellow
-    /// - 2nds/9ths orange, the 4th/11th green, 6ths/13ths purple
-    /// All soft (pastel), in keeping with the rest of the app.
-    let intervalColors: [Color] = [
-        Color(hue: 0.000, saturation: 0.00, brightness: 0.00),   // R
-        Color(hue: 0.060, saturation: 0.48, brightness: 0.80),   // m2 deep orange
-        Color(hue: 0.075, saturation: 0.34, brightness: 1.00),   // M2 light orange
-        Color(hue: 0.995, saturation: 0.62, brightness: 0.82),   // m3 deep red
-        Color(hue: 0.005, saturation: 0.46, brightness: 1.00),   // M3 light red
-        Color(hue: 0.360, saturation: 0.34, brightness: 0.82),   // P4 green
-        Color(hue: 0.630, saturation: 0.48, brightness: 0.70),   // TT (♭5) deep blue
-        Color(hue: 0.580, saturation: 0.48, brightness: 0.96),   // P5 blue
-        Color(hue: 0.760, saturation: 0.36, brightness: 0.72),   // m6 deep purple
-        Color(hue: 0.760, saturation: 0.22, brightness: 0.97),   // M6 light purple
-        Color(hue: 0.115, saturation: 0.62, brightness: 0.86),   // m7 ochre
-        Color(hue: 0.145, saturation: 0.52, brightness: 1.00),   // M7 yellow
-    ]
-    
-//    let markerColours: [Color] = [
-//        Color(hue: 0.98, saturation: 0.62, brightness: 0.89, opacity: 1.00), // Red
-//        Color(hue: 0.74, saturation: 0.64, brightness: 0.00, opacity: 1.00),
-//        Color(hue: 0.74, saturation: 0.64, brightness: 0.00, opacity: 1.00),
-//        Color(hue: 0.74, saturation: 0.64, brightness: 0.00, opacity: 1.00),
-//        Color(hue: 0.74, saturation: 0.64, brightness: 0.00, opacity: 1.00),
-//        Color(hue: 0.74, saturation: 0.64, brightness: 0.00, opacity: 1.00),
-//        Color(hue: 0.74, saturation: 0.64, brightness: 0.00, opacity: 1.00),
-//        Color(hue: 0.74, saturation: 0.64, brightness: 0.00, opacity: 1.00),
-//        Color(hue: 0.74, saturation: 0.64, brightness: 0.00, opacity: 1.00),
-//        Color(hue: 0.74, saturation: 0.64, brightness: 0.00, opacity: 1.00),
-//        Color(hue: 0.74, saturation: 0.64, brightness: 0.00, opacity: 1.00),
-//        Color(hue: 0.74, saturation: 0.64, brightness: 0.00, opacity: 1.00)
-//    ]
+    var chordToneColor: Color { color("roles.chordTone") }
+    var tensionColor: Color { color("roles.tension") }
+    var avoidColor: Color { color("roles.avoid") }
+
+    // MARK: The sequencer
+
+    var chordClip: Color { color("sequencer.chord") }
+    var invalidChord: Color { color("sequencer.invalidChord") }
+    var pattern: Color { color("sequencer.pattern") }
+    var nextChord: Color { color("sequencer.nextChord") }
+    var waveform: Color { color("sequencer.waveform") }
+    var playhead: Color { color("sequencer.playhead") }
+    var loop: Color { color("sequencer.loop") }
+    var warpMarker: Color { color("sequencer.warpMarker") }
+    var activeWarpMarker: Color { color("sequencer.activeWarpMarker") }
+    var songMarker: Color { color("sequencer.songMarker") }
+    var take: Color { color("sequencer.take") }
+
+    // MARK: The tab
+
+    var tabSelection: Color { color("tab.selection") }
+    var tabPlayhead: Color { color("tab.playhead") }
+    var tabChordName: Color { color("tab.chordName") }
+    var tabError: Color { color("tab.error") }
+}
+
+extension Color {
+    init(_ rgba: RGBA) {
+        self.init(.sRGB, red: rgba.red, green: rgba.green, blue: rgba.blue, opacity: rgba.alpha)
+    }
+}
+
+/// The themes on offer (Spot's own and any imported) and the one in use. Imported themes are YAML files kept in
+/// Spot's Application Support folder, under Themes.
+@Observable
+final class ThemeStore {
+    static let shared = ThemeStore()
+
+    struct Entry: Identifiable, Hashable {
+        /// "builtin:default", or "user:<file name>".
+        let id: String
+        let definition: ThemeDefinition
+        /// Where an imported one is kept (nil for Spot's own).
+        let url: URL?
+
+        var isBuiltIn: Bool { url == nil }
+    }
+
+    private(set) var themes: [Entry] = []
+    private(set) var current = Theme()
+    private(set) var selectedID: String {
+        didSet { UserDefaults.standard.set(selectedID, forKey: "theme") }
+    }
+
+    private init() {
+        selectedID = UserDefaults.standard.string(forKey: "theme") ?? "builtin:default"
+        reload()
+    }
+
+    static var folder: URL {
+        let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        return support.appendingPathComponent("Spot/Themes", isDirectory: true)
+    }
+
+    /// Reads the themes again (Spot's own, then the imported ones by name), and applies the chosen one.
+    func reload() {
+        var entries = BuiltInThemes.all().map { Entry(id: "builtin:" + $0.id, definition: $0.theme, url: nil) }
+        let files = (try? FileManager.default.contentsOfDirectory(at: ThemeStore.folder, includingPropertiesForKeys: nil)) ?? []
+        let imported = files.filter { ["yaml", "yml"].contains($0.pathExtension.lowercased()) }.compactMap { url -> Entry? in
+            guard let text = try? String(contentsOf: url, encoding: .utf8), let theme = try? ThemeFile.parse(text) else { return nil }
+            return Entry(id: "user:" + url.lastPathComponent, definition: theme, url: url)
+        }
+        entries += imported.sorted { $0.definition.name.localizedStandardCompare($1.definition.name) == .orderedAscending }
+        themes = entries
+        apply()
+    }
+
+    func select(_ id: String) {
+        selectedID = id
+        apply()
+    }
+
+    private func apply() {
+        let entry = themes.first { $0.id == selectedID } ?? themes.first
+        current = Theme(entry?.definition ?? BuiltInThemes.defaultTheme)
+    }
+
+    /// Checks a theme file reads, then keeps a copy (replacing an earlier one of the same file name) and uses it.
+    func importTheme(from url: URL) throws {
+        let accessing = url.startAccessingSecurityScopedResource()
+        defer { if accessing { url.stopAccessingSecurityScopedResource() } }
+        let text = try String(contentsOf: url, encoding: .utf8)
+        _ = try ThemeFile.parse(text)
+        try FileManager.default.createDirectory(at: ThemeStore.folder, withIntermediateDirectories: true)
+        let name = url.pathExtension.lowercased() == "yml" ? url.deletingPathExtension().lastPathComponent + ".yaml" : url.lastPathComponent
+        let destination = ThemeStore.folder.appendingPathComponent(name)
+        try text.write(to: destination, atomically: true, encoding: .utf8)
+        reload()
+        select("user:" + name)
+    }
+
+    func remove(_ entry: Entry) {
+        guard let url = entry.url else { return }
+        try? FileManager.default.removeItem(at: url)
+        if selectedID == entry.id { selectedID = "builtin:default" }
+        reload()
+    }
+
+    /// The theme in use as a YAML file: every colour, laid out and explained like the default, to start a new one from.
+    func exportText(named name: String? = nil) -> String {
+        let defaults = BuiltInThemes.defaultTheme
+        let entry = themes.first { $0.id == selectedID }
+        let colors = defaults.colors.merging(entry?.definition.colors ?? [:]) { _, mine in mine }
+        let layout: (order: [String], comments: [String: String]) = BuiltInThemes.text("default").map(ThemeFile.layout(of:)) ?? ([], [:])
+        let header = """
+        # Spot theme
+        #
+        # Colours are #RRGGBB, #RRGGBBAA, rgb(r, g, b) or rgba(r, g, b, a) (channels 0–255, alpha 0–1).
+        # A theme only needs the colours it changes: anything left out comes from the default theme.
+
+        """
+        return header + ThemeFile.write(ThemeDefinition(name: name ?? (entry?.definition.name ?? "Default") + " (Copy)", colors: colors),
+                                        keyOrder: layout.order, comments: layout.comments)
+    }
 }
 
 private struct ThemeKey: EnvironmentKey {

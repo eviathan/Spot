@@ -24,7 +24,7 @@ struct Footer: View {
     @State private var isTypingTempo = false
     @State private var typedTempo = ""
 
-    let dimmed = Color(hue: 0.62, saturation: 0.38, brightness: 0.38, opacity: 1.00)
+    var dimmed: Color { SpotStyle.dimmed }
 
     /// The sequence's settings: on the Sequence tab, or on the Tab tab with the tab it links (they share them).
     private var editsSequence: Bool {
@@ -194,7 +194,7 @@ struct Footer: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding()
-        .background(.black)
+        .background(ThemeStore.shared.current.footer)
         .foregroundColor(.white)
     }
 
@@ -368,7 +368,7 @@ struct Footer: View {
             }
             Text(typed == nil ? "Beats (1–32) / note value (1, 2, 4, 8, 16, 32 or 64)" : "\(typed!.numerator) beats of a \(Footer.noteName(typed!.denominator)) to the bar")
                 .font(.caption)
-                .foregroundStyle(typed == nil ? Color.orange : .secondary)
+                .foregroundStyle(typed == nil ? SpotStyle.warning : .secondary)
         }
         .padding(14)
         .frame(width: 280)
@@ -443,7 +443,7 @@ struct Footer: View {
             }
             Text(typed == nil ? "20 to 300, with decimals if you like (e.g. 92.5)" : "\(Footer.tempoText(typed!)) beats a minute")
                 .font(.caption)
-                .foregroundStyle(typed == nil ? Color.orange : .secondary)
+                .foregroundStyle(typed == nil ? SpotStyle.warning : .secondary)
         }
         .padding(14)
         .frame(width: 240)

@@ -1,0 +1,33 @@
+# Midnight: the whole window dark, the neck too, for a dim room or a stage.
+
+name: Midnight
+
+interface:
+  page: "#141824"
+  panel: "#181C28"
+  panelHover: "#202536"
+  card: "#10131D"
+  header: "#1A1E2A"
+  headerText: "#E6E8EE"
+  footer: "#0B0D14"
+  secondaryText: "#7E879E"
+  dimmed: "#363D52"
+
+list:
+  background: "#141824"
+  row: "#1B2030"
+  alternateRow: "#181C2A"
+  hover: "#2C3245"
+  selected: "#3A4260"
+  text: "#DDE1EA"
+  selectedText: "#FFFFFF"
+
+fretboard:
+  background: "#0F121B"
+  ink: "#C9CEDB"
+  strings: "#5A6278"
+  frets: "#3A4155"
+  inlays: rgba(255, 255, 255, 0.08)
+  nut: "#8A90A0"
+  note: "#2A2F3F"
+  openNote: "#1C2030"

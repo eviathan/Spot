@@ -50,7 +50,7 @@ struct TreeMenuView: View {
         ZStack {
             List(Array(data.enumerated()), id: \.offset) { index, item in
                 TreeMenuSection(item: item, index: index, isLastSection: { index in data.count -  1 == index})
-                    .listRowBackground(Color(hue: 0.64, saturation: 0.32, brightness: 0.24, opacity: 1.00))
+                    .listRowBackground(ThemeStore.shared.current.panel)
                     .listRowInsets(EdgeInsets(top: 0, leading: -8, bottom: 0, trailing: -8))
             }
             .scrollContentBackground(.hidden)
@@ -59,7 +59,7 @@ struct TreeMenuView: View {
             .listStyle(.plain)
             .listRowSeparator(.hidden)
         }
-        .background(Color(hue: 0.64, saturation: 0.32, brightness: 0.24, opacity: 1.00))
+        .background(ThemeStore.shared.current.panel)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
@@ -92,7 +92,7 @@ struct TreeMenuSection: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .background(Color(hue: 0.64, saturation: 0.32, brightness: 0.24, opacity: 1.00))
+        .background(ThemeStore.shared.current.panel)
         .clipped()
     }
 }
@@ -148,7 +148,7 @@ struct TreeMenuItem: View {
         .padding(.trailing, 3)
         .padding(.leading, leftPad)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(isHovered ? Color(hue: 0.63, saturation: 0.28, brightness: 0.20, opacity: 1.00) : Color(hue: 0.64, saturation: 0.32, brightness: 0.24, opacity: 1.00))
+        .background(isHovered ? ThemeStore.shared.current.panelHover : ThemeStore.shared.current.panel)
         .clipped()
         .onHover { hovered in
             isHovered = hovered

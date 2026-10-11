@@ -154,7 +154,7 @@ struct TabStaffView: View {
     let editor: TabEditorState
     @Environment(TabSession.self) private var session
 
-    static let paper = Color(hue: 0.62, saturation: 0.38, brightness: 0.24)
+    static var paper: Color { SpotStyle.page }
 
     var body: some View {
         GeometryReader { geometry in
@@ -224,7 +224,7 @@ struct TabLineView: View {
     /// For paper: black on white, without the cursor, selection, playhead or loop.
     var printing = false
 
-    private var inkColour: Color { printing ? .black : .white }
+    private var inkColour: Color { printing ? .black : SpotStyle.text }
     private var paperColour: Color { printing ? .white : TabStaffView.paper }
 
     private var track: TabTrack? {
@@ -458,7 +458,7 @@ struct TabLineView: View {
         // Bar number (red when the beats don't add up to the bar) and anything above the bar
         let fill = score.fill(track: editor.track, bar: bar.index)
         context.draw(Text("\(bar.index + 1)").font(.system(size: 9, weight: fill == 0 ? .regular : .bold))
-                        .foregroundColor(fill == 0 || printing ? ink.opacity(0.45) : Color(red: 1, green: 0.4, blue: 0.4)),
+                        .foregroundColor(fill == 0 || printing ? ink.opacity(0.45) : ThemeStore.shared.current.tabError),
                      at: CGPoint(x: bar.x + 3, y: top - 10), anchor: .leading)
         let aboveY: CGFloat = 8
         // The tempo goes after the marker, however long the marker's name is
@@ -467,7 +467,7 @@ struct TabLineView: View {
             let text = context.resolve(Text(marker).font(.system(size: 11, weight: .bold)).foregroundColor(.black))
             let size = text.measure(in: CGSize(width: 300, height: 30))
             context.fill(Path(roundedRect: CGRect(x: bar.x + 2, y: aboveY - 1, width: size.width + 8, height: size.height + 2), cornerRadius: 3),
-                         with: .color(Color(red: 0.95, green: 0.78, blue: 0.35)))
+                         with: .color(ThemeStore.shared.current.tabSelection))
             context.draw(text, at: CGPoint(x: bar.x + 6, y: aboveY), anchor: .topLeading)
             tempoX = bar.x + size.width + 18
         }
@@ -563,14 +563,14 @@ struct TabLineView: View {
         for chord in sequenceChords ?? [] where chord.bar == bar.index {
             let x = self.x(in: bar, tick: chord.tick, beats: beats, master: master)
             context.draw(Text(chord.name).font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(printing ? ink : Color(red: 0.80, green: 0.70, blue: 1.0)),
+                            .foregroundColor(printing ? ink : ThemeStore.shared.current.tabChordName),
                          at: CGPoint(x: x, y: 48), anchor: .leading)
         }
         // Where the sequence is playing, as a line (so it shows in empty bars, while notating)
         if let place = playheadPlace, place.bar == bar.index, !printing {
             let x = self.x(in: bar, tick: place.tick, beats: beats, master: master)
             context.fill(Path(CGRect(x: x - 1, y: top - 12, width: 2, height: bottom - top + 24)),
-                         with: .color(Color(red: 0.55, green: 0.85, blue: 0.45).opacity(0.9)))
+                         with: .color(ThemeStore.shared.current.tabPlayhead.opacity(0.9)))
         }
         // The sequence's loop: a band above the staff over the looped beats, like the loop brace
         if let loop, !printing {
@@ -579,7 +579,7 @@ struct TabLineView: View {
                 return position >= loop.start && position <= loop.end
             }
             if let first = looped.first, let last = looped.last {
-                let loopColour = Color(red: 0.95, green: 0.78, blue: 0.35)
+                let loopColour = ThemeStore.shared.current.tabSelection
                 let startX = first.index == 0 ? bar.x : first.x - 11
                 let endX = last.index == bar.beats.count - 1 ? bar.x + bar.width : last.x + 11
                 context.fill(Path(CGRect(x: startX, y: top - 8, width: endX - startX, height: bottom - top + 16)),
@@ -592,9 +592,9 @@ struct TabLineView: View {
         if let playhead, playhead.bar == bar.index, !printing, bar.beats.indices.contains(playhead.beat) {
             let x = bar.beats[playhead.beat].x
             context.fill(Path(roundedRect: CGRect(x: x - 11, y: top - 8, width: 22, height: bottom - top + 16), cornerRadius: 4),
-                         with: .color(Color(red: 0.55, green: 0.85, blue: 0.45).opacity(0.3)))
+                         with: .color(ThemeStore.shared.current.tabPlayhead.opacity(0.3)))
             context.fill(Path(CGRect(x: x - 11, y: top - 14, width: 22, height: 3)),
-                         with: .color(Color(red: 0.55, green: 0.85, blue: 0.45)))
+                         with: .color(ThemeStore.shared.current.tabPlayhead))
         }
 
         // The cursor itself: a box round the string at the beat
@@ -602,7 +602,7 @@ struct TabLineView: View {
             let x = cursor.beat < bar.beats.count ? bar.beats[cursor.beat].x : bar.appendX
             let y = metrics.y(string: min(cursor.string, track.stringCount - 1))
             context.stroke(Path(roundedRect: CGRect(x: x - 10, y: y - 8, width: 20, height: 16), cornerRadius: 3),
-                           with: .color(.orange), lineWidth: 1.5)
+                           with: .color(SpotStyle.warning), lineWidth: 1.5)
         }
     }
 

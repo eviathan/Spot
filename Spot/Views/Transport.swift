@@ -59,7 +59,7 @@ struct Transport: View {
         {
             Image(systemName: "metronome")
                 .imageScale(.large)
-                .foregroundColor(transport.isMetronomeOn ? .white : Color(hue: 0.62, saturation: 0.38, brightness: 0.38, opacity: 1.00))
+                .foregroundColor(transport.isMetronomeOn ? SpotStyle.text : SpotStyle.dimmed)
             
         }
         .buttonStyle(PlainButtonStyle())
@@ -89,7 +89,7 @@ struct Transport: View {
         {
             Image(systemName: "play.fill")
                 .imageScale(.large)
-                .foregroundColor(transport.isPlaying ? Color(red: 0.55, green: 0.85, blue: 0.45) : .white)
+                .foregroundColor(transport.isPlaying ? SpotStyle.accent : SpotStyle.text)
 //                .foregroundColor(transport.isRecording ? Color(red:0.83, green:0.38, blue:0.42) : transport.isPlaying ? Color(red:0.69, green:0.85, blue:0.60) : .white)
         }
         .buttonStyle(PlainButtonStyle())
@@ -119,7 +119,7 @@ struct Transport: View {
         {
             Image(systemName: "repeat")
                 .imageScale(.large)
-                .foregroundColor(isLooping ? .yellow : Color(hue: 0.62, saturation: 0.38, brightness: 0.38, opacity: 1.00))
+                .foregroundColor(isLooping ? ThemeStore.shared.current.loop : SpotStyle.dimmed)
             
         }
         .buttonStyle(PlainButtonStyle())
@@ -141,7 +141,7 @@ private struct PositionDisplay: View {
             let label = transport.positionLabel.map { $0(transport.position()) } ?? "\(position.bar).\(position.beat)"
             Text(transport.isPlaying ? label : "1.1")
                 .font(.system(size: 16, design: .monospaced))
-                .foregroundColor(transport.isPlaying && position.bar < 1 ? .orange : .white)
+                .foregroundColor(transport.isPlaying && position.bar < 1 ? SpotStyle.warning : SpotStyle.text)
                 .frame(width: 56)
         }
     }

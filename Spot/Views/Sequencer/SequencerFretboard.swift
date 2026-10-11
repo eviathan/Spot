@@ -174,7 +174,7 @@ struct SequencerFretboard: View {
 }
 
 /// The colour of everything about the next chord: its name in the header and its notes on the fretboard.
-let nextChordColour = Color(red: 0.62, green: 0.36, blue: 0.95)
+var nextChordColour: Color { ThemeStore.shared.current.nextChord }
 
 /// What to play, read at a glance, in three blocks: the chord now (with its section and the beat), its chord
 /// and scale intervals with the notes they make, and the chord coming next. A fixed height, so nothing
@@ -307,7 +307,7 @@ struct PerformanceHeader: View {
                     let beatsLeft = Int(ceil(beatsAway))
                     Text(beatsLeft == 1 ? "in 1 beat" : "in \(beatsLeft) beats")
                         .font(.caption.monospacedDigit())
-                        .foregroundColor(Double(beatsLeft) <= editor.leadUp(in: sequence) && isPlaying ? .orange : .white.opacity(0.6))
+                        .foregroundColor(Double(beatsLeft) <= editor.leadUp(in: sequence) && isPlaying ? SpotStyle.warning : SpotStyle.text.opacity(0.6))
                 }
             }
             // The chord, and the scale that goes with it
@@ -329,7 +329,7 @@ struct PerformanceHeader: View {
             Group {
                 if let next, let shift = shiftHint(from: region, to: next) {
                     Label(shift.text, systemImage: shift.up ? "arrow.up.right" : "arrow.down.left")
-                        .foregroundColor(.orange)
+                        .foregroundColor(SpotStyle.warning)
                 } else {
                     Text(" ")
                 }
@@ -424,6 +424,7 @@ struct IntervalChips: View {
     var size: CGFloat = 1
     /// Filled with the colour (chord tones, as on the fretboard); otherwise outlined (the scale).
     var solid = false
+    @Environment(\.theme) private var theme
     var dimmed: (Degree) -> Bool = { _ in false }
 
     var body: some View {
@@ -438,7 +439,9 @@ struct IntervalChips: View {
                 }
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
-                .foregroundStyle(solid && !Theme.isDarkInterval(degree.pitchClassOffset) ? Color.black : .white)
+                // (The root's chip is in the text colour, so its own text is the page's)
+                .foregroundStyle(!solid ? SpotStyle.text
+                                 : degree.pitchClassOffset % 12 == 0 ? SpotStyle.page : theme.textColor(onInterval: degree.pitchClassOffset))
                 .frame(width: 32 * size, height: 28 * size)
                 .background(RoundedRectangle(cornerRadius: 5).fill(colour(degree).opacity(solid ? 0.9 : 0.12)))
                 .overlay(RoundedRectangle(cornerRadius: 5).stroke(colour(degree), lineWidth: 1.2))
@@ -491,11 +494,11 @@ struct FretboardReadout: View {
                             let beatsLeft = Int(ceil(upcoming?.beatsAway ?? 0))
                             Text(beatsLeft == 1 ? "in 1 beat" : "in \(beatsLeft) beats")
                                 .font(.callout.monospacedDigit().weight(.semibold))
-                                .foregroundColor(Double(beatsLeft) <= editor.leadUp(in: sequence) && isPlaying ? .orange : .secondary)
+                                .foregroundColor(Double(beatsLeft) <= editor.leadUp(in: sequence) && isPlaying ? SpotStyle.warning : .secondary)
                             if let shift = shiftHint(from: region, to: next) {
                                 Label(shift.text, systemImage: shift.up ? "arrow.up.right" : "arrow.down.left")
                                     .font(.callout)
-                                    .foregroundColor(.orange)
+                                    .foregroundColor(SpotStyle.warning)
                                     .lineLimit(1)
                             }
                         }

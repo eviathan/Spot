@@ -73,17 +73,16 @@ struct LibraryListItem: View {
     var onSelect: (_ entry: LibraryEntry) -> Void
     
     var backgroundColor: Color {
-        isSelected
-            ? Color(hue: 0.63, saturation: 0.35, brightness: 0.24, opacity: 1.00)
+        let theme = ThemeStore.shared.current
+        return isSelected
+            ? theme.listSelected
             : isHovered
-                ? Color(hue: 0.75, saturation: 0.01, brightness: 0.30, opacity: 1.00)
-                : index % 2 == 0
-                    ? Color(hue: 0.00, saturation: 0.00, brightness: 1.00, opacity: 1.00)
-                    : Color(hue: 0.75, saturation: 0.01, brightness: 0.80, opacity: 0.30)
+                ? theme.listHover
+                : index % 2 == 0 ? theme.listRow : theme.listAlternateRow
     }
     
     var foregroundColor: Color {
-        isHovered || isSelected ? .white : .black
+        isHovered || isSelected ? ThemeStore.shared.current.listSelectedText : ThemeStore.shared.current.listText
     }
     
     var body: some View {

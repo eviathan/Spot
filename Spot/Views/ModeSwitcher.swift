@@ -10,7 +10,7 @@ import SwiftUI
 struct ModeSwitcher: View {
     @Environment(UIState.self) private var ui
     
-    let unselectedColor: Color = Color(hue: 0.62, saturation: 0.38, brightness: 0.38, opacity: 1.00)
+    var unselectedColor: Color { SpotStyle.dimmed }
     
     var body: some View {
         Button(action: { ui.tab = .Sequence }) {
