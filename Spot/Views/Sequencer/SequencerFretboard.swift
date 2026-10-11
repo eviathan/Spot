@@ -105,11 +105,11 @@ struct SequencerFretboard: View {
             case .interval: label = marker.intervalName
             }
 
-            // In the next chord or its scale? Only where the hand goes for it (everywhere only if there's no position
-            // for it), and only once it's showing
+            // In the next chord or its scale? Once it's showing: where the hand goes for it, and with shape isolation
+            // off, everywhere else on the neck too (faint there, like the rest of what's away from the hand)
+            let inNextPosition = nextNeck.map { $0.placement[position] != nil || $0.voicing?.placement[position] != nil } ?? true
             var next: (label: String, offset: Int, isChordTone: Bool)?
-            if nextStrength > 0.01, let nextChord,
-               nextNeck.map({ $0.placement[position] != nil || $0.voicing?.placement[position] != nil }) ?? true {
+            if nextStrength > 0.01, let nextChord, inNextPosition || !isolates {
                 let nextOffset = pitchClass.semitones(above: nextChord.root.pitchClass)
                 let name = { (degree: Degree) in
                     display.markerLabel == .note ? nextChord.root.spelling(degree).description : degree.intervalName
@@ -138,20 +138,29 @@ struct SequencerFretboard: View {
                 styled.haloDashed = true
                 return styled
             default:
+                // Elsewhere on the neck (isolating the shape hides these): see-through, but showing what they become
+                // in the next chord just the same
+                if role != .outside && !isolates {
+                    var styled = FretboardMarker(marker, label: label, tone: role == .chordTone ? .chord : .scale, semitones: offset,
+                                                 prominence: .faint, theme: theme)
+                    styled.split = becomes
+                    styled.textShadow = becomes != nil
+                    if becomes != nil { styled.text = .white }
+                    styled.halo = becomesInScale
+                    styled.haloDashed = true
+                    return styled
+                }
                 // New with the next chord: a dashed ring in its interval's colour there, faintly filled (its chord
-                // tones; with the next scale showing, its other notes fainter)
+                // tones; with the next scale showing, its other notes fainter), and see-through away from where the
+                // hand goes for it
                 if let next {
                     let nextColour = theme.intervalColor(next.offset)
+                    let away = inNextPosition ? 1 : 0.5
                     return FretboardMarker(marker: marker, label: next.label, ring: nextColour,
                                            fill: nextColour.opacity(next.isChordTone ? 0.3 : 0.12), text: .white,
                                            scale: next.isChordTone ? 0.9 : 0.7,
-                                           opacity: nextStrength * (next.isChordTone ? 1 : 0.8),
+                                           opacity: nextStrength * (next.isChordTone ? 1 : 0.8) * away,
                                            isRoot: next.isChordTone && next.offset == 0, ringDashed: true)
-                }
-                // Elsewhere on the neck, faint, for orientation (isolating the shape hides these)
-                if role != .outside && !isolates {
-                    return FretboardMarker(marker, label: label, tone: role == .chordTone ? .chord : .scale, semitones: offset,
-                                           prominence: .faint, theme: theme)
                 }
                 // Everything else: shown plainly (as on the Library tab) when unrelated notes are on (⌘U)
                 return unrelatedMarker(marker, label: label)
