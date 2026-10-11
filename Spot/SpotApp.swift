@@ -278,6 +278,14 @@ struct SpotApp: App {
                 Button(transport.isMetronomeOn ? "Metronome Off" : "Metronome On") { transport.isMetronomeOn.toggle() }
                     .keyboardShortcut("m", modifiers: [.command, .shift])
                 Divider()
+                // Practice speed: slower without changing the tempo (not saved)
+                Button("Slower (Practice Speed)") { playback.setPracticeSpeed(playback.practiceSpeed - 0.05) }
+                    .keyboardShortcut("-", modifiers: [.command, .option])
+                Button("Faster (Practice Speed)") { playback.setPracticeSpeed(playback.practiceSpeed + 0.05) }
+                    .keyboardShortcut("=", modifiers: [.command, .option])
+                Button("Normal Speed") { playback.setPracticeSpeed(1) }
+                    .keyboardShortcut("0", modifiers: [.command, .option])
+                Divider()
                 Button("Preview Shape") { previewCurrentShape() }
                     .keyboardShortcut(.return, modifiers: [.command])
                     .disabled(ui.tab != .Library)

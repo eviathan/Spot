@@ -518,13 +518,18 @@ final class SequenceSession {
         transport.timeSignature = sequence.timeSignature
         editor.followSuspended = false
         playback.play(playbackData(sequence, editor: editor), from: beat, id: editor.id, countIn: countIn)
+        // Again once it's playing, for the practice speed (starting stops whatever was playing, which puts the
+        // clock back to the tempo)
+        applyTempo(sequence)
     }
     
-    /// The clock runs at the sequence's tempo, and the recording is sped up or slowed down from its own to match.
+    /// The clock runs at the sequence's tempo (times the practice speed, while playing), and the recording is sped
+    /// up or slowed down from its own to match.
     private func applyTempo(_ sequence: ChordSequence) {
-        transport.setBPM(sequence.tempo)
+        let speed = isPlaying ? playback.practiceSpeed : 1
+        transport.setBPM(sequence.tempo * speed)
         transport.barOrigin = sequence.startBeat
-        playback.setAudioRate(sequence.audio.map { sequence.tempo / $0.tempo } ?? 1)
+        playback.setAudioRate(sequence.audio.map { sequence.tempo * speed / $0.tempo } ?? speed)
     }
 
     /// ⌘L and the Loop button. With a range selected: loop it (or, if it's already the loop, stop looping).
@@ -565,6 +570,7 @@ final class SequenceSession {
         playRangeEnd = nil
         playedFrom = beat
         playback.play(playbackData(sequence, editor: editor), from: beat, id: editor.id, countIn: false)
+        applyTempo(sequence)
     }
 
     /// Stops. Play starts from 1.1.1 again (⌥Space from the playhead).

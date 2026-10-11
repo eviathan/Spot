@@ -164,6 +164,26 @@ final class PlaybackController {
     /// Plays a tab from `time` seconds in. The clock runs at 60 bpm, so its beats are the tab's seconds.
     @ObservationIgnored private var bpmBeforeTab: Double?
 
+    /// Practice speed: a sequence or tab plays at this fraction of its tempo (0.75 for 75%), the tempo itself left
+    /// as it is. Just for now: not saved.
+    private(set) var practiceSpeed: Double = 1
+
+    static let practiceSpeeds: [Double] = [0.5, 0.6, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1, 1.1, 1.25]
+
+    /// Changes the practice speed, while playing too: the clock, the recording and what's queued follow.
+    func setPracticeSpeed(_ speed: Double) {
+        let speed = min(max((speed * 100).rounded() / 100, 0.25), 1.5)
+        guard speed != practiceSpeed else { return }
+        let old = practiceSpeed
+        practiceSpeed = speed
+        guard transport.isPlaying, tab != nil || playingSequence != nil else { return }
+        transport.setBPM(transport.bpm / old * speed)
+        setAudioRate(audioRate / old * speed)
+        // Clicks queued ahead were timed at the old speed
+        clicks?.stop()
+        clicksUntil = scheduledUntil
+    }
+
     func play(tab: TabPerformance, from time: Double) {
         if transport.isPlaying {
             stop()
@@ -173,7 +193,7 @@ final class PlaybackController {
         // The tab's times are in seconds, so the transport counts seconds as beats; the metronome's tempo comes
         // back afterwards
         bpmBeforeTab = transport.bpm
-        transport.setBPM(60)
+        transport.setBPM(60 * practiceSpeed)
         transport.barOrigin = 0
         let start = HostTime.adding(startLatency, to: HostTime.now)
         // Every channel's sound and bend range, wherever it starts
@@ -278,6 +298,10 @@ final class PlaybackController {
     }
     
     func stop() {
+        // A sequence played at practice speed: the clock back to its own tempo
+        if playingSequence != nil, tab == nil, practiceSpeed != 1 {
+            transport.setBPM(transport.bpm / practiceSpeed)
+        }
         // Silence and unbend every channel a tab used
         if let tab = tab ?? sequence?.tab {
             silence(tab)

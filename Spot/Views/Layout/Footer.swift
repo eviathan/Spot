@@ -17,8 +17,10 @@ struct Footer: View {
     @Environment(TabSession.self) private var tabSession
     @Environment(UIState.self) private var ui
     @Environment(LibraryStore.self) private var library
+    @Environment(PlaybackController.self) private var playback
     @State private var previousBPMChangeValue: CGFloat = 0
     @State private var isPickingKey = false
+    @State private var isPickingSpeed = false
     @State private var isTypingTimeSignature = false
     @State private var otherTimeSignature = ""
     @State private var isTypingTempo = false
@@ -173,6 +175,8 @@ struct Footer: View {
                             onIncrement: { incrementBPM(1) }) { _ in
                     tempoLabel
                 }
+
+                practiceSpeedButton
 
                 RangePicker(data: 1..<33,
                             onDecrement: { stepTimeSignature(-1) },
@@ -377,6 +381,52 @@ struct Footer: View {
     private static func noteName(_ denominator: Int) -> String {
         [1: "whole note", 2: "half note", 4: "quarter note", 8: "eighth note", 16: "sixteenth note",
          32: "32nd note", 64: "64th note"][denominator] ?? "1/\(denominator)"
+    }
+
+    /// Practice speed: play slower (or faster) without changing the tempo. Lit up when it isn't 100%; click for the
+    /// presets.
+    private var practiceSpeedButton: some View {
+        let speed = playback.practiceSpeed
+        return Button {
+            isPickingSpeed = true
+        } label: {
+            Text("\(Int((speed * 100).rounded()))%")
+                .font(.system(size: 14, weight: .semibold).monospacedDigit())
+                .foregroundColor(speed == 1 ? dimmed : .black)
+                .padding(.horizontal, 7)
+                .padding(.vertical, 3)
+                .background(Capsule().fill(speed == 1 ? Color.clear : SpotStyle.warning))
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .popover(isPresented: $isPickingSpeed, arrowEdge: .top) {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Practice Speed")
+                    .font(.headline)
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 4), spacing: 6) {
+                    ForEach(PlaybackController.practiceSpeeds, id: \.self) { preset in
+                        let isOn = abs(speed - preset) < 0.001
+                        Button {
+                            playback.setPracticeSpeed(preset)
+                        } label: {
+                            Text("\(Int((preset * 100).rounded()))%")
+                                .font(.system(size: 13, weight: isOn ? .semibold : .regular).monospacedDigit())
+                                .frame(maxWidth: .infinity, minHeight: 26)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .background(RoundedRectangle(cornerRadius: 5).fill(isOn ? Color.accentColor.opacity(0.45) : Color.primary.opacity(0.08)))
+                    }
+                }
+                Text("Plays at a percentage of the tempo, without changing it (or the recording's pitch). ⌥⌘− and ⌥⌘= step it by 5%, ⌥⌘0 goes back to normal.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(14)
+            .frame(width: 260)
+        }
+        .help("Practice speed: play at a percentage of the tempo, leaving the tempo as it is (⌥⌘− / ⌥⌘= / ⌥⌘0)")
     }
 
     private var tempoLabel: some View {
