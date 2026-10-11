@@ -25,6 +25,16 @@ struct FretboardMarker: Identifiable {
     var haloDashed = false
     /// Below 1 to fade a note in or out.
     var opacity: Double = 1
+    /// A root: drawn as a rounded square rather than a circle, so it's the first thing the eye finds.
+    var isRoot = false
+    /// The right half filled in this colour instead: a note that's in two things at once (now and next).
+    var split: Color? = nil
+    /// How thick the halo is.
+    var haloWidth: CGFloat = 1.5
+    /// The ring dashed: a note that isn't here yet (coming in with the next chord).
+    var ringDashed = false
+    /// A dark edge on the label, to read across two colours (a split marker).
+    var textShadow = false
 
     var id: FretPosition {
         marker.position
@@ -220,24 +230,32 @@ private struct FretMarkerView: View {
     var body: some View {
         let scaledSize = size * item.scale * (isHovered ? 1.1 : 1.0)
         
+        let shape = MarkerShape(isRoot: item.isRoot)
         // TODO: Adjust this so that the button wrapps the circle instead
-        Circle()
-            .stroke(lineWidth: 5 * item.scale)
-            .fill(item.ring)
+        shape
+            .stroke(item.ring, style: StrokeStyle(lineWidth: (item.ringDashed ? 3 : 5) * item.scale,
+                                                  dash: item.ringDashed ? [4 * item.scale, 3 * item.scale] : []))
             .overlay {
                 if let halo = item.halo {
-                    Circle()
-                        .stroke(halo, style: StrokeStyle(lineWidth: 1.5, dash: item.haloDashed ? [3, 2.5] : []))
-                        .padding(-4)
+                    shape
+                        .stroke(halo, style: StrokeStyle(lineWidth: item.haloWidth, dash: item.haloDashed ? [3, 2.5] : []))
+                        .padding(-2 - item.haloWidth)
                 }
             }
-            .background(Circle().fill(item.fill))
+            .background {
+                shape.fill(item.fill)
+                if let split = item.split {
+                    shape.fill(split)
+                        .mask(alignment: .trailing) { Rectangle().frame(width: scaledSize / 2) }
+                }
+            }
             .frame(width: scaledSize, height: scaledSize)
             .overlay(
                 // Longer labels (m13, ♭13) shrink to fit inside the ring; short ones stay as they are
                 Text(item.label)
                     .font(.caption)
                     .foregroundColor(item.text)
+                    .shadow(color: .black.opacity(item.textShadow ? 0.9 : 0), radius: 1.2)
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
                     .frame(width: max(1, scaledSize - 5 * item.scale - 3))
@@ -258,6 +276,16 @@ private struct FretMarkerView: View {
                     }
                 }
             }
+    }
+}
+
+/// A marker's outline: a circle, or for a root a rounded square.
+struct MarkerShape: SwiftUI.Shape {
+    var isRoot: Bool
+
+    func path(in rect: CGRect) -> Path {
+        isRoot ? RoundedRectangle(cornerRadius: rect.width * 0.24, style: .continuous).path(in: rect)
+               : Circle().path(in: rect)
     }
 }
 

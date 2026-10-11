@@ -31,8 +31,15 @@ struct SequencerFretboard: View {
         }
     }
 
-    /// The current chord's scale, coloured by role, and the next chord as small tags beside its notes,
-    /// so the two never get mixed up.
+    /// What's under your fingers now and what's coming, in the Library's colours (each interval its own colour,
+    /// the root black):
+    /// - chord tones solid in their interval's colour; the rest of the scale the same size, ringed in it with a
+    ///   black middle; each chord's root a rounded square
+    /// - a note you're playing that's in the next chord is half and half: its colour now on the left, and on the
+    ///   right the colour of what it becomes there (the 5th turning into the 3rd: half 5th, half 3rd)
+    /// - a note new with the next chord (in neither this chord nor its scale) is a dashed ring in its interval's
+    ///   colour in the next chord, faintly filled
+    /// The next chord fades in over the last beats before it, while playing (stopped, it's shown to plan with).
     private func markers(at position: Double, time: Date) -> [FretboardMarker] {
         let fretboard = editor.fretboard
         let analysis = editor.analysis
@@ -59,8 +66,11 @@ struct SequencerFretboard: View {
         var nearness = 0.0
         if let upcoming {
             let beatsLeft = upcoming.beatsAway
-            nearness = beatsLeft <= 0 ? 1 : max(0, 1 - beatsLeft / max(editor.ghostBeats, 0.5))
+            nearness = beatsLeft <= 0 ? 1 : max(0, 1 - beatsLeft / max(editor.leadUp(in: sequence), 0.5))
         }
+        let isPlaying = playback.playingSequence == editor.id
+        // Playing: from nothing to full over the last beats; stopped: there to plan the change with
+        let nextStrength = isPlaying ? nearness : 1
         let nextDegrees = Dictionary((nextChord?.chord.formula.degrees ?? []).map { ($0.pitchClassOffset, $0) },
                                      uniquingKeysWith: { first, _ in first })
         // ...and the rest of its scale, named as tensions (9, 11, 13)
@@ -95,59 +105,61 @@ struct SequencerFretboard: View {
             case .interval: label = marker.intervalName
             }
 
-            // In the next chord or its scale? Only where the hand goes for it (everywhere only if there's no position for it)
-            var next: (label: String, isTarget: Bool, isChordTone: Bool)?
-            if let nextChord, nextNeck.map({ $0.placement[position] != nil || $0.voicing?.placement[position] != nil }) ?? true {
+            // In the next chord or its scale? Only where the hand goes for it (everywhere only if there's no position
+            // for it), and only once it's showing
+            var next: (label: String, offset: Int, isChordTone: Bool)?
+            if nextStrength > 0.01, let nextChord,
+               nextNeck.map({ $0.placement[position] != nil || $0.voicing?.placement[position] != nil }) ?? true {
                 let nextOffset = pitchClass.semitones(above: nextChord.root.pitchClass)
                 let name = { (degree: Degree) in
                     display.markerLabel == .note ? nextChord.root.spelling(degree).description : degree.intervalName
                 }
                 if let nextDegree = nextDegrees[nextOffset] {
-                    // Its 3rd and 7th are the notes to aim for
-                    next = (name(nextDegree), [2, 6].contains(nextDegree.letterSteps), true)
+                    next = (name(nextDegree), nextOffset, true)
                 } else if let scaleDegree = nextScaleDegrees[nextOffset] {
-                    next = (name(ChordScaleMatcher.tensionName(scaleDegree)), false, false)
+                    next = (name(ChordScaleMatcher.tensionName(scaleDegree)), nextOffset, false)
                 }
             }
-            let nextStrength = 0.5 + 0.5 * nearness
-            // A note you're already playing that's in the next chord gets a thin ring in the next chord's colour;
-            // dashed if it's only in the next scale
-            let sharedRing = next.map { nextChordColour.opacity($0.isChordTone ? nextStrength : nextStrength * 0.8) }
-            let sharedDashed = next.map { !$0.isChordTone } ?? false
+            // Held into the next chord: the right half in the colour of what it becomes there. Only in its scale (with
+            // the next scale showing): a dashed ring in that colour instead.
+            let becomes = next.flatMap { $0.isChordTone ? intervalColour($0.offset).opacity(nextStrength) : nil }
+            let becomesInScale = next.flatMap { $0.isChordTone ? nil : intervalColour($0.offset).opacity(nextStrength * 0.8) }
+            let isRoot = offset == 0
+            let colour = intervalColour(offset)
 
             switch role {
-            case .chordTone where inVoicing:
-                // The voicing: filled, so the grip stands out within the scale
-                return FretboardMarker(marker: marker, label: label, ring: roleColour(.chordTone), fill: roleColour(.chordTone),
-                                       text: .black, halo: sharedRing, haloDashed: sharedDashed)
-            case .chordTone where inCurrent:
-                return FretboardMarker(marker: marker, label: label, ring: roleColour(.chordTone), fill: .black, text: .white,
-                                       halo: sharedRing, haloDashed: sharedDashed)
+            case .chordTone where inVoicing || inCurrent:
+                // Chord tones: solid in their interval's colour (the voicing's full strength, the chord's other notes
+                // in the position a little softer)
+                return FretboardMarker(marker: marker, label: label, ring: colour, fill: colour,
+                                       text: becomes == nil ? textColour(on: offset) : .white,
+                                       halo: becomesInScale, haloDashed: true, opacity: inVoicing ? 1 : 0.8,
+                                       isRoot: isRoot, split: becomes, textShadow: becomes != nil)
             case .tension where inCurrent, .avoid where inCurrent:
-                return FretboardMarker(marker: marker, label: label, ring: roleColour(role), fill: theme.defaultMarkerColor,
-                                       text: theme.fretboardColor, scale: 0.8, halo: sharedRing, haloDashed: sharedDashed)
+                // The rest of the scale: the same size, ringed in its interval's colour with a black middle
+                return FretboardMarker(marker: marker, label: label, ring: colour, fill: .black, text: .white,
+                                       halo: becomesInScale, haloDashed: true, opacity: role == .avoid ? 0.75 : 1,
+                                       split: becomes, textShadow: becomes != nil)
             default:
-                // Only in what's next: a small marker of its own, on the string where the note is.
-                // Chord tones filled; the rest of the scale hollow and smaller
-                if let next, next.isChordTone {
-                    return FretboardMarker(marker: marker, label: next.label, ring: nextChordColour,
-                                           fill: nextChordColour.opacity(0.35), text: .white,
-                                           scale: next.isTarget ? 0.66 : 0.54, opacity: nextStrength)
-                }
+                // New with the next chord: a dashed ring in its interval's colour there, faintly filled (its chord
+                // tones; with the next scale showing, its other notes fainter)
                 if let next {
-                    return FretboardMarker(marker: marker, label: next.label, ring: nextChordColour.opacity(0.75),
-                                           fill: .black.opacity(0.3), text: .white.opacity(0.85),
-                                           scale: 0.46, opacity: nextStrength * 0.85)
+                    let nextColour = intervalColour(next.offset)
+                    return FretboardMarker(marker: marker, label: next.label, ring: nextColour,
+                                           fill: nextColour.opacity(next.isChordTone ? 0.3 : 0.12), text: .white,
+                                           scale: next.isChordTone ? 0.9 : 0.7,
+                                           opacity: nextStrength * (next.isChordTone ? 1 : 0.8),
+                                           isRoot: next.isChordTone && next.offset == 0, ringDashed: true)
                 }
                 if role == .chordTone && !isolates {
                     // Chord tones elsewhere on the neck, faint, for orientation
-                    return FretboardMarker(marker: marker, label: label, ring: roleColour(.chordTone), fill: .black, text: .white,
-                                           scale: 0.55, opacity: 0.35)
+                    return FretboardMarker(marker: marker, label: label, ring: colour, fill: colour, text: textColour(on: offset),
+                                           scale: 0.55, opacity: 0.3, isRoot: isRoot)
                 }
                 if (role == .tension || role == .avoid) && !isolates {
                     // The rest of the scale elsewhere on the neck, fainter still (isolating the shape hides these)
-                    return FretboardMarker(marker: marker, label: label, ring: roleColour(role), fill: theme.defaultMarkerColor,
-                                           text: theme.fretboardColor, scale: 0.5, opacity: 0.3)
+                    return FretboardMarker(marker: marker, label: label, ring: colour, fill: .black, text: .white,
+                                           scale: 0.5, opacity: 0.25)
                 }
                 // Everything else: shown plainly (as on the Library tab) when unrelated notes are on (⌘U)
                 return unrelatedMarker(marker, label: label)
@@ -155,7 +167,16 @@ struct SequencerFretboard: View {
         }
     }
 
-    /// A note that's not part of what's being shown: grey, like the Library's, and only when unrelated notes are on.
+    /// An interval's colour, as on the Library tab (the root black).
+    private func intervalColour(_ semitones: Int) -> Color {
+        theme.intervalColors[((semitones % 12) + 12) % 12]
+    }
+
+    /// Readable text on a solid interval colour: white on the root's black and the darker colours.
+    private func textColour(on semitones: Int) -> Color {
+        semitones % 12 == 0 || Theme.isDarkInterval(semitones) ? .white : .black
+    }
+
     private func unrelatedMarker(_ marker: FretMarker, label: String) -> FretboardMarker {
         let ring = marker.position.fret == 0 ? theme.openMarkerColor : theme.defaultMarkerColor
         return FretboardMarker(marker: marker, label: label, ring: ring, fill: ring,
@@ -202,6 +223,8 @@ struct PerformanceHeader: View {
                 Divider().padding(.vertical, 12)
                 intervals(region ?? sequence.chord(after: position))
                     .frame(maxWidth: .infinity, alignment: .leading)
+                MarkerLegend()
+                    .padding(.trailing, 14)
                 Divider().padding(.vertical, 12)
                 upNext(next, after: region, beatsAway: upcoming?.beatsAway ?? 0, isPlaying: isPlaying)
                     .frame(width: 300, alignment: .leading)
@@ -263,7 +286,7 @@ struct PerformanceHeader: View {
                         .font(.callout.weight(.semibold))
                         .lineLimit(1)
                         .frame(width: 150, alignment: .leading)
-                    chips(chord.chord.formula.degrees, root: chord.root) { _ in theme.chordToneColor }
+                    IntervalChips(degrees: chord.chord.formula.degrees, root: chord.root, colour: { theme.chipColour($0) }, solid: true)
                 }
                 GridRow {
                     blockTitle("SCALE")
@@ -273,19 +296,14 @@ struct PerformanceHeader: View {
                         .minimumScaleFactor(0.75)
                         .frame(width: 150, alignment: .leading)
                     if let scale {
-                        chips(scale.formula.degrees, root: chord.root) { degree in
-                            switch roles[degree.pitchClassOffset] ?? .outside {
-                            case .chordTone: return theme.chordToneColor
-                            case .tension: return theme.tensionColor
-                            case .avoid: return theme.avoidColor
-                            case .outside: return theme.openMarkerColor
-                            }
-                        }
+                        // (Notes to avoid over the chord dimmed)
+                        IntervalChips(degrees: scale.formula.degrees, root: chord.root, colour: { theme.chipColour($0) },
+                                      dimmed: { roles[$0.pitchClassOffset] == .avoid })
                     }
                 }
             }
             .padding(.horizontal, 16)
-            .help("The chord's intervals and the scale's, with the notes they make. Scale notes are outlined as on the fretboard: chord tones, tensions and notes to avoid.")
+            .help("The chord's intervals and the scale's, with the notes they make, in the fretboard's colours: chord tones solid, the scale outlined (notes to avoid over the chord dimmed).")
         } else {
             Text("No chord at the playhead")
                 .font(.callout)
@@ -310,7 +328,7 @@ struct PerformanceHeader: View {
                     let beatsLeft = Int(ceil(beatsAway))
                     Text(beatsLeft == 1 ? "in 1 beat" : "in \(beatsLeft) beats")
                         .font(.caption.monospacedDigit())
-                        .foregroundColor(beatsLeft <= Int(editor.ghostBeats) && isPlaying ? .orange : .white.opacity(0.6))
+                        .foregroundColor(Double(beatsLeft) <= editor.leadUp(in: sequence) && isPlaying ? .orange : .white.opacity(0.6))
                 }
             }
             // The chord, and the scale that goes with it
@@ -425,6 +443,9 @@ struct IntervalChips: View {
     let root: SpelledNote
     let colour: (Degree) -> Color
     var size: CGFloat = 1
+    /// Filled with the colour (chord tones, as on the fretboard); otherwise outlined (the scale).
+    var solid = false
+    var dimmed: (Degree) -> Bool = { _ in false }
 
     var body: some View {
         HStack(spacing: 4 * size) {
@@ -438,9 +459,11 @@ struct IntervalChips: View {
                 }
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
+                .foregroundStyle(solid && !Theme.isDarkInterval(degree.pitchClassOffset) ? Color.black : .white)
                 .frame(width: 32 * size, height: 28 * size)
-                .background(RoundedRectangle(cornerRadius: 5).fill(colour(degree).opacity(0.16)))
+                .background(RoundedRectangle(cornerRadius: 5).fill(colour(degree).opacity(solid ? 0.9 : 0.12)))
                 .overlay(RoundedRectangle(cornerRadius: 5).stroke(colour(degree), lineWidth: 1.2))
+                .opacity(dimmed(degree) ? 0.45 : 1)
             }
         }
     }
@@ -489,7 +512,7 @@ struct FretboardReadout: View {
                             let beatsLeft = Int(ceil(upcoming?.beatsAway ?? 0))
                             Text(beatsLeft == 1 ? "in 1 beat" : "in \(beatsLeft) beats")
                                 .font(.callout.monospacedDigit().weight(.semibold))
-                                .foregroundColor(beatsLeft <= Int(editor.ghostBeats) && isPlaying ? .orange : .secondary)
+                                .foregroundColor(Double(beatsLeft) <= editor.leadUp(in: sequence) && isPlaying ? .orange : .secondary)
                             if let shift = shiftHint(from: region, to: next) {
                                 Label(shift.text, systemImage: shift.up ? "arrow.up.right" : "arrow.down.left")
                                     .font(.callout)
@@ -539,19 +562,14 @@ struct FretboardReadout: View {
                 Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 8) {
                     GridRow {
                         rowLabel("CHORD")
-                        IntervalChips(degrees: chord.chord.formula.degrees, root: chord.root, colour: { _ in theme.chordToneColor }, size: 1.2)
+                        IntervalChips(degrees: chord.chord.formula.degrees, root: chord.root, colour: { theme.chipColour($0) },
+                                      size: 1.2, solid: true)
                     }
                     if let scale {
                         GridRow {
                             rowLabel("SCALE")
-                            IntervalChips(degrees: scale.formula.degrees, root: chord.root, colour: { degree in
-                                switch roles[degree.pitchClassOffset] ?? .outside {
-                                case .chordTone: return theme.chordToneColor
-                                case .tension: return theme.tensionColor
-                                case .avoid: return theme.avoidColor
-                                case .outside: return theme.openMarkerColor
-                                }
-                            }, size: 1.2)
+                            IntervalChips(degrees: scale.formula.degrees, root: chord.root, colour: { theme.chipColour($0) },
+                                          size: 1.2, dimmed: { roles[$0.pitchClassOffset] == .avoid })
                         }
                     }
                 }
@@ -600,6 +618,42 @@ private struct BeatDots: View {
                     .fill(beat == current ? Color.primary : Color.primary.opacity(0.18))
                     .frame(width: beat == 0 ? size + 3 : size, height: beat == 0 ? size + 3 : size)
             }
+        }
+    }
+}
+
+/// What the fretboard's markers mean, small, beside the chord's intervals.
+private struct MarkerLegend: View {
+    @Environment(\.theme) private var theme
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            row("Root", ring: .white, fill: theme.intervalColors[0], isRoot: true)
+            row("Chord tone", ring: theme.intervalColors[4], fill: theme.intervalColors[4])
+            row("Scale tone", ring: theme.intervalColors[2], fill: .black)
+            row("Half: what it becomes next", ring: theme.intervalColors[7], fill: theme.intervalColors[7], split: theme.intervalColors[4])
+            row("Dashed: new in next", ring: theme.intervalColors[11], fill: theme.intervalColors[11].opacity(0.3), dashed: true)
+        }
+        .font(.system(size: 10))
+        .foregroundStyle(.white.opacity(0.7))
+        .fixedSize()
+        .help("Each interval in its colour, as on the Library tab. Chord tones solid, the rest of the scale ringed with a black middle, the root a square. A note that carries into the next chord is half and half: what it is now, and what it becomes; a note the next chord brings in is dashed.")
+    }
+
+    private func row(_ title: String, ring: Color, fill: Color, isRoot: Bool = false, split: Color? = nil,
+                     dashed: Bool = false) -> some View {
+        HStack(spacing: 5) {
+            let shape = MarkerShape(isRoot: isRoot)
+            shape.stroke(ring, style: StrokeStyle(lineWidth: 1.5, dash: dashed ? [2, 1.5] : []))
+                .background {
+                    shape.fill(fill)
+                    if let split {
+                        shape.fill(split).mask(alignment: .trailing) { Rectangle().frame(width: 5) }
+                    }
+                }
+                .frame(width: 10, height: 10)
+                .frame(width: 14)
+            Text(title)
         }
     }
 }

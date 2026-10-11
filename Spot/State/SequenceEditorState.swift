@@ -151,8 +151,14 @@ final class SequenceEditorState {
 
     /// Why the last chord picked couldn't be used.
     var chordError: String?
-    /// How many beats before a change the next chord starts to show on the fretboard.
-    var ghostBeats: Double = 2
+    /// How many beats before a change the next chord starts to show on the fretboard; nil for a bar (whatever the
+    /// time signature), the default: a whole bar to see it coming.
+    var ghostBeats: Double?
+
+    /// The lead-up in beats, for a sequence (a bar of its time signature unless set).
+    func leadUp(in sequence: ChordSequence) -> Double {
+        ghostBeats ?? sequence.barLength
+    }
     var neckView: NeckView = .followHand {
         didSet { refreshPositions() }
     }
@@ -162,8 +168,9 @@ final class SequenceEditorState {
     }
     /// Show a small diagram of the next chord in its position.
     var showsNextDiagram = true
-    /// Show the rest of the next chord's scale on the fretboard, as well as its chord tones.
-    var showsNextScale = true
+    /// Show the rest of the next chord's scale on the fretboard, as well as its chord tones (off: just its chord
+    /// tones, which is what you aim for, and less to take in).
+    var showsNextScale = false
     /// The chord palette is open for the selection.
     var showsPalette = false
     /// A pattern being renamed (its id), while the name box is up.

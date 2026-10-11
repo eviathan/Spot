@@ -310,18 +310,19 @@ struct SpotApp: App {
                     }
                 }
                 .disabled(!session.isOpen || session.editor?.neckView != .followHand)
-                Toggle("Next Scale on Fretboard", isOn: Binding(get: { session.editor?.showsNextScale ?? true },
+                Toggle("Next Scale on Fretboard", isOn: Binding(get: { session.editor?.showsNextScale ?? false },
                                                                 set: { session.editor?.showsNextScale = $0 }))
                     .disabled(!session.isOpen)
                 // The next chord box is off for now (see PerformanceHeader)
                 // Toggle("Next Chord Box", isOn: Binding(get: { session.editor?.showsNextDiagram ?? false },
                 //                                        set: { session.editor?.showsNextDiagram = $0 }))
                 //     .disabled(!session.isOpen)
-                Picker("Next Chord Brightens", selection: Binding(get: { session.editor?.ghostBeats ?? 2 },
-                                                             set: { session.editor?.ghostBeats = $0 })) {
-                    Text("1 Beat Early").tag(1.0)
-                    Text("2 Beats Early").tag(2.0)
-                    Text("1 Bar Early").tag(session.barLength)
+                Picker("Next Chord Shows", selection: Binding(get: { session.editor?.ghostBeats },
+                                                         set: { session.editor?.ghostBeats = $0 })) {
+                    Text("1 Beat Early").tag(Double?.some(1))
+                    Text("2 Beats Early").tag(Double?.some(2))
+                    Text("1 Bar Early").tag(Double?.none)
+                    Text("2 Bars Early").tag(Double?.some(session.barLength * 2))
                 }
                 .disabled(!session.isOpen)
                 Divider()
