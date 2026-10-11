@@ -14,7 +14,8 @@ final class TransportState {
 
     /// Not rounded: a sequence's tempo can be fractional, and the clock has to match its audio exactly.
     private(set) var bpm: Double = 120
-    var beatsPerBar = 4
+    /// Any time signature; beats (the tempo, positions) stay quarter notes.
+    var timeSignature = TimeSignature(4, 4)
     /// The beat bar 1 starts on (a sequence's start marker): bars, and the metronome's accents, count from here.
     var barOrigin: Double = 0
     /// While a tab plays (its clock counts seconds, not beats), how to show the position as "bar.beat".
@@ -30,7 +31,7 @@ final class TransportState {
     private var anchorBeforeJump: (beat: Double, hostTime: UInt64)?
 
     var clock: TempoClock {
-        TempoClock(bpm: bpm, beatsPerBar: beatsPerBar)
+        TempoClock(bpm: bpm, timeSignature: timeSignature)
     }
 
     /// Position in beats; negative during a count-in, 0 when stopped.

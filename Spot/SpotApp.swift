@@ -203,9 +203,10 @@ struct SpotApp: App {
                     if case .adaptive = editor.grid {
                         // The fixed grid nearest what the adaptive one is now
                         let now = editor.snap
-                        editor.grid = GridMode.fixed(beatsPerBar: session.sequence?.beatsPerBar ?? 4)
-                            .min { abs($0.beats(beatsPerBar: Double(session.sequence?.beatsPerBar ?? 4), beatWidth: 1, triplet: editor.isTripletGrid) - now)
-                                 < abs($1.beats(beatsPerBar: Double(session.sequence?.beatsPerBar ?? 4), beatWidth: 1, triplet: editor.isTripletGrid) - now) } ?? .note(1)
+                        let signature = session.sequence?.timeSignature ?? TimeSignature(4, 4)
+                        editor.grid = GridMode.fixed(timeSignature: signature)
+                            .min { abs($0.beats(timeSignature: signature, beatWidth: 1, triplet: editor.isTripletGrid) - now)
+                                 < abs($1.beats(timeSignature: signature, beatWidth: 1, triplet: editor.isTripletGrid) - now) } ?? .note(1)
                     } else {
                         editor.grid = .adaptive(.medium)
                     }
@@ -285,7 +286,7 @@ struct SpotApp: App {
                                                              set: { session.editor?.ghostBeats = $0 })) {
                     Text("1 Beat Early").tag(1.0)
                     Text("2 Beats Early").tag(2.0)
-                    Text("1 Bar Early").tag(Double(session.sequence?.beatsPerBar ?? 4))
+                    Text("1 Bar Early").tag(session.sequence?.barLength ?? 4)
                 }
                 .disabled(!session.isOpen)
                 Divider()

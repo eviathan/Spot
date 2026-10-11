@@ -122,10 +122,10 @@ final class TabSession {
         return score.masterBars[editor.cursor.bar].timeSignature
     }
 
-    /// Sets the time signature from the cursor's bar on (keeping the beat unit).
-    func setBeatsPerBar(_ beats: Int) {
-        guard let editor, let current = timeSignatureAtCursor, current.numerator != beats else { return }
-        score?.setTimeSignature(TimeSignature(beats, current.denominator), from: editor.cursor.bar)
+    /// Sets the time signature from the cursor's bar on.
+    func setTimeSignature(_ signature: TimeSignature) {
+        guard let editor, timeSignatureAtCursor != signature else { return }
+        score?.setTimeSignature(signature, from: editor.cursor.bar)
     }
 
     // MARK: - Playing
@@ -209,6 +209,7 @@ final class TabSession {
         didSet {
             sequenceSession?.onOpen = { [weak self] in self?.attachToSequence() }
             sequenceSession?.onClose = { [weak self] in self?.detachFromSequence() }
+            sequenceSession?.onTimeSignatureChange = { [weak self] old, new in self?.sequenceTimeSignatureChanged(from: old, to: new) }
             if sequenceSession?.sequence != nil { attachToSequence() }
         }
     }
@@ -225,13 +226,30 @@ final class TabSession {
         guard let sequenceSession, let sequence = sequenceSession.sequence else { return }
         suspendStandalone()
         var score = sequence.tablature ?? sequenceSession.blankTablature()
-        let needed = Int(ceil((sequence.lengthInBeats - sequence.startBeat) / Double(sequence.beatsPerBar) - 1e-9))
+        let needed = Int(ceil((sequence.lengthInBeats - sequence.startBeat) / sequence.barLength - 1e-9))
         while score.barCount < needed {
             score.insertBar()
         }
         load(score, from: nil)
         isSequenceTab = true
         // (Nothing goes back to the sequence until it's edited, so opening it doesn't count as a change)
+    }
+
+    /// The sequence's time signature changed: its tab's bars that were in the old one move to the new one (bars
+    /// given a different one in the tab keep it), and it gets empty bars to reach the sequence's end if it needs
+    /// them. An undo step in the tab editor.
+    func sequenceTimeSignatureChanged(from old: TimeSignature, to new: TimeSignature) {
+        guard isSequenceTab, var updated = score, let sequence = sequenceSession?.sequence else { return }
+        for index in updated.masterBars.indices where updated.masterBars[index].timeSignature == old {
+            updated.masterBars[index].timeSignature = new
+        }
+        let needed = Int(ceil((sequence.lengthInBeats - sequence.startBeat) / sequence.barLength - 1e-9))
+        while updated.barCount < needed {
+            updated.insertBar()
+        }
+        if updated != score {
+            score = updated
+        }
     }
 
     func detachFromSequence() {

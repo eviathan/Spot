@@ -272,3 +272,53 @@ final class UpcomingChordTests: XCTestCase {
         XCTAssertEqual(sequence.upcomingChord(at: 13)?.chord.symbol, "A7")
     }
 }
+
+final class TimeSignatureTests: XCTestCase {
+    func testParsing() {
+        XCTAssertEqual(TimeSignature("7/8"), TimeSignature(7, 8))
+        XCTAssertEqual(TimeSignature(" 12 / 8 "), TimeSignature(12, 8))
+        XCTAssertNil(TimeSignature("7/7"))
+        XCTAssertNil(TimeSignature("0/4"))
+        XCTAssertNil(TimeSignature("seven"))
+        XCTAssertEqual(TimeSignature(7, 8).quarterNotes, 3.5)
+        XCTAssertEqual(TimeSignature(12, 8).quarterNotes, 6)
+        XCTAssertEqual(TimeSignature(5, 16).countUnit, 0.25)
+    }
+
+    /// Beats stay quarter notes; bars and the count follow the time signature.
+    func testSequenceInSevenEight() throws {
+        var sequence = ChordSequence(tempo: 120, timeSignature: TimeSignature(7, 8), lengthInBars: 4)
+        XCTAssertEqual(sequence.barLength, 3.5)
+        XCTAssertEqual(sequence.lengthInBeats, 14)
+        XCTAssertEqual(sequence.bar(2), BeatRange(7, 10.5))
+        // Bar 2, the 3rd eighth (counted from 0: 2)
+        XCTAssertEqual(sequence.barAndBeat(at: 4.5).bar, 2)
+        XCTAssertEqual(sequence.barAndBeat(at: 4.5).beat, 2, accuracy: 1e-9)
+        sequence.setChord("Am", in: BeatRange(0, 5))
+        XCTAssertEqual(sequence.songEnd, 7)   // the end of the bar the chord ends in
+
+        let read = try JSONDecoder().decode(ChordSequence.self, from: sequence.encoded())
+        XCTAssertEqual(read.timeSignature, TimeSignature(7, 8))
+    }
+
+    func testOlderFilesAreQuarterNotes() throws {
+        let old = #"{"version": 1, "tempo": 100, "beatsPerBar": 3, "lengthInBars": 4}"#
+        let sequence = try JSONDecoder().decode(ChordSequence.self, from: Data(old.utf8))
+        XCTAssertEqual(sequence.timeSignature, TimeSignature(3, 4))
+        XCTAssertEqual(sequence.lengthInBeats, 12)
+    }
+
+    func testClockAndClicksInEighths() {
+        let clock = TempoClock(bpm: 120, timeSignature: TimeSignature(6, 8))
+        XCTAssertTrue(clock.barAndBeat(0) == (1, 1))
+        XCTAssertTrue(clock.barAndBeat(1.5) == (1, 4))
+        XCTAssertTrue(clock.barAndBeat(3) == (2, 1))
+        // A click every eighth, accented each bar (3 quarter notes)
+        let clicks = Metronome.clicks(from: 0, to: 3.25, timeSignature: TimeSignature(6, 8))
+        XCTAssertEqual(clicks.map(\.beat), [0, 0.5, 1, 1.5, 2, 2.5, 3])
+        XCTAssertEqual(clicks.map(\.isAccent), [true, false, false, false, false, false, true])
+        // 7/8: accents every 3½ quarter notes
+        let seven = Metronome.clicks(from: 0, to: 7.1, timeSignature: TimeSignature(7, 8))
+        XCTAssertEqual(seven.filter(\.isAccent).map(\.beat), [0, 3.5, 7])
+    }
+}

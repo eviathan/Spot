@@ -67,7 +67,7 @@ struct ChordLaneView: View {
     }
 
     private var beatWidth: CGFloat {
-        editor.barWidth / CGFloat(sequence.beatsPerBar)
+        editor.barWidth / CGFloat(sequence.barLength)
     }
 
     var body: some View {
@@ -128,7 +128,7 @@ struct ChordLaneView: View {
                         .onChange(of: geometry.size.width) { _, width in updateViewport(width) }
                         .onChange(of: geometry.size.height) { _, height in availableHeight = height }
                         .onChange(of: sequence.lengthInBeats) { updateViewport(geometry.size.width) }
-                        .onChange(of: sequence.beatsPerBar) { updateViewport(geometry.size.width) }
+                        .onChange(of: sequence.timeSignature) { updateViewport(geometry.size.width) }
                 })
 
             }
@@ -175,7 +175,7 @@ struct ChordLaneView: View {
     }
 
     private func updateViewport(_ width: CGFloat) {
-        editor.setViewport(width: Double(width), lengthInBeats: sequence.lengthInBeats, beatsPerBar: sequence.beatsPerBar)
+        editor.setViewport(width: Double(width), lengthInBeats: sequence.lengthInBeats, timeSignature: sequence.timeSignature)
     }
 
     private func lane(visible: ClosedRange<CGFloat>) -> some View {
@@ -212,11 +212,12 @@ struct ChordLaneView: View {
             // Bar lines and numbers (only those on screen), counted from 1.1.1: the bars before it are −1, −2…
             // Zoomed out they thin out, as in Live: numbers every 1, 2, 4, 8… bars (whatever keeps them apart),
             // bar lines at the closest step that isn't a blur, and beat lines fading out as beats get narrow.
-            let bpb = Double(sequence.beatsPerBar)
+            let bpb = sequence.barLength
             let barPixels = beatWidth * CGFloat(bpb)
             let labelStep = ChordLaneView.barStep(barPixels: barPixels, minimumSpacing: 44)
             let lineStep = ChordLaneView.barStep(barPixels: barPixels, minimumSpacing: 10)
-            let beatOpacity = min(max((beatWidth - 10) / 8, 0), 1) * 0.1
+            let countWidth = beatWidth * CGFloat(sequence.countUnit)
+            let beatOpacity = min(max((countWidth - 10) / 8, 0), 1) * 0.1
             let firstBar = Int(floor((Double(visible.lowerBound / beatWidth) - origin) / bpb))
             let lastBar = Int(ceil((Double(visible.upperBound / beatWidth) - origin) / bpb))
             let firstLine = Int(floor(Double(firstBar) / Double(lineStep))) * lineStep
@@ -240,8 +241,9 @@ struct ChordLaneView: View {
                     }
                 }
                 if beatOpacity > 0 {
-                    ForEach(1..<max(1, sequence.beatsPerBar), id: \.self) { beat in
-                        let beatAt = barStart + Double(beat)
+                    // The bar's beats in the time signature's unit (eighths in 7/8)
+                    ForEach(1..<max(1, sequence.timeSignature.numerator), id: \.self) { beat in
+                        let beatAt = barStart + Double(beat) * sequence.countUnit
                         if beatAt >= 0 && beatAt <= sequence.lengthInBeats {
                             Rectangle()
                                 .fill(Color.white.opacity(beatOpacity))
@@ -255,13 +257,15 @@ struct ChordLaneView: View {
 
             // The grid between the beats (finer than a beat, or triplets), faintly, while its lines aren't too close
             let grid = editor.snap
+            let gridCounts = grid / sequence.countUnit
             if grid > 0, grid * Double(beatWidth) >= 6,
-               abs(grid - grid.rounded()) > 1e-9 || grid < 1 {
+               abs(gridCounts - gridCounts.rounded()) > 1e-9 || gridCounts < 1 {
                 let firstStep = Int(floor((Double(visible.lowerBound / beatWidth) - origin) / grid))
                 let lastStep = Int(ceil((Double(visible.upperBound / beatWidth) - origin) / grid))
                 ForEach(firstStep..<max(firstStep, lastStep + 1), id: \.self) { step in
                     let beat = origin + Double(step) * grid
-                    let offBeat = abs((beat - origin) - (beat - origin).rounded()) > 1e-6
+                    let counts = (beat - origin) / sequence.countUnit
+                    let offBeat = abs(counts - counts.rounded()) > 1e-6
                     if offBeat && beat >= 0 && beat <= sequence.lengthInBeats {
                         Rectangle()
                             .fill(Color.white.opacity(0.05))

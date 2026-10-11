@@ -234,11 +234,14 @@ struct PerformanceHeader: View {
                 .minimumScaleFactor(0.6)
                 .opacity(region == nil ? 0.3 : 1)
             // The beats of the bar, the first bigger
-            HStack(spacing: 7) {
-                ForEach(0..<sequence.beatsPerBar, id: \.self) { beat in
+            // (In the time signature's unit: eighths in 7/8; smaller when there are many)
+            let beats = sequence.timeSignature.numerator
+            let small: CGFloat = beats > 8 ? 5 : 8
+            HStack(spacing: beats > 8 ? 4 : 7) {
+                ForEach(0..<beats, id: \.self) { beat in
                     Circle()
                         .fill(isPlaying && beat == beatInBar ? Color.white : Color.white.opacity(0.18))
-                        .frame(width: beat == 0 ? 11 : 8, height: beat == 0 ? 11 : 8)
+                        .frame(width: beat == 0 ? small + 3 : small, height: beat == 0 ? small + 3 : small)
                 }
             }
             .frame(height: 11)
@@ -477,13 +480,7 @@ struct FretboardReadout: View {
                         if let caption = sequence.section(at: max(position, 0))?.name {
                             Text(caption).font(.callout).opacity(0.6).lineLimit(1)
                         }
-                        HStack(spacing: 7) {
-                            ForEach(0..<sequence.beatsPerBar, id: \.self) { beat in
-                                Circle()
-                                    .fill(isPlaying && beat == beatInBar ? Color.primary : Color.primary.opacity(0.18))
-                                    .frame(width: beat == 0 ? 13 : 10, height: beat == 0 ? 13 : 10)
-                            }
-                        }
+                        BeatDots(count: sequence.timeSignature.numerator, current: isPlaying ? beatInBar : nil)
                     }
                 } else {
                     cardView(next, accent: nextChordColour) {
@@ -586,5 +583,23 @@ struct FretboardReadout: View {
               abs(to.centre - from.centre) >= 2.5 else { return nil }
         let lowest = (to.voicing?.placement ?? to.placement).keys.map(\.fret).filter { $0 > 0 }.min() ?? Int(to.centre)
         return to.centre > from.centre ? ("Move up to fret \(lowest)", true) : ("Move down to fret \(lowest)", false)
+    }
+}
+
+
+/// The beats of the bar, the first bigger and the one playing lit (smaller when there are many).
+private struct BeatDots: View {
+    let count: Int
+    let current: Int?
+
+    var body: some View {
+        let size: CGFloat = count > 8 ? 6 : 10
+        HStack(spacing: count > 8 ? 4 : 7) {
+            ForEach(0..<max(count, 1), id: \.self) { beat in
+                Circle()
+                    .fill(beat == current ? Color.primary : Color.primary.opacity(0.18))
+                    .frame(width: beat == 0 ? size + 3 : size, height: beat == 0 ? size + 3 : size)
+            }
+        }
     }
 }

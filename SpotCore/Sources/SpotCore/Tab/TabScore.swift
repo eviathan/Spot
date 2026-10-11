@@ -125,6 +125,29 @@ public struct TimeSignature: Hashable, Codable, Sendable, CustomStringConvertibl
         TabDuration.ticksPerQuarter * 4 * numerator / max(denominator, 1)
     }
 
+    /// How long a bar is, in quarter notes (3½ for 7/8).
+    public var quarterNotes: Double {
+        Double(numerator) * 4 / Double(max(denominator, 1))
+    }
+
+    /// What it's counted in, in quarter notes (½ for x/8).
+    public var countUnit: Double {
+        4 / Double(max(denominator, 1))
+    }
+
+    /// Time signatures that make sense: 1–32 beats of a whole to a 64th.
+    public var isValid: Bool {
+        (1...32).contains(numerator) && [1, 2, 4, 8, 16, 32, 64].contains(denominator)
+    }
+
+    /// Parses "7/8", "12 / 8".
+    public init?(_ text: String) {
+        let parts = text.split(separator: "/").map { $0.trimmingCharacters(in: .whitespaces) }
+        guard parts.count == 2, let numerator = Int(parts[0]), let denominator = Int(parts[1]) else { return nil }
+        self.init(numerator, denominator)
+        guard isValid else { return nil }
+    }
+
     public var description: String {
         "\(numerator)/\(denominator)"
     }

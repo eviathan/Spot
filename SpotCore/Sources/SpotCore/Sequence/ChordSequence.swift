@@ -84,7 +84,10 @@ public struct ChordSequence: Hashable, Codable, Sendable {
 
     public var version: Int
     public var tempo: Double
-    public var beatsPerBar: Int
+    /// Any time signature (7/8, 12/8, 5/4…). Beats here are quarter notes, as in Live: the tempo counts them and
+    /// everything is placed in them, so a bar of 7/8 is 3½ beats long. Bars and the "bar.beat" count go by the time
+    /// signature (`barLength`, `countUnit`).
+    public var timeSignature: TimeSignature
     public var lengthInBars: Int
     /// nil to work the key out from the chords.
     public var key: Key?
@@ -122,10 +125,10 @@ public struct ChordSequence: Hashable, Codable, Sendable {
     /// Where the song ends (playback stops there); nil to end with the bar the last thing ends in.
     public var endBeat: Double?
 
-    public init(tempo: Double = 100, beatsPerBar: Int = 4, lengthInBars: Int = 16) {
+    public init(tempo: Double = 100, timeSignature: TimeSignature = TimeSignature(4, 4), lengthInBars: Int = 16) {
         self.version = ChordSequence.currentVersion
         self.tempo = tempo
-        self.beatsPerBar = beatsPerBar
+        self.timeSignature = timeSignature
         self.lengthInBars = lengthInBars
         self.key = nil
         self.chords = []
@@ -140,12 +143,27 @@ public struct ChordSequence: Hashable, Codable, Sendable {
         self.endBeat = nil
     }
 
+    /// x/4, for older code and files that only knew beats to the bar.
+    public init(tempo: Double = 100, beatsPerBar: Int, lengthInBars: Int = 16) {
+        self.init(tempo: tempo, timeSignature: TimeSignature(beatsPerBar, 4), lengthInBars: lengthInBars)
+    }
+
+    /// How long a bar is, in beats (quarter notes): 4 in 4/4, 3½ in 7/8, 6 in 12/8.
+    public var barLength: Double {
+        timeSignature.quarterNotes
+    }
+
+    /// What the bar is counted in, in beats: a quarter note in x/4, an eighth in x/8.
+    public var countUnit: Double {
+        timeSignature.countUnit
+    }
+
     public var lengthInBeats: Double {
-        Double(lengthInBars * beatsPerBar)
+        Double(lengthInBars) * barLength
     }
 
     public func bar(_ index: Int) -> BeatRange {
-        BeatRange(Double(index * beatsPerBar), Double((index + 1) * beatsPerBar))
+        BeatRange(Double(index) * barLength, Double(index + 1) * barLength)
     }
 
     // MARK: - Reading
@@ -264,13 +282,13 @@ public struct ChordSequence: Hashable, Codable, Sendable {
         return startBeat + ((beat - startBeat) / unit + (rule == .down ? 1e-9 : 0)).rounded(rule) * unit
     }
 
-    /// The bar a beat is in (1 from the start marker; the bars before it are −1, −2…) and the beat within
-    /// that bar (from 0).
+    /// The bar a beat is in (1 from the start marker; the bars before it are −1, −2…) and how far into that bar
+    /// it is (from 0), counted in the time signature's unit (eighths in 6/8).
     public func barAndBeat(at beat: Double) -> (bar: Int, beat: Double) {
-        let bar = Double(beatsPerBar)
+        let bar = barLength
         let index = Int(floor((beat - startBeat) / bar + 1e-9))
         let within = beat - startBeat - Double(index) * bar
-        return (index >= 0 ? index + 1 : index, max(0, within))
+        return (index >= 0 ? index + 1 : index, max(0, within) / countUnit)
     }
 
     /// Where playback stops: the end marker, or the end of the bar the last thing ends in.
@@ -280,7 +298,7 @@ public struct ChordSequence: Hashable, Codable, Sendable {
         }
         let content = contentEnd
         guard content > startBeat else { return lengthInBeats }
-        return min(lengthInBeats, onGrid(content - 1e-9, unit: Double(beatsPerBar), .up))
+        return min(lengthInBeats, onGrid(content - 1e-9, unit: barLength, .up))
     }
 
     /// Where the recording ends on the grid (through its warp markers), if there is one.
@@ -297,7 +315,7 @@ public struct ChordSequence: Hashable, Codable, Sendable {
 
     /// Sizes the sequence to what's in it, plus `spareBars` empty bars to add more (and at least `minimumBars`).
     public mutating func fitLength(spareBars: Int = 4, minimumBars: Int = 16) {
-        let used = Int(ceil(contentEnd / Double(beatsPerBar) - 1e-9))
+        let used = Int(ceil(contentEnd / barLength - 1e-9))
         let bars = max(minimumBars, used + spareBars)
         if bars != lengthInBars {
             setLength(bars: bars)
@@ -335,11 +353,11 @@ public struct ChordSequence: Hashable, Codable, Sendable {
     // MARK: - Files
 
     enum CodingKeys: String, CodingKey {
-        case version, tempo, beatsPerBar, lengthInBars, key, chords, sections, loopRange, isLooping, audio, takes, tablature, tabIsMuted, startBeat, endBeat
+        case version, tempo, timeSignature, lengthInBars, key, chords, sections, loopRange, isLooping, audio, takes, tablature, tabIsMuted, startBeat, endBeat
     }
 
     private enum LegacyKeys: String, CodingKey {
-        case practiceRate, loop
+        case practiceRate, loop, beatsPerBar
     }
 
     public init(from decoder: Decoder) throws {
@@ -350,7 +368,12 @@ public struct ChordSequence: Hashable, Codable, Sendable {
                                                    debugDescription: "Made by a newer version of Spot (format \(version))")
         }
         tempo = try container.decode(Double.self, forKey: .tempo)
-        beatsPerBar = try container.decode(Int.self, forKey: .beatsPerBar)
+        // Files from before any time signature had beats to the bar (of quarter notes)
+        if let signature = try container.decodeIfPresent(TimeSignature.self, forKey: .timeSignature) {
+            timeSignature = signature
+        } else {
+            timeSignature = TimeSignature(try decoder.container(keyedBy: LegacyKeys.self).decode(Int.self, forKey: .beatsPerBar), 4)
+        }
         lengthInBars = try container.decode(Int.self, forKey: .lengthInBars)
         key = try container.decodeIfPresent(Key.self, forKey: .key)
         chords = (try container.decodeIfPresent([ChordRegion].self, forKey: .chords) ?? []).sorted { $0.range.start < $1.range.start }

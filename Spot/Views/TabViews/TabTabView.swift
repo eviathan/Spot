@@ -412,7 +412,7 @@ private struct BarSettings: View {
                         Picker("", selection: Binding(get: { master.timeSignature.numerator }, set: {
                             session.score?.setTimeSignature(TimeSignature($0, master.timeSignature.denominator), from: bar)
                         })) {
-                            ForEach(1...16, id: \.self) { Text("\($0)").tag($0) }
+                            ForEach(1...32, id: \.self) { Text("\($0)").tag($0) }
                         }
                         .labelsHidden()
                         .frame(width: 60)
@@ -420,7 +420,7 @@ private struct BarSettings: View {
                         Picker("", selection: Binding(get: { master.timeSignature.denominator }, set: {
                             session.score?.setTimeSignature(TimeSignature(master.timeSignature.numerator, $0), from: bar)
                         })) {
-                            ForEach([2, 4, 8, 16], id: \.self) { Text("\($0)").tag($0) }
+                            ForEach([1, 2, 4, 8, 16, 32, 64], id: \.self) { Text("\($0)").tag($0) }
                         }
                         .labelsHidden()
                         .frame(width: 60)

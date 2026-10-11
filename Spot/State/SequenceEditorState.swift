@@ -102,12 +102,12 @@ final class SequenceEditorState {
     /// The grid now, in beats, for placing the playhead, selecting and moving and resizing chords; 0 is off.
     /// Adaptive, it depends on the zoom.
     var snap: Double {
-        grid.beats(beatsPerBar: laneBeatsPerBar, beatWidth: beatWidth, triplet: isTripletGrid)
+        grid.beats(timeSignature: laneTimeSignature, beatWidth: beatWidth, triplet: isTripletGrid)
     }
 
     /// The grid now, named: "1/16", "1 Bar", "1/8T"…
     var gridName: String {
-        GridMode.name(beats: snap, beatsPerBar: laneBeatsPerBar, triplet: isTripletGrid)
+        GridMode.name(beats: snap, timeSignature: laneTimeSignature, triplet: isTripletGrid)
     }
 
     /// ⌘1: a finer grid (adaptive: narrower; fixed: the next shorter value).
@@ -116,7 +116,7 @@ final class SequenceEditorState {
         case .adaptive(let density): grid = .adaptive(density.narrower)
         case .off: grid = lastGrid
         default:
-            let values = GridMode.fixed(beatsPerBar: Int(laneBeatsPerBar))
+            let values = GridMode.fixed(timeSignature: laneTimeSignature)
             if let index = values.firstIndex(of: grid), index > 0 { grid = values[index - 1] }
         }
     }
@@ -127,7 +127,7 @@ final class SequenceEditorState {
         case .adaptive(let density): grid = .adaptive(density.wider)
         case .off: grid = lastGrid
         default:
-            let values = GridMode.fixed(beatsPerBar: Int(laneBeatsPerBar))
+            let values = GridMode.fixed(timeSignature: laneTimeSignature)
             if let index = values.firstIndex(of: grid), index < values.count - 1 { grid = values[index + 1] }
         }
     }
@@ -167,7 +167,9 @@ final class SequenceEditorState {
     // What the lane last told us about itself, for zooming and clamping
     @ObservationIgnored private var viewportWidth: Double = 0
     @ObservationIgnored private var laneBeats: Double = 16
-    @ObservationIgnored private var laneBeatsPerBar: Double = 4
+    @ObservationIgnored private var laneTimeSignature = TimeSignature(4, 4)
+    /// A bar, in beats (quarter notes).
+    private var laneBarLength: Double { laneTimeSignature.quarterNotes }
 
     /// While playing, page the lane along when the playhead reaches the edge.
     var followsPlayhead = true
@@ -186,7 +188,7 @@ final class SequenceEditorState {
     }
 
     private var beatWidth: Double {
-        barWidth / laneBeatsPerBar
+        barWidth / laneBarLength
     }
     /// How many beats fit on screen.
     var visibleBeats: Double {
@@ -194,7 +196,7 @@ final class SequenceEditorState {
     }
     /// Zoomed right out, the whole sequence fits.
     private var barWidthRange: ClosedRange<Double> {
-        let fit = viewportWidth > 0 ? viewportWidth * laneBeatsPerBar / laneBeats : 40
+        let fit = viewportWidth > 0 ? viewportWidth * laneBarLength / laneBeats : 40
         // In far enough to place markers on single samples
         return min(40, fit)...400_000
     }
@@ -202,10 +204,10 @@ final class SequenceEditorState {
     /// A beat to bring into view once the lane knows how wide it is (e.g. the start marker, on opening).
     @ObservationIgnored var revealOnLayout: Double?
 
-    func setViewport(width: Double, lengthInBeats: Double, beatsPerBar: Int) {
+    func setViewport(width: Double, lengthInBeats: Double, timeSignature: TimeSignature) {
         viewportWidth = width
         laneBeats = max(lengthInBeats, 1)
-        laneBeatsPerBar = Double(max(beatsPerBar, 1))
+        laneTimeSignature = timeSignature
         if let beat = revealOnLayout, width > 0 {
             revealOnLayout = nil
             viewStart = beat - visibleBeats * 0.03
@@ -252,7 +254,7 @@ final class SequenceEditorState {
     func show(from start: Double, to end: Double, keeping edge: ViewEdge = .start) {
         guard viewportWidth > 0 else { return }
         let range = barWidthRange
-        barWidth = min(max(viewportWidth * laneBeatsPerBar / max(end - start, 0.25), range.lowerBound), range.upperBound)
+        barWidth = min(max(viewportWidth * laneBarLength / max(end - start, 0.25), range.lowerBound), range.upperBound)
         viewStart = edge == .start ? start : end - visibleBeats
         clampView()
     }
@@ -474,12 +476,14 @@ final class SequenceEditorState {
     }
 
     /// The playhead as bar.beat (with the sixteenth when it's between beats), or a range of bars, counted
-    /// from 1.1.1 (bars before it are −1, −2…).
+    /// from 1.1.1 (bars before it are −1, −2…). Beats are the time signature's (eighths in 6/8).
     func describe(_ range: BeatRange, in sequence: ChordSequence) -> String {
+        // Sixteenths in one of the time signature's beats: 4 in x/4, 2 in x/8, 1 in x/16 (none to show)
+        let perBeat = max(1, Int((sequence.countUnit * 4).rounded()))
         let position = { (beat: Double) -> (bar: Int, beat: Int, sixteenth: Int) in
             let place = sequence.barAndBeat(at: beat)
-            let sixteenth = Int(((place.beat - floor(place.beat)) * 4).rounded())
-            return (place.bar, Int(place.beat) + 1, sixteenth > 0 && sixteenth < 4 ? sixteenth + 1 : 0)
+            let sixteenth = Int(((place.beat - floor(place.beat)) * Double(perBeat)).rounded())
+            return (place.bar, Int(place.beat + 1e-9) + 1, sixteenth > 0 && sixteenth < perBeat ? sixteenth + 1 : 0)
         }
         guard range.length > 0 else {
             let at = position(range.start)
@@ -506,23 +510,28 @@ enum GridMode: Hashable {
     case bars(Double)
     case off
 
-    /// The grid in beats.
-    func beats(beatsPerBar: Double, beatWidth: Double, triplet: Bool) -> Double {
+    /// The grid in beats (quarter notes).
+    func beats(timeSignature: TimeSignature, beatWidth: Double, triplet: Bool) -> Double {
         let scale = triplet ? 2.0 / 3 : 1
+        let bar = timeSignature.quarterNotes
         switch self {
         case .off:
             return 0
         case .note(let quarters):
             return quarters * scale
         case .bars(let bars):
-            return bars * beatsPerBar * scale
+            return bars * bar * scale
         case .adaptive(let density):
             guard beatWidth > 0 else { return scale }
-            var candidates: [Double] = [0.125, 0.25, 0.5, 1]
-            if Int(beatsPerBar) % 2 == 0 { candidates.append(beatsPerBar / 2) }
+            // Note values shorter than a bar, half a bar when it halves evenly, then bars
+            var candidates = [0.125, 0.25, 0.5, 1, 2].filter { $0 < bar - 1e-9 }
+            if timeSignature.numerator % 2 == 0, timeSignature.numerator > 2, !candidates.contains(bar / 2) {
+                candidates.append(bar / 2)
+                candidates.sort()
+            }
             var bars = 1.0
             while bars <= 1024 {
-                candidates.append(bars * beatsPerBar)
+                candidates.append(bars * bar)
                 bars *= 2
             }
             return (candidates.first { $0 * scale * beatWidth >= density.spacing } ?? candidates.last!) * scale
@@ -530,25 +539,29 @@ enum GridMode: Hashable {
     }
 
     /// The fixed grids, finest first (⌘1 and ⌘2 step through them).
-    static func fixed(beatsPerBar: Int) -> [GridMode] {
-        [.note(0.125), .note(0.25), .note(0.5), .note(1)]
-            + (beatsPerBar % 2 == 0 && beatsPerBar > 2 ? [.bars(0.5)] : [])
+    static func fixed(timeSignature: TimeSignature) -> [GridMode] {
+        let bar = timeSignature.quarterNotes
+        return [0.125, 0.25, 0.5, 1].filter { $0 < bar - 1e-9 }.map { .note($0) }
+            + (timeSignature.numerator % 2 == 0 && timeSignature.numerator > 2 ? [.bars(0.5)] : [])
             + [.bars(1), .bars(2), .bars(4), .bars(8)]
     }
 
     /// "1/16", "½ Bar", "2 Bars", with T for triplets.
-    static func name(beats: Double, beatsPerBar: Double, triplet: Bool) -> String {
+    static func name(beats: Double, timeSignature: TimeSignature, triplet: Bool) -> String {
         guard beats > 0 else { return "Off" }
+        let bar = timeSignature.quarterNotes
         let plain = triplet ? beats * 3 / 2 : beats
         let t = triplet ? "T" : ""
-        if plain >= beatsPerBar - 1e-9 {
-            let bars = plain / beatsPerBar
+        if plain >= bar - 1e-9 {
+            let bars = plain / bar
             if abs(bars - bars.rounded()) < 1e-9 {
                 return "\(Int(bars.rounded())) Bar\(Int(bars.rounded()) == 1 ? "" : "s")\(t)"
             }
         }
-        if abs(plain - beatsPerBar / 2) < 1e-9, plain > 1 { return "½ Bar\(t)" }
-        return "1/\(Int((4 / plain).rounded()))\(t)"
+        if abs(plain - bar / 2) < 1e-9, timeSignature.numerator % 2 == 0, timeSignature.numerator > 2 { return "½ Bar\(t)" }
+        let notes = 4 / plain
+        if abs(notes - notes.rounded()) < 1e-9 { return "1/\(Int(notes.rounded()))\(t)" }
+        return "\(String(format: "%g", plain)) beats\(t)"
     }
 
     // MARK: Saving

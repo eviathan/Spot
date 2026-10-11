@@ -367,12 +367,17 @@ final class SequenceSession {
     /// Where the rendered audio stops: the end of the bar the recording ends in.
     private static func renderEnd(_ sequence: ChordSequence) -> Double? {
         guard let end = sequence.audioEndBeat else { return nil }
-        let bar = Double(sequence.beatsPerBar)
+        let bar = sequence.barLength
         return min(sequence.lengthInBeats, ceil(end / bar - 1e-9) * bar)
     }
 
     private func sequenceChanged(from old: ChordSequence?) {
         guard !isLoading, var fitted = sequence, fitted != old else { return }
+        if let old, old.timeSignature != fitted.timeSignature {
+            let change = (old.timeSignature, fitted.timeSignature)
+            // After this change has settled (the tab's edit comes back into the sequence)
+            DispatchQueue.main.async { [weak self] in self?.onTimeSignatureChange?(change.0, change.1) }
+        }
         // The length follows the content (plus a few spare bars). Fitting sets the sequence again, which
         // comes back here; that pass does the work, measured against the sequence from before both.
         fitted.fitLength()
@@ -494,7 +499,7 @@ final class SequenceSession {
     private func start(_ sequence: ChordSequence, editor: SequenceEditorState, from beat: Double, countIn: Bool) {
         playedFrom = beat
         applyTempo(sequence)
-        transport.beatsPerBar = sequence.beatsPerBar
+        transport.timeSignature = sequence.timeSignature
         editor.followSuspended = false
         playback.play(playbackData(sequence, editor: editor), from: beat, id: editor.id, countIn: countIn)
     }
@@ -519,7 +524,7 @@ final class SequenceSession {
         } else if sequence.loopRange != nil {
             self.sequence?.isLooping = true
         } else {
-            let bar = Double(sequence.beatsPerBar)
+            let bar = sequence.barLength
             let start = sequence.onGrid(selection.start, unit: bar)
             self.sequence?.loop = BeatRange(start, min(start + bar, sequence.lengthInBeats))
         }
@@ -607,6 +612,8 @@ final class SequenceSession {
     /// Told when a sequence opens or closes, for the tab editor to show its tab (or not).
     @ObservationIgnored var onOpen: (() -> Void)?
     @ObservationIgnored var onClose: (() -> Void)?
+    /// Told when the time signature changes (old and new), for the tab to follow.
+    @ObservationIgnored var onTimeSignatureChange: ((TimeSignature, TimeSignature) -> Void)?
     /// Set while the tab editor puts in an edit (which isn't an undo step here: the tab editor has its own undo).
     @ObservationIgnored private var isTabEdit = false
     @ObservationIgnored private var cachedTabPerformance: (score: TabScore, performance: TabPerformance)?
@@ -636,10 +643,10 @@ final class SequenceSession {
     /// A tab for this sequence: one guitar track, in its time signature, from the start marker to its end.
     func blankTablature() -> TabScore {
         guard let sequence else { return TabScore.empty() }
-        let bars = max(1, Int(ceil((sequence.lengthInBeats - sequence.startBeat) / Double(sequence.beatsPerBar) - 1e-9)))
+        let bars = max(1, Int(ceil((sequence.lengthInBeats - sequence.startBeat) / sequence.barLength - 1e-9)))
         var score = TabScore.empty(bars: bars)
         for index in score.masterBars.indices {
-            score.masterBars[index].timeSignature = TimeSignature(sequence.beatsPerBar, 4)
+            score.masterBars[index].timeSignature = sequence.timeSignature
         }
         score.tempo = sequence.tempo
         return score
@@ -674,7 +681,7 @@ final class SequenceSession {
         let start = sequence.startBeat
         let end = start + last.range.end
         if end > sequence.lengthInBeats {
-            sequence.setLength(bars: Int(ceil(end / Double(sequence.beatsPerBar))))
+            sequence.setLength(bars: Int(ceil(end / sequence.barLength - 1e-9)))
         }
         let parser = ChordSymbolParser(chords: library.chords)
         var unreadable: [String] = []
@@ -694,7 +701,7 @@ final class SequenceSession {
     /// Links a recording to the sequence (it stays where it is) and lengthens the sequence to fit it.
     func importAudio(_ url: URL) throws {
         let reference = try makeReference(url)
-        let secondsPerBar = Double(sequence?.beatsPerBar ?? 4) * 60 / (sequence?.tempo ?? 120)
+        let secondsPerBar = (sequence?.barLength ?? 4) * 60 / (sequence?.tempo ?? 120)
         // Starts at bar 1, at the sequence's tempo until told otherwise
         sequence?.audio = AudioTrack(reference: reference, tempo: sequence?.tempo ?? 120)
         if let bars = sequence?.lengthInBars, Double(bars) * secondsPerBar < reference.duration {

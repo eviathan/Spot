@@ -17,6 +17,8 @@ struct Footer: View {
     @Environment(TabSession.self) private var tabSession
     @Environment(UIState.self) private var ui
     @State private var previousBPMChangeValue: CGFloat = 0
+    @State private var isTypingTimeSignature = false
+    @State private var otherTimeSignature = ""
 
     let dimmed = Color(hue: 0.62, saturation: 0.38, brightness: 0.38, opacity: 1.00)
 
@@ -82,27 +84,39 @@ struct Footer: View {
 
     // MARK: Time signature
 
-    private var beatsPerBar: Int {
+    private var timeSignature: TimeSignature {
         if editsTab, let signature = tabSession.timeSignatureAtCursor {
-            return signature.numerator
+            return signature
         }
-        return editsSequence ? session.sequence?.beatsPerBar ?? 4 : transport.beatsPerBar
+        return editsSequence ? session.sequence?.timeSignature ?? TimeSignature(4, 4) : transport.timeSignature
     }
 
-    /// Chords, sections, loops and warp markers are all in beats, so changing this just regroups them into
-    /// bars (and can be undone).
-    private func setBeatsPerBar(_ value: Int) {
-        let value = min(max(value, 2), 7)
+    /// Any time signature. Chords, sections, loops and warp markers are all in beats (quarter notes), so changing
+    /// it just regroups them into bars (and can be undone).
+    private func setTimeSignature(_ signature: TimeSignature) {
+        guard signature.isValid, signature != timeSignature else { return }
         if editsTab {
-            tabSession.setBeatsPerBar(value)
-        } else if editsSequence, let old = session.sequence?.beatsPerBar {
-            guard value != old else { return }
+            tabSession.setTimeSignature(signature)
+        } else if editsSequence {
             // (A grid of bars stays bars: the grid is kept in bars or note values, not beats)
-            session.sequence?.beatsPerBar = value
+            session.sequence?.timeSignature = signature
         } else {
-            transport.beatsPerBar = value
+            transport.timeSignature = signature
         }
     }
+
+    /// The arrows change the top number.
+    private func stepTimeSignature(_ step: Int) {
+        let current = timeSignature
+        setTimeSignature(TimeSignature(min(max(current.numerator + step, 1), 32), current.denominator))
+    }
+
+    /// The menu's choices.
+    private static let commonTimeSignatures: [[TimeSignature]] = [
+        [TimeSignature(2, 4), TimeSignature(3, 4), TimeSignature(4, 4), TimeSignature(5, 4), TimeSignature(6, 4), TimeSignature(7, 4)],
+        [TimeSignature(3, 8), TimeSignature(5, 8), TimeSignature(6, 8), TimeSignature(7, 8), TimeSignature(9, 8), TimeSignature(12, 8)],
+        [TimeSignature(2, 2), TimeSignature(3, 2)],
+    ]
     
     var body: some View {
         HStack {
@@ -139,9 +153,9 @@ struct Footer: View {
                     tempoLabel
                 }
 
-                RangePicker(data: 2..<8,
-                            onDecrement: { setBeatsPerBar(beatsPerBar - 1) },
-                            onIncrement: { setBeatsPerBar(beatsPerBar + 1) }) { _ in
+                RangePicker(data: 1..<33,
+                            onDecrement: { stepTimeSignature(-1) },
+                            onIncrement: { stepTimeSignature(1) }) { _ in
                     timeSignatureLabel
                 }
 
@@ -203,11 +217,19 @@ struct Footer: View {
                 .font(.system(size: 14))
                 .foregroundColor(.white)
             Menu {
-                ForEach(2...7, id: \.self) { value in
-                    Button("\(value)/\(editsTab ? tabSession.timeSignatureAtCursor?.denominator ?? 4 : 4)") { setBeatsPerBar(value) }
+                ForEach(Footer.commonTimeSignatures, id: \.self) { group in
+                    ForEach(group, id: \.self) { signature in
+                        Toggle(signature.description, isOn: Binding(get: { signature == timeSignature },
+                                                                    set: { _ in setTimeSignature(signature) }))
+                    }
+                    Divider()
+                }
+                Button("Other…") {
+                    otherTimeSignature = timeSignature.description
+                    isTypingTimeSignature = true
                 }
             } label: {
-                Text("\(beatsPerBar)/\(editsTab ? tabSession.timeSignatureAtCursor?.denominator ?? 4 : 4)")
+                Text(timeSignature.description)
                     .font(.system(size: 20))
                     .foregroundColor(.white)
             }
@@ -215,8 +237,50 @@ struct Footer: View {
             .menuIndicator(.hidden)
             .fixedSize()
             .frame(minWidth: 44)
+            .popover(isPresented: $isTypingTimeSignature, arrowEdge: .top) {
+                timeSignatureEditor
+            }
         }
-        .help("Time signature: beats in a bar")
+        .help("Time signature: choose one, or Other… to type any (7/8, 11/16…). The arrows change the beats in a bar.")
+    }
+
+    /// Typing a time signature.
+    private var timeSignatureEditor: some View {
+        let typed = TimeSignature(otherTimeSignature)
+        return VStack(alignment: .leading, spacing: 10) {
+            Text("Time Signature")
+                .font(.headline)
+            HStack(spacing: 8) {
+                TextField("7/8", text: $otherTimeSignature)
+                    .textFieldStyle(.roundedBorder)
+                    .font(.system(size: 18, weight: .medium).monospacedDigit())
+                    .frame(width: 90)
+                    .onSubmit {
+                        if let typed {
+                            setTimeSignature(typed)
+                            isTypingTimeSignature = false
+                        }
+                    }
+                Button("Set") {
+                    if let typed {
+                        setTimeSignature(typed)
+                        isTypingTimeSignature = false
+                    }
+                }
+                .keyboardShortcut(.defaultAction)
+                .disabled(typed == nil)
+            }
+            Text(typed == nil ? "Beats (1–32) / note value (1, 2, 4, 8, 16, 32 or 64)" : "\(typed!.numerator) beats of a \(Footer.noteName(typed!.denominator)) to the bar")
+                .font(.caption)
+                .foregroundStyle(typed == nil ? Color.orange : .secondary)
+        }
+        .padding(14)
+        .frame(width: 280)
+    }
+
+    private static func noteName(_ denominator: Int) -> String {
+        [1: "whole note", 2: "half note", 4: "quarter note", 8: "eighth note", 16: "sixteenth note",
+         32: "32nd note", 64: "64th note"][denominator] ?? "1/\(denominator)"
     }
 
     private var tempoLabel: some View {

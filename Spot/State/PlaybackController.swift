@@ -467,13 +467,13 @@ final class PlaybackController {
         // Beats (and bar accents) count from the bar origin, i.e. a sequence's 1.1.1.
         // Count-in clicks always sound; after that only when the metronome is on
         let origin = transport.barOrigin
-        let wanted = Metronome.clicks(from: from - origin, to: to - origin, beatsPerBar: transport.beatsPerBar)
-            .filter { transport.isMetronomeOn || Double($0.beat) + origin < countInEnd }
+        let wanted = Metronome.clicks(from: from - origin, to: to - origin, timeSignature: transport.timeSignature)
+            .filter { transport.isMetronomeOn || $0.beat + origin < countInEnd }
         guard !wanted.isEmpty, let clicks = clickPlayer() else { return }
 
         clicks.volume = Float(settings.metronomeVolume)
         for click in wanted {
-            clicks.click(accent: click.isAccent, atHostTime: transport.hostTime(forBeat: Double(click.beat) + origin))
+            clicks.click(accent: click.isAccent, atHostTime: transport.hostTime(forBeat: click.beat + origin))
         }
     }
     

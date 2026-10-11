@@ -217,9 +217,9 @@ extension LaneEditorBar {
                 }
             }
             Section("Fixed") {
-                ForEach(GridMode.fixed(beatsPerBar: sequence.beatsPerBar).reversed(), id: \.self) { fixed in
-                    choice(GridMode.name(beats: fixed.beats(beatsPerBar: Double(sequence.beatsPerBar), beatWidth: 1, triplet: false),
-                                         beatsPerBar: Double(sequence.beatsPerBar), triplet: false),
+                ForEach(GridMode.fixed(timeSignature: sequence.timeSignature).reversed(), id: \.self) { fixed in
+                    choice(GridMode.name(beats: fixed.beats(timeSignature: sequence.timeSignature, beatWidth: 1, triplet: false),
+                                         timeSignature: sequence.timeSignature, triplet: false),
                            grid == fixed) { editor.grid = fixed }
                 }
             }
