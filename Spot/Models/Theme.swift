@@ -15,9 +15,19 @@ class Theme {
         return semitones == 0 ? .white : intervalColors[semitones]
     }
 
-    /// The interval colours dark enough to want white text on them (the deep minor 2nd, 6th and 7th).
+    /// An interval's colour by semitones above the root (any number: it's taken round the octave).
+    func intervalColor(_ semitones: Int) -> Color {
+        intervalColors[((semitones % 12) + 12) % 12]
+    }
+
+    /// Readable text on a solid interval colour: white on the root's black and the deep colours.
+    func textColor(onInterval semitones: Int) -> Color {
+        ((semitones % 12) + 12) % 12 == 0 || Theme.isDarkInterval(semitones) ? .white : .black
+    }
+
+    /// The interval colours dark enough to want white text on them (the deep blue of the ♭5).
     static func isDarkInterval(_ semitones: Int) -> Bool {
-        [1, 8, 10].contains(((semitones % 12) + 12) % 12)
+        ((semitones % 12) + 12) % 12 == 6
     }
 
     let fretboardColor = Color(hue: 0.61, saturation: 0.42, brightness: 0.31, opacity: 1.00)
@@ -34,22 +44,25 @@ class Theme {
     let defaultMarkerColor: Color = Color(hue: 0.00, saturation: 0.00, brightness: 0.97, opacity: 1.00)
     let openMarkerColor: Color = Color(hue: 0.00, saturation: 0.00, brightness: 0.3, opacity: 1.00)
     
-    /// One colour per interval (by semitones above the root), round the colour wheel in order of size, each pair
-    /// a family with the minor one deep and the major one light: 2nds red, 3rds orange to gold, the 4th and 5th
-    /// green and blue (the tritone a neutral slate between them), 6ths violet, 7ths magenta. The root is black.
+    /// One colour per interval (by semitones above the root), by what it does in a chord. The notes that make the
+    /// chord get the primary colours, the colour tones and extensions the secondaries (softer, so they sit back);
+    /// within each, the minor (or flattened) one deep and the major one bright. The root is black.
+    /// - 3rds red, 5ths blue (the tritone as the ♭5, deep blue), 7ths yellow
+    /// - 2nds/9ths orange, the 4th/11th green, 6ths/13ths purple
+    /// All soft (pastel), in keeping with the rest of the app.
     let intervalColors: [Color] = [
         Color(hue: 0.000, saturation: 0.00, brightness: 0.00),   // R
-        Color(hue: 0.985, saturation: 0.78, brightness: 0.74),   // m2 crimson
-        Color(hue: 0.020, saturation: 0.52, brightness: 0.99),   // M2 coral
-        Color(hue: 0.065, saturation: 0.86, brightness: 0.90),   // m3 burnt orange
-        Color(hue: 0.120, saturation: 0.72, brightness: 1.00),   // M3 gold
-        Color(hue: 0.370, saturation: 0.58, brightness: 0.78),   // P4 green
-        Color(hue: 0.600, saturation: 0.14, brightness: 0.62),   // TT slate
-        Color(hue: 0.570, saturation: 0.72, brightness: 0.92),   // P5 blue
-        Color(hue: 0.740, saturation: 0.62, brightness: 0.74),   // m6 violet
-        Color(hue: 0.740, saturation: 0.32, brightness: 0.98),   // M6 lavender
-        Color(hue: 0.860, saturation: 0.70, brightness: 0.74),   // m7 magenta
-        Color(hue: 0.900, saturation: 0.34, brightness: 1.00),   // M7 pink
+        Color(hue: 0.060, saturation: 0.48, brightness: 0.80),   // m2 deep orange
+        Color(hue: 0.075, saturation: 0.34, brightness: 1.00),   // M2 light orange
+        Color(hue: 0.995, saturation: 0.62, brightness: 0.82),   // m3 deep red
+        Color(hue: 0.005, saturation: 0.46, brightness: 1.00),   // M3 light red
+        Color(hue: 0.360, saturation: 0.34, brightness: 0.82),   // P4 green
+        Color(hue: 0.630, saturation: 0.48, brightness: 0.70),   // TT (♭5) deep blue
+        Color(hue: 0.580, saturation: 0.48, brightness: 0.96),   // P5 blue
+        Color(hue: 0.760, saturation: 0.36, brightness: 0.72),   // m6 deep purple
+        Color(hue: 0.760, saturation: 0.22, brightness: 0.97),   // M6 light purple
+        Color(hue: 0.115, saturation: 0.62, brightness: 0.86),   // m7 ochre
+        Color(hue: 0.145, saturation: 0.52, brightness: 1.00),   // M7 yellow
     ]
     
 //    let markerColours: [Color] = [

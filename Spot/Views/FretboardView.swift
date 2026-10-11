@@ -41,6 +41,56 @@ struct FretboardMarker: Identifiable {
     }
 }
 
+/// The one look for notes on every fretboard (Library, Sequence, Tab): each interval in its colour, chord tones solid,
+/// other notes of the scale ringed in their colour with a black middle, the root a rounded square; notes away from
+/// the hand's position the same, see-through.
+extension FretboardMarker {
+    enum Tone {
+        /// In the chord (or a chord or interval picked in the Library): solid.
+        case chord
+        /// In the scale but not the chord (or a scale picked in the Library): ringed, black middle.
+        case scale
+    }
+
+    enum Prominence {
+        /// Where the hand is.
+        case full
+        /// In the position but not the grip itself.
+        case soft
+        /// Elsewhere on the neck (shape isolation off): the same look, see-through.
+        case faint
+    }
+
+    init(_ marker: FretMarker, label: String, tone: Tone, semitones: Int, prominence: Prominence = .full,
+         theme: Theme, isVisible: Bool = true, canSetFinger: Bool = false) {
+        let colour = theme.intervalColor(semitones)
+        let isRoot = ((semitones % 12) + 12) % 12 == 0
+        let size: CGFloat
+        let opacity: Double
+        switch prominence {
+        case .full: (size, opacity) = (1, 1)
+        case .soft: (size, opacity) = (1, 0.8)
+        case .faint: (size, opacity) = (1, 0.5)
+        }
+        switch tone {
+        case .chord:
+            self.init(marker: marker, label: label, ring: colour, fill: colour, text: theme.textColor(onInterval: semitones),
+                      isVisible: isVisible, scale: size, canSetFinger: canSetFinger, opacity: opacity, isRoot: isRoot)
+        case .scale:
+            self.init(marker: marker, label: label, ring: colour, fill: .black, text: .white,
+                      isVisible: isVisible, scale: size, canSetFinger: canSetFinger, opacity: opacity, isRoot: isRoot)
+        }
+    }
+
+    /// A note outside what's shown (with unrelated notes on, ⌘U): plain.
+    static func unrelated(_ marker: FretMarker, label: String, theme: Theme, isVisible: Bool) -> FretboardMarker {
+        let ring = marker.position.fret == 0 ? theme.openMarkerColor : theme.defaultMarkerColor
+        return FretboardMarker(marker: marker, label: label, ring: ring, fill: ring,
+                               text: marker.position.fret == 0 ? .white : theme.fretboardColor,
+                               isVisible: isVisible, scale: 0.8)
+    }
+}
+
 /// Draws the neck and a set of markers. What the markers mean is up to the caller.
 struct FretboardView: View {
     @Environment(\.theme) private var theme

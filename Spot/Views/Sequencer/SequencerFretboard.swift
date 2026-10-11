@@ -122,44 +122,36 @@ struct SequencerFretboard: View {
             }
             // Held into the next chord: the right half in the colour of what it becomes there. Only in its scale (with
             // the next scale showing): a dashed ring in that colour instead.
-            let becomes = next.flatMap { $0.isChordTone ? intervalColour($0.offset).opacity(nextStrength) : nil }
-            let becomesInScale = next.flatMap { $0.isChordTone ? nil : intervalColour($0.offset).opacity(nextStrength * 0.8) }
-            let isRoot = offset == 0
-            let colour = intervalColour(offset)
+            let becomes = next.flatMap { $0.isChordTone ? theme.intervalColor($0.offset).opacity(nextStrength) : nil }
+            let becomesInScale = next.flatMap { $0.isChordTone ? nil : theme.intervalColor($0.offset).opacity(nextStrength * 0.8) }
 
             switch role {
-            case .chordTone where inVoicing || inCurrent:
-                // Chord tones: solid in their interval's colour (the voicing's full strength, the chord's other notes
-                // in the position a little softer)
-                return FretboardMarker(marker: marker, label: label, ring: colour, fill: colour,
-                                       text: becomes == nil ? textColour(on: offset) : .white,
-                                       halo: becomesInScale, haloDashed: true, opacity: inVoicing ? 1 : 0.8,
-                                       isRoot: isRoot, split: becomes, textShadow: becomes != nil)
-            case .tension where inCurrent, .avoid where inCurrent:
-                // The rest of the scale: the same size, ringed in its interval's colour with a black middle
-                return FretboardMarker(marker: marker, label: label, ring: colour, fill: .black, text: .white,
-                                       halo: becomesInScale, haloDashed: true, opacity: role == .avoid ? 0.75 : 1,
-                                       split: becomes, textShadow: becomes != nil)
+            case .chordTone where inVoicing || inCurrent, .tension where inCurrent, .avoid where inCurrent:
+                // Chord tones solid, the rest of the scale ringed (the voicing full strength, the chord's other notes
+                // in the position a little softer, notes to avoid over the chord softer too)
+                var styled = FretboardMarker(marker, label: label, tone: role == .chordTone ? .chord : .scale, semitones: offset,
+                                             prominence: inVoicing || role == .tension ? .full : .soft, theme: theme)
+                styled.split = becomes
+                styled.textShadow = becomes != nil
+                if becomes != nil { styled.text = .white }
+                styled.halo = becomesInScale
+                styled.haloDashed = true
+                return styled
             default:
                 // New with the next chord: a dashed ring in its interval's colour there, faintly filled (its chord
                 // tones; with the next scale showing, its other notes fainter)
                 if let next {
-                    let nextColour = intervalColour(next.offset)
+                    let nextColour = theme.intervalColor(next.offset)
                     return FretboardMarker(marker: marker, label: next.label, ring: nextColour,
                                            fill: nextColour.opacity(next.isChordTone ? 0.3 : 0.12), text: .white,
                                            scale: next.isChordTone ? 0.9 : 0.7,
                                            opacity: nextStrength * (next.isChordTone ? 1 : 0.8),
                                            isRoot: next.isChordTone && next.offset == 0, ringDashed: true)
                 }
-                if role == .chordTone && !isolates {
-                    // Chord tones elsewhere on the neck, faint, for orientation
-                    return FretboardMarker(marker: marker, label: label, ring: colour, fill: colour, text: textColour(on: offset),
-                                           scale: 0.55, opacity: 0.3, isRoot: isRoot)
-                }
-                if (role == .tension || role == .avoid) && !isolates {
-                    // The rest of the scale elsewhere on the neck, fainter still (isolating the shape hides these)
-                    return FretboardMarker(marker: marker, label: label, ring: colour, fill: .black, text: .white,
-                                           scale: 0.5, opacity: 0.25)
+                // Elsewhere on the neck, faint, for orientation (isolating the shape hides these)
+                if role != .outside && !isolates {
+                    return FretboardMarker(marker, label: label, tone: role == .chordTone ? .chord : .scale, semitones: offset,
+                                           prominence: .faint, theme: theme)
                 }
                 // Everything else: shown plainly (as on the Library tab) when unrelated notes are on (⌘U)
                 return unrelatedMarker(marker, label: label)
@@ -167,21 +159,8 @@ struct SequencerFretboard: View {
         }
     }
 
-    /// An interval's colour, as on the Library tab (the root black).
-    private func intervalColour(_ semitones: Int) -> Color {
-        theme.intervalColors[((semitones % 12) + 12) % 12]
-    }
-
-    /// Readable text on a solid interval colour: white on the root's black and the darker colours.
-    private func textColour(on semitones: Int) -> Color {
-        semitones % 12 == 0 || Theme.isDarkInterval(semitones) ? .white : .black
-    }
-
     private func unrelatedMarker(_ marker: FretMarker, label: String) -> FretboardMarker {
-        let ring = marker.position.fret == 0 ? theme.openMarkerColor : theme.defaultMarkerColor
-        return FretboardMarker(marker: marker, label: label, ring: ring, fill: ring,
-                               text: marker.position.fret == 0 ? .white : theme.fretboardColor,
-                               isVisible: !display.hideUnrelatedNotes && !display.isolatePosition, scale: 0.8)
+        .unrelated(marker, label: label, theme: theme, isVisible: !display.hideUnrelatedNotes && !display.isolatePosition)
     }
 
     private func roleColour(_ role: NoteRole) -> Color {

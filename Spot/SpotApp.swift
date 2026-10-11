@@ -352,15 +352,18 @@ struct SpotApp: App {
 
             CommandGroup(before: .toolbar) {
                 Button("Toggle Unrelated Notes") {
-                    display.hideUnrelatedNotes.toggle()
+                    // (Notes fade and grow or shrink between the two, rather than jumping)
+                    withAnimation(.easeInOut(duration: 0.3)) { display.hideUnrelatedNotes.toggle() }
                 }
                 .keyboardShortcut("U", modifiers: [.command])
                 Button("Toggle Shape Isolation") {
-                    display.isolatePosition.toggle()
+                    // (Notes fade and grow or shrink between the two, rather than jumping)
+                    withAnimation(.easeInOut(duration: 0.3)) { display.isolatePosition.toggle() }
                 }
                 .keyboardShortcut("I", modifiers: [.command])
                 Button("Toggle Highlight All Shapes") {
-                    display.highlightAllPositions.toggle()
+                    // (Notes fade and grow or shrink between the two, rather than jumping)
+                    withAnimation(.easeInOut(duration: 0.3)) { display.highlightAllPositions.toggle() }
                 }
                 .keyboardShortcut("o", modifiers: [.command, .option])
                 Button("Cycle Labels (Interval / Note / Finger)") {

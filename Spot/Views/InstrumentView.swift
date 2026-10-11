@@ -47,15 +47,16 @@ struct LibraryFretboard: View {
                 let isVisible = display.isolatePosition && !isDrawing
                     ? isHighlighted
                     : !display.hideUnrelatedNotes || marker.isInCollection
-                let baseColor = marker.isOpenString ? theme.openMarkerColor : theme.defaultMarkerColor
-                let ring = isHighlighted && marker.isInCollection ? theme.intervalColors[marker.semitonesAboveRoot] : baseColor
-
-                return FretboardMarker(marker: marker,
-                                       label: label(for: marker),
-                                       ring: ring,
-                                       fill: marker.isInCollection ? .black : ring,
-                                       text: marker.isInCollection || marker.isOpenString ? .white : theme.fretboardColor,
-                                       isVisible: isVisible,
+                guard marker.isInCollection else {
+                    return .unrelated(marker, label: label(for: marker), theme: theme, isVisible: isVisible)
+                }
+                // As on every fretboard: a chord or interval's notes solid, a scale's ringed with a black middle,
+                // the root a square, and notes away from the shape faint
+                return FretboardMarker(marker, label: label(for: marker),
+                                       tone: selection.kind == .scale ? .scale : .chord,
+                                       semitones: marker.semitonesAboveRoot,
+                                       prominence: isHighlighted ? .full : .faint,
+                                       theme: theme, isVisible: isVisible,
                                        canSetFinger: isDrawing && marker.isInPosition)
             }
 
@@ -86,10 +87,12 @@ struct InstrumentView_Previews: PreviewProvider {
     }
 }
 
-/// The Tab tab's fretboard: the notes in the beat at the cursor (in the track's tuning, capo included),
-/// named as notes, with the cursor's string picked out.
+/// The Tab tab's fretboard: the notes in the beat at the cursor (in the track's tuning, capo included), named as
+/// notes. In the sequence's tab they look as on the sequence's fretboard, by their interval to the chord there
+/// (solid if in the chord, ringed if in its scale); otherwise plain, the cursor's string picked out.
 struct TabFretboard: View {
     @Environment(TabSession.self) private var session
+    @Environment(TransportState.self) private var transport
     @Environment(\.theme) private var theme
 
     var body: some View {
@@ -100,6 +103,15 @@ struct TabFretboard: View {
         FretboardView(fretboard: fretboard, markers: markers(track: track, on: fretboard))
     }
 
+    /// The sequence's chord (and its scale) at the beat being played or at the cursor.
+    private var harmony: (chord: ChordSymbol, scale: ScaleDefinition?)? {
+        guard let sequenceSession = session.linkedSequence, let sequence = sequenceSession.sequence,
+              let editor = sequenceSession.editor else { return nil }
+        let beat = sequenceSession.isPlaying ? transport.position() : session.cursorBeat
+        guard let beat, let region = sequence.chord(at: max(beat, 0)), let chord = editor.analysis.chords[region.id] else { return nil }
+        return (chord, editor.analysis.scales[region.id])
+    }
+
     private func markers(track: TabTrack?, on fretboard: Fretboard) -> [FretboardMarker] {
         guard let track, let score = session.score, let editor = session.editor else { return [] }
         // While playing, the beat being played; otherwise the one at the cursor
@@ -108,17 +120,34 @@ struct TabFretboard: View {
             return beats.indices.contains(playhead.beat) ? beats[playhead.beat] : nil
         }
         guard let beat = playing ?? editor.beat(in: score) else { return [] }
+        let harmony = harmony
+        let chordOffsets = harmony.map { Set($0.chord.chord.formula.pitchClassOffsets) } ?? []
+        let scaleOffsets = harmony?.scale.map { Set($0.formula.pitchClassOffsets) } ?? []
         return beat.notes.compactMap { note -> FretboardMarker? in
             let position = FretPosition(string: note.string, fret: note.fret + track.capo)
             guard note.string < fretboard.stringCount, position.fret <= fretboard.fretCount else { return nil }
             let pitchClass = fretboard.pitchClass(at: position)
             let name = SpelledNote.conventional(pitchClass)
-            let marker = FretMarker(position: position, pitchClass: pitchClass, semitonesAboveRoot: 0, degree: nil,
+            let offset = harmony.map { pitchClass.semitones(above: $0.chord.root.pitchClass) } ?? 0
+            let marker = FretMarker(position: position, pitchClass: pitchClass, semitonesAboveRoot: offset, degree: nil,
                                     isInPosition: true, finger: nil, noteName: name, intervalName: name.description)
+            let label = note.isDead ? "x" : name.description
             let isCursorString = playing == nil && note.string == editor.cursor.string
-            return FretboardMarker(marker: marker, label: note.isDead ? "x" : name.description,
-                                   ring: theme.chordToneColor, fill: isCursorString ? theme.chordToneColor : .black,
-                                   text: isCursorString ? .black : .white)
+            var styled: FretboardMarker
+            if harmony != nil, chordOffsets.contains(offset) || scaleOffsets.contains(offset) {
+                styled = FretboardMarker(marker, label: label, tone: chordOffsets.contains(offset) ? .chord : .scale,
+                                         semitones: offset, theme: theme)
+            } else {
+                // No chord to relate it to (or outside it): plain
+                styled = FretboardMarker(marker: marker, label: label, ring: theme.defaultMarkerColor, fill: theme.defaultMarkerColor,
+                                         text: theme.fretboardColor)
+            }
+            // The cursor's string: a ring round it
+            if isCursorString {
+                styled.halo = theme.fretboardColor
+                styled.haloWidth = 2.5
+            }
+            return styled
         }
     }
 }
