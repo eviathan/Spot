@@ -244,7 +244,7 @@ extension LaneEditorBar {
         } ?? 0
         BarMenu(title: "Tab", value: notes == 0 ? "Empty" : sequence.tabIsMuted ? "Muted" : "\(notes) notes",
                 help: "The sequence's tab, written in the Tab tab: it plays along with the sequence, from 1.1.1") {
-            Button("Edit in the Tab Tab") { ui.tab = .Tab }
+            Button("Edit the Tab") { ui.tab = .Tab }
             choice("Mute", sequence.tabIsMuted) { sequence.tabIsMuted.toggle() }
             Divider()
             Button("Use Its Chord Names in the Sequence") {
@@ -524,7 +524,7 @@ struct RecordingTempo: View {
             Image(systemName: "arrow.right")
                 .font(.caption2)
                 .opacity(0.6)
-            Text("\(Int(sequence.tempo.rounded()))")
+            Text(Footer.tempoText(sequence.tempo))
                 .font(.system(.callout, design: .monospaced))
                 .help("The tempo it's playing at (in the footer)")
             Spacer(minLength: 0)

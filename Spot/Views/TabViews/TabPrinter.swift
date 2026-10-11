@@ -133,7 +133,7 @@ private struct PrintHeader: View {
                 let details = [content.score.tracks.count > 1 ? track.name : nil,
                                "Tuning \(tuning)",
                                track.capo > 0 ? "Capo \(track.capo)" : nil,
-                               "♩ = \(Int((content.tempo ?? content.score.tempo).rounded()))"].compactMap { $0 }
+                               "♩ = \(Footer.tempoText(content.tempo ?? content.score.tempo))"].compactMap { $0 }
                 Text(details.joined(separator: "   ·   "))
                     .font(.system(size: 10))
                     .foregroundColor(.gray)

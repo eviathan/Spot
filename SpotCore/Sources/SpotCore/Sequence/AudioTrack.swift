@@ -118,6 +118,33 @@ public struct AudioTrack: Hashable, Codable, Sendable {
         warpMarkers.removeAll { $0.id == id }
     }
 
+    /// The recording's tempo over a stretch of beats, as it's warped now: how many beats it takes per minute of
+    /// the recording there. Nil for an empty stretch.
+    public func warpedTempo(over range: BeatRange) -> Double? {
+        let seconds = map.sourceTime(atBeat: range.end) - map.sourceTime(atBeat: range.start)
+        guard range.length > 0, seconds > 1e-6 else { return nil }
+        return range.length / seconds * 60
+    }
+
+    /// The tempo of the stretch just before a marker (from the marker before it), if there is one.
+    public func tempoBefore(_ markerId: UUID) -> Double? {
+        guard let index = warpMarkers.firstIndex(where: { $0.id == markerId }), index > 0 else { return nil }
+        return warpedTempo(over: BeatRange(warpMarkers[index - 1].beat, warpMarkers[index].beat))
+    }
+
+    /// Warp From Here, as in Live: from a marker on, the recording keeps going at `bpm` (beats per minute of the
+    /// recording) to its end. The markers after it go, and one at the recording's end holds that tempo.
+    public mutating func warpStraight(from markerId: UUID, bpm: Double) {
+        guard let index = warpMarkers.firstIndex(where: { $0.id == markerId }), bpm > 0 else { return }
+        let marker = warpMarkers[index]
+        var markers = Array(warpMarkers.prefix(through: index))
+        let remaining = reference.duration - marker.sourceTime
+        if remaining > 0.01 {
+            markers.append(WarpMarker(sourceTime: reference.duration, beat: marker.beat + remaining * bpm / 60))
+        }
+        warpMarkers = markers
+    }
+
     /// Back to just the first marker: the recording where it starts, at its own tempo.
     public mutating func removeAllMarkers() {
         warpMarkers = Array(warpMarkers.prefix(1))

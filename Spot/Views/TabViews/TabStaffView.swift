@@ -473,7 +473,7 @@ struct TabLineView: View {
         }
         let tempo = sequenceTempo.map { bar.index == 0 ? $0 : nil } ?? (master.tempo ?? (bar.index == 0 ? score.tempo : nil))
         if let tempo {
-            context.draw(Text("♩ = \(Int(tempo.rounded()))").font(.system(size: 11)).foregroundColor(ink.opacity(0.85)),
+            context.draw(Text("♩ = \(Footer.tempoText(tempo))").font(.system(size: 11)).foregroundColor(ink.opacity(0.85)),
                          at: CGPoint(x: tempoX, y: aboveY), anchor: .topLeading)
         }
         if !master.alternateEndings.isEmpty {

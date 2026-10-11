@@ -295,6 +295,25 @@ final class WarpClipTests: XCTestCase {
                                              sampleRate: 44_100, channelCount: 1, fingerprint: ""), tempo: tempo)
     }
 
+    /// Warp From Here: the warped stretch's tempo carries on to the end, past markers that were there.
+    func testWarpFromHere() throws {
+        var track = track()   // 120: 2 beats a second, 20 seconds
+        let first = try XCTUnwrap(track.warpMarkers.first)
+        // Seconds 0–4 stretched over 10 beats: 150 BPM there
+        track.setMarker(WarpMarker(sourceTime: 4, beat: 10))
+        track.setMarker(WarpMarker(sourceTime: 6, beat: 13))   // a later one, to go
+        let second = track.warpMarkers[1]
+        XCTAssertEqual(try XCTUnwrap(track.tempoBefore(second.id)), 150, accuracy: 1e-9)
+        XCTAssertNil(track.tempoBefore(first.id))
+        track.warpStraight(from: second.id, bpm: 150)
+        XCTAssertEqual(track.warpMarkers.count, 3)
+        // 16 seconds left at 150 BPM: 40 beats on
+        XCTAssertEqual(track.warpMarkers[2].sourceTime, 20)
+        XCTAssertEqual(track.warpMarkers[2].beat, 50, accuracy: 1e-9)
+        XCTAssertEqual(try XCTUnwrap(track.warpedTempo(over: BeatRange(10, 50))), 150, accuracy: 1e-9)
+        XCTAssertEqual(try XCTUnwrap(track.warpedTempo(over: BeatRange(2, 6))), 150, accuracy: 1e-9)
+    }
+
     func testThereIsAlwaysAMarker() throws {
         var track = track()
         let first = try XCTUnwrap(track.warpMarkers.first)

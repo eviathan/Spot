@@ -19,6 +19,8 @@ struct Footer: View {
     @State private var previousBPMChangeValue: CGFloat = 0
     @State private var isTypingTimeSignature = false
     @State private var otherTimeSignature = ""
+    @State private var isTypingTempo = false
+    @State private var typedTempo = ""
 
     let dimmed = Color(hue: 0.62, saturation: 0.38, brightness: 0.38, opacity: 1.00)
 
@@ -50,35 +52,52 @@ struct Footer: View {
 
     // MARK: Tempo
 
-    private var bpm: Int {
+    private var bpm: Double {
         if editsTab, let tempo = tabSession.tempoAtCursor {
-            return Int(tempo.rounded())
+            return tempo
         }
-        return Int((editsSequence ? session.sequence?.tempo ?? transport.bpm : transport.bpm).rounded())
+        return editsSequence ? session.sequence?.tempo ?? transport.bpm : transport.bpm
     }
 
-    func incrementBPM(_ value: Int) {
-        if editsTab, let tempo = tabSession.tempoAtCursor {
-            tabSession.tempoAtCursor = tempo.rounded() + Double(value)
-        } else if editsSequence, let tempo = session.sequence?.tempo {
-            session.sequence?.tempo = min(max(tempo.rounded() + Double(value), 20), 300)
-            if !session.isPlaying, let tempo = session.sequence?.tempo {
+    /// The tempo as shown: whole, or to as many decimal places as it has (up to two).
+    static func tempoText(_ bpm: Double) -> String {
+        var text = String(format: "%.2f", (bpm * 100).rounded() / 100)
+        while text.hasSuffix("0") { text.removeLast() }
+        if text.hasSuffix(".") { text.removeLast() }
+        return text
+    }
+
+    /// The arrows (and dragging the number): a whole bpm a step, or a tenth with ⌥ held.
+    func incrementBPM(_ direction: Int) {
+        let fine = NSEvent.modifierFlags.contains(.option)
+        setBPM(bpm + Double(direction) * (fine ? 0.1 : 1))
+    }
+
+    /// Kept to two decimal places (a sequence's or tab's within 20–300).
+    private func setBPM(_ value: Double) {
+        let rounded = (value * 100).rounded() / 100
+        let tempo = min(max(rounded, 20), 300)
+        if editsTab, tabSession.tempoAtCursor != nil {
+            tabSession.tempoAtCursor = tempo
+        } else if editsSequence, session.sequence != nil {
+            session.sequence?.tempo = tempo
+            if !session.isPlaying {
                 transport.setBPM(tempo)
             }
         } else {
-            transport.incrementBPM(value)
+            transport.setBPM(rounded)
         }
     }
 
     private func tap() {
         if editsTab {
             if let tapped = session.tap() {
-                tabSession.tempoAtCursor = tapped.rounded()
+                tabSession.tempoAtCursor = tapped
             }
         } else if editsSequence {
             session.tapTempo()
         } else if let tapped = session.tap() {
-            transport.setBPM(tapped.rounded())
+            transport.setBPM(tapped)
         }
     }
 
@@ -289,12 +308,20 @@ struct Footer: View {
                 .font(.system(size: 16))
                 .foregroundColor(.white)
 
-            Text("\(bpm)")
-                .font(.system(size: 20))
+            Text(Footer.tempoText(bpm))
+                .font(.system(size: 20).monospacedDigit())
                 .foregroundColor(.white)
                 .frame(minWidth: 50)
         }
         .contentShape(Rectangle())
+        // Double-click to type it (any tempo, decimals and all)
+        .onTapGesture(count: 2) {
+            typedTempo = Footer.tempoText(bpm)
+            isTypingTempo = true
+        }
+        .popover(isPresented: $isTypingTempo, arrowEdge: .top) {
+            tempoEditor
+        }
         .gesture(
             DragGesture()
                 .onChanged { value in
@@ -306,8 +333,42 @@ struct Footer: View {
                     previousBPMChangeValue = value.translation.width
                 }
                 .onEnded { _ in previousBPMChangeValue = 0 })
-        .help(editsSequence && session.sequence?.audio != nil
+        .help((editsSequence && session.sequence?.audio != nil
               ? "The tempo to play at. The recording is sped up or slowed down from its own tempo to match, without changing pitch."
-              : "Tempo")
+              : "Tempo") + " Drag or use the arrows to change it (⌥ for tenths); double-click to type it.")
+    }
+
+    /// Typing a tempo.
+    private var tempoEditor: some View {
+        let typed = Double(typedTempo.trimmingCharacters(in: .whitespaces)).flatMap { (20...300).contains($0) ? $0 : nil }
+        return VStack(alignment: .leading, spacing: 10) {
+            Text("Tempo")
+                .font(.headline)
+            HStack(spacing: 8) {
+                TextField("120.5", text: $typedTempo)
+                    .textFieldStyle(.roundedBorder)
+                    .font(.system(size: 18, weight: .medium).monospacedDigit())
+                    .frame(width: 90)
+                    .onSubmit {
+                        if let typed {
+                            setBPM(typed)
+                            isTypingTempo = false
+                        }
+                    }
+                Button("Set") {
+                    if let typed {
+                        setBPM(typed)
+                        isTypingTempo = false
+                    }
+                }
+                .keyboardShortcut(.defaultAction)
+                .disabled(typed == nil)
+            }
+            Text(typed == nil ? "20 to 300, with decimals if you like (e.g. 92.5)" : "\(Footer.tempoText(typed!)) beats a minute")
+                .font(.caption)
+                .foregroundStyle(typed == nil ? Color.orange : .secondary)
+        }
+        .padding(14)
+        .frame(width: 240)
     }
 }

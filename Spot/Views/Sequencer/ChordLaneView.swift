@@ -1191,6 +1191,17 @@ private struct WaveformRow: View {
                         .contextMenu {
                             Button("Set 1.1.1 Here") { session.sequence?.startBeat = max(0, marker.beat) }
                             Divider()
+                            // Live's Warp From Here (Straight): the tempo of the selection (or, with none, of the
+                            // stretch up to this marker) carried on to the end of the recording
+                            let from = editor.selection.length > 0 ? "the selection" : "the stretch before it"
+                            if let bpm = warpFromHereTempo(marker) {
+                                Button("Warp From Here (\(String(format: "%.2f", bpm)) BPM, from \(from))") {
+                                    session.sequence?.audio?.warpStraight(from: marker.id, bpm: bpm)
+                                }
+                            } else {
+                                Button("Warp From Here (select a warped stretch first)") {}
+                                    .disabled(true)
+                            }
                             Button("Delete Warp Marker") { session.sequence?.audio?.removeMarker(marker.id) }
                                 .disabled(liveMarkers.count <= 1)
                         }
@@ -1207,6 +1218,16 @@ private struct WaveformRow: View {
         .coordinateSpace(name: WaveformRow.space)
     }
     
+    /// The tempo Warp From Here carries on from a marker: the selection's, as it's warped now, or with nothing
+    /// selected, that of the stretch up to the marker.
+    private func warpFromHereTempo(_ marker: WarpMarker) -> Double? {
+        guard let audio = sequence.audio else { return nil }
+        if editor.selection.length > 0 {
+            return audio.warpedTempo(over: editor.selection)
+        }
+        return audio.tempoBefore(marker.id)
+    }
+
     /// Coordinates for dragging: lane x, fixed while markers move.
     static let space = "warp-row"
 

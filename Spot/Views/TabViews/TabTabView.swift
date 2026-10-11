@@ -441,7 +441,7 @@ private struct BarSettings: View {
                 }))
                 if let tempo = master.tempo {
                     Stepper(value: Binding(get: { tempo }, set: { session.score?.masterBars[bar].tempo = $0 }), in: 20...400) {
-                        Text("♩ = \(Int(tempo.rounded()))")
+                        Text("♩ = \(Footer.tempoText(tempo))")
                             .monospacedDigit()
                     }
                 }
@@ -537,7 +537,7 @@ private struct TabDetails: View {
                     TextField("Title", text: binding.title)
                     TextField("Artist", text: binding.artist)
                     Stepper(value: binding.tempo, in: 20...400, step: 1) {
-                        Text("Tempo \(Int(score.tempo.rounded()))")
+                        Text("Tempo \(Footer.tempoText(score.tempo))")
                             .monospacedDigit()
                     }
                     Stepper {
