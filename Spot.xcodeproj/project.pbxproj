@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		91ED38B9F7E14E86AC5F9FF2 /* Rufina-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6DBA96EF164843B0A14E31CC /* Rufina-Regular.ttf */; };
+		4BEA3DFD67C4478D98D32044 /* Rufina-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1D662D28A5BF4AC3BAD31F33 /* Rufina-Bold.ttf */; };
+		7C541C6082EC42CD8AC62708 /* Rufina-OFL.txt in Resources */ = {isa = PBXBuildFile; fileRef = D67609B3C1084EF185A57901 /* Rufina-OFL.txt */; };
 		054F99A4C9EC411F84F9649A /* DisplaySettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995EF25E08304A528A305829 /* DisplaySettings.swift */; };
 		0C596FC218E64E5589C9C7E9 /* UserLibraryItems.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA721EEBFC0B4C9AB6DB8125 /* UserLibraryItems.swift */; };
 		1B9870198ACC4C92B1BCBFBA /* SelectionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A5D238723844955A634D844 /* SelectionState.swift */; };
@@ -87,6 +90,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		6DBA96EF164843B0A14E31CC /* Rufina-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Rufina-Regular.ttf; sourceTree = "<group>"; };
+		1D662D28A5BF4AC3BAD31F33 /* Rufina-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Rufina-Bold.ttf; sourceTree = "<group>"; };
+		D67609B3C1084EF185A57901 /* Rufina-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = Rufina-OFL.txt; sourceTree = "<group>"; };
 		0AD58EB22CE341C68A455B05 /* SequenceSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SequenceSession.swift; sourceTree = "<group>"; };
 		1A0D22CCFF4342079D042040 /* LibraryFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryFile.swift; sourceTree = "<group>"; };
 		230CB2A2C0DC48B5998B0214 /* TabTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabTabView.swift; sourceTree = "<group>"; };
@@ -181,6 +187,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		E018CAB7EA534A2A87868000 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				6DBA96EF164843B0A14E31CC /* Rufina-Regular.ttf */,
+				1D662D28A5BF4AC3BAD31F33 /* Rufina-Bold.ttf */,
+				D67609B3C1084EF185A57901 /* Rufina-OFL.txt */,
+			);
+			path = Fonts;
+			sourceTree = "<group>";
+		};
 		C3213DDB4B114AF1BF4F2FDD /* Sequencer */ = {
 			isa = PBXGroup;
 			children = (
@@ -261,6 +277,7 @@
 		D3AA9B592BCD982E00C78DF3 /* Spot */ = {
 			isa = PBXGroup;
 			children = (
+				E018CAB7EA534A2A87868000 /* Fonts */,
 				DB080E70AAD94BBE9BF02139 /* State */,
 				D34C10DD2C403225004C3E86 /* Data */,
 				D37E4C502C360E6100179A19 /* Search */,
@@ -466,6 +483,9 @@
 				D3E653DE2C36238700401B60 /* Exts in Resources */,
 				D3E653EF2C36238700401B60 /* Fuse+ in Resources */,
 				D3AA9B612BCD983000C78DF3 /* Assets.xcassets in Resources */,
+				91ED38B9F7E14E86AC5F9FF2 /* Rufina-Regular.ttf in Resources */,
+				4BEA3DFD67C4478D98D32044 /* Rufina-Bold.ttf in Resources */,
+				7C541C6082EC42CD8AC62708 /* Rufina-OFL.txt in Resources */,
 				D3E653E02C36238700401B60 /* Levenstain in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

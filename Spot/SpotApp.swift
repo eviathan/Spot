@@ -55,6 +55,32 @@ struct SpotApp: App {
         _tabSession = State(initialValue: tabSession)
     }
 
+    /// The About panel: name, version and icon as usual, then "Made with love in the UK" and the flag.
+    static func showAbout() {
+        let centred = NSMutableParagraphStyle()
+        centred.alignment = .center
+        let credits = NSMutableAttributedString(string: "Copyright © 2026 IKKO. All rights reserved.\n", attributes: [
+            .font: NSFont.systemFont(ofSize: 8),
+            .foregroundColor: NSColor.labelColor,
+            .paragraphStyle: centred,
+        ])
+        credits.append(NSAttributedString(string: "🇬🇧\n", attributes: [
+            .font: NSFont.systemFont(ofSize: 32),
+            .paragraphStyle: centred,
+        ]))
+        let tight = centred.mutableCopy() as! NSMutableParagraphStyle
+        tight.paragraphSpacing = 2
+        credits.append(NSAttributedString(string: "Made with love in the UK\n", attributes: [
+            .font: NSFont(name: "Rufina-Regular", size: 14) ?? NSFont.systemFont(ofSize: 12),
+            .paragraphStyle: tight,
+        ]))
+        credits.append(NSAttributedString(string: "For King and Country", attributes: [
+            .font: NSFont(name: "Rufina-Regular", size: 12) ?? NSFont.systemFont(ofSize: 12),
+            .paragraphStyle: centred,
+        ]))
+        NSApp.orderFrontStandardAboutPanel(options: [.credits: credits])
+    }
+
     var body: some Scene {
         WindowGroup() {
             LayoutView()
@@ -121,6 +147,10 @@ struct SpotApp: App {
             
             // (Grouped: a commands block takes ten at most)
             Group {
+                // The standard About panel, with a line about where Spot is made
+                CommandGroup(replacing: .appInfo) {
+                    Button("About Spot") { SpotApp.showAbout() }
+                }
                 // Settings is a tab of the window, not a window of its own: ⌘, goes to it, as in any Mac app
                 CommandGroup(replacing: .appSettings) {
                     Button("Settings…") { ui.tab = .Settings }
