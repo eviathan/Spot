@@ -13,6 +13,7 @@ import SpotCore
 /// Play, loop, key, tempo and time signature are in the main footer; file and view options in the menu bar.
 struct SequenceEditorView: View {
     @Environment(SequenceSession.self) private var session
+    @State private var patternName = ""
 
     var body: some View {
         if let sequence = session.sequence, session.isPreparingAudio {
@@ -25,6 +26,21 @@ struct SequenceEditorView: View {
                 ChordLaneView(sequence: sequence, editor: editor)
                 Divider()
                 LaneEditorBar(sequence: binding, editor: editor)
+            }
+            // Naming a pattern ("Verse"): its name shows in the Patterns row and above the fretboard as it plays
+            .alert("Name the Pattern", isPresented: Binding(get: { editor.renamingPattern != nil },
+                                                            set: { if !$0 { editor.renamingPattern = nil } })) {
+                TextField("Verse, Chorus…", text: $patternName)
+                Button("Rename") {
+                    if let id = editor.renamingPattern { session.renamePattern(id, to: patternName) }
+                    editor.renamingPattern = nil
+                }
+                Button("Cancel", role: .cancel) { editor.renamingPattern = nil }
+            } message: {
+                Text("Every place it's used gets the name.")
+            }
+            .onChange(of: editor.renamingPattern) {
+                patternName = editor.renamingPattern.flatMap { sequence.pattern($0)?.name } ?? ""
             }
         }
     }
@@ -68,7 +84,7 @@ private struct LaneEditorBar: View {
     var body: some View {
         @Bindable var editor = editor
         let region = sequence.chord(at: editor.selection.start)
-        let section = sequence.section(at: editor.selection.start)
+        let pattern = sequence.patternInstance(at: editor.selection.start)
 
         HStack(spacing: 12) {
             Text(editor.describe(editor.selection, in: sequence))
@@ -109,48 +125,24 @@ private struct LaneEditorBar: View {
                 .help("Remove the chords in the selection")
             }
 
-            if let region, let suggestions = editor.analysis.suggestions[region.id] {
-                let inUse = editor.analysis.scales[region.id]?.name ?? "None"
-                BarMenu(title: "Scale", value: inUse, isPinned: region.scaleId != nil,
-                        help: region.scaleId == nil
-                            ? "Scale: \(inUse), the best fit for this chord. Pick another to use it instead."
-                            : "Scale: \(inUse), picked for this chord (the pin). Choose Automatic to go back to the best fit.") {
-                    choice("Automatic (\(suggestions.first?.scale.name ?? "none"))", region.scaleId == nil) {
-                        sequence.update(region.id, scaleId: .some(nil))
-                    }
-                    Divider()
-                    // The scale in use is ticked, whether picked or automatic
-                    ForEach(suggestions.prefix(12)) { suggestion in
-                        choice(suggestion.scale.name, editor.analysis.scales[region.id]?.id == suggestion.scale.id) {
-                            sequence.update(region.id, scaleId: .some(suggestion.scale.id))
-                        }
-                    }
-                    Divider()
-                    // Any scale at all, with its other name, for when the one you want isn't among the matches
-                    Menu("All Scales") {
-                        ForEach(editor.library.scales.sorted { $0.name < $1.name }) { scale in
-                            choice(scale.aliases.first.map { "\(scale.name) (\($0))" } ?? scale.name,
-                                   editor.analysis.scales[region.id]?.id == scale.id) {
-                                sequence.update(region.id, scaleId: .some(scale.id))
-                            }
-                        }
-                    }
-                }
+            // Scale, voicing and position for the chord at the playhead: a view of their own, so the long menus
+            // aren't rebuilt while the selection changes but the chord doesn't
+            if let region {
+                ChordMenus(region: region, editor: editor)
             }
 
-            // How to play this chord, and where to play its scale: chosen automatically, or picked
-            if let region, let chord = editor.analysis.chords[region.id] {
-                let neck = editor.analysis.positions[region.id]
-                shapeMenu(title: "Voicing", options: editor.voicingOptions(for: chord), current: neck?.voicing,
-                          picked: region.voicing) { pick in sequence.pick(region.id, voicing: .some(pick)) }
-                if let scale = editor.analysis.scales[region.id] {
-                    shapeMenu(title: "Position", options: editor.positionOptions(for: chord, scale: scale), current: neck?.position,
-                              picked: region.position) { pick in sequence.pick(region.id, position: .some(pick)) }
+            // The pattern here, or grouping the selection into one
+            if let pattern {
+                patternMenu(pattern.instance, pattern.pattern)
+            } else if session.canGroupSelection {
+                Button {
+                    session.groupSelection()
+                } label: {
+                    Label("Group", systemImage: "square.on.square")
+                        .foregroundStyle(.white)
                 }
-            }
-
-            if let section {
-                Button("Remove Section “\(section.name)”") { sequence.removeSection(section.id) }
+                .buttonStyle(.borderless)
+                .help("Make the selection a pattern (⌘G): drag its end to repeat it; copies (⌘D) stay linked")
             }
 
             gridMenu
@@ -229,6 +221,21 @@ extension LaneEditorBar {
         }
     }
 
+    /// The pattern at the playhead: rename it, place it again (linked), split it off, or ungroup it.
+    @ViewBuilder
+    func patternMenu(_ instance: PatternInstance, _ pattern: ChordPattern) -> some View {
+        let uses = sequence.uses(of: pattern.id)
+        BarMenu(title: "Pattern", value: pattern.name.isEmpty ? "Untitled" : pattern.name,
+                help: "A pattern repeats when you drag its end out, and every copy of it (⌘D) is the same pattern: change a chord in one and they all change\(uses > 1 ? " (used \(uses) times)" : "").") {
+            Button("Rename…") { editor.renamingPattern = pattern.id }
+            Button("Duplicate (⌘D)") { session.duplicatePattern() }
+            Button("Make Unique") { session.makePatternUnique() }
+                .disabled(uses < 2)
+            Divider()
+            Button("Ungroup (⇧⌘G)") { session.ungroupPattern() }
+        }
+    }
+
     /// The sequence's tab: edit it (in the Tab tab), mute it, bring in its chord names.
     @ViewBuilder
     var tabMenu: some View {
@@ -304,8 +311,14 @@ struct BarMenu<Content: View>: View {
     var help: String
     @ViewBuilder let content: () -> Content
 
+    /// Each kind of menu as an icon instead of its name (the bar was getting crowded); the name's in the tooltip.
+    static var icons: [String: String] {
+        ["Scale": "music.note.list", "Voicing": "hand.raised.fingers.spread", "Position": "arrow.left.and.right",
+         "Grid": "grid", "Pattern": "repeat", "Tab": "music.quarternote.3"]
+    }
+
     /// Long names keep their start (the group, e.g. "Open · …") and lose the end.
-    static func shortened(_ text: String, to length: Int = 30) -> String {
+    static func shortened(_ text: String, to length: Int = 24) -> String {
         text.count <= length ? text : String(text.prefix(length - 1)).trimmingCharacters(in: .whitespaces) + "…"
     }
 
@@ -314,8 +327,14 @@ struct BarMenu<Content: View>: View {
             content()
         } label: {
             HStack(spacing: 5) {
-                Text(title)
-                    .opacity(0.6)
+                if let icon = BarMenu.icons[title] {
+                    Image(systemName: icon)
+                        .font(.system(size: 11, weight: .semibold))
+                        .opacity(0.6)
+                } else {
+                    Text(title)
+                        .opacity(0.6)
+                }
                 Text(BarMenu.shortened(value))
                     .fontWeight(.medium)
                     .lineLimit(1)
@@ -336,7 +355,8 @@ struct BarMenu<Content: View>: View {
         .buttonStyle(.plain)
         .menuIndicator(.hidden)
         .fixedSize()
-        .help(help)
+        // The name first, now there's an icon in its place
+        .help(help.hasPrefix(title) ? help : "\(title). \(help)")
     }
 }
 
@@ -461,7 +481,7 @@ struct RecordingTempo: View {
     @State private var typed = ""
 
     private var beat: Double {
-        editor.selection.start
+        editor.playhead
     }
 
     var body: some View {
@@ -524,4 +544,89 @@ struct RecordingTempo: View {
     private func setTempo(_ bpm: Double) {
         sequence.audio?.setSegmentTempo((bpm * 10).rounded() / 10, atBeat: beat)
     }
+}
+
+
+/// The Scale, Voicing and Position menus for one chord. Only rebuilt when the chord (or its analysis) changes.
+private struct ChordMenus: View {
+    let region: ChordRegion
+    let editor: SequenceEditorState
+
+    @Environment(SequenceSession.self) private var session
+
+    var body: some View {
+        if let suggestions = editor.analysis.suggestions[region.id] {
+            let inUse = editor.analysis.scales[region.id]?.name ?? "None"
+            BarMenu(title: "Scale", value: inUse, isPinned: region.scaleId != nil,
+                    help: region.scaleId == nil
+                        ? "Scale: \(inUse), the best fit for this chord. Pick another to use it instead."
+                        : "Scale: \(inUse), picked for this chord (the pin). Choose Automatic to go back to the best fit.") {
+                menuChoice("Automatic (\(suggestions.first?.scale.name ?? "none"))", region.scaleId == nil) {
+                    session.sequence?.update(region.id, scaleId: .some(nil))
+                }
+                Divider()
+                // The scale in use is ticked, whether picked or automatic
+                ForEach(suggestions.prefix(12)) { suggestion in
+                    menuChoice(suggestion.scale.name, editor.analysis.scales[region.id]?.id == suggestion.scale.id) {
+                        session.sequence?.update(region.id, scaleId: .some(suggestion.scale.id))
+                    }
+                }
+                Divider()
+                // Any scale at all, with its other name, for when the one you want isn't among the matches
+                Menu("All Scales") {
+                    ForEach(editor.library.scales.sorted { $0.name < $1.name }) { scale in
+                        menuChoice(scale.aliases.first.map { "\(scale.name) (\($0))" } ?? scale.name,
+                                   editor.analysis.scales[region.id]?.id == scale.id) {
+                            session.sequence?.update(region.id, scaleId: .some(scale.id))
+                        }
+                    }
+                }
+            }
+        }
+
+        // How to play this chord, and where to play its scale: chosen automatically, or picked
+        if let chord = editor.analysis.chords[region.id] {
+            let neck = editor.analysis.positions[region.id]
+            shapeMenu(title: "Voicing", options: editor.voicingOptions(for: chord), current: neck?.voicing,
+                      picked: region.voicing) { pick in session.sequence?.pick(region.id, voicing: .some(pick)) }
+            if let scale = editor.analysis.scales[region.id] {
+                shapeMenu(title: "Position", options: editor.positionOptions(for: chord, scale: scale), current: neck?.position,
+                          picked: region.position) { pick in session.sequence?.pick(region.id, position: .some(pick)) }
+            }
+        }
+    }
+
+    /// A menu of shapes to choose from, grouped by system and ordered up the neck, with Automatic first.
+    /// Its title shows what's in use (picked or not), with its group.
+    @ViewBuilder
+    private func shapeMenu(title: String, options: [SequenceEditorState.ShapeOption], current: SequenceEditorState.ShapeOption?,
+                           picked: ShapePick?, choose: @escaping (ShapePick?) -> Void) -> some View {
+        let systems = options.reduce(into: [String]()) { if !$0.contains($1.shape.system) { $0.append($1.shape.system) } }
+        BarMenu(title: title, value: current?.label ?? "None", isPinned: picked != nil,
+                help: picked == nil
+                    ? "\(title): \(current?.label ?? "none"), chosen automatically to stay near your hand. Pick one to use it for this chord\(title == "Voicing" ? " (or ⌘[ ⌘] to step through them)" : "")."
+                    : "\(title): \(current?.label ?? "none"), picked for this chord (the pin). Choose Automatic to let Spot choose again.") {
+            menuChoice("Automatic", picked == nil) {
+                choose(nil)
+            }
+            Divider()
+            // The shape in use is ticked (picked or automatic), and so is the group it's in
+            ForEach(systems, id: \.self) { system in
+                Menu(current?.shape.system == system ? "\(system)  ✓" : system) {
+                    ForEach(options.filter { $0.shape.system == system }) { option in
+                        menuChoice(option.shortLabel, option.pick == current?.pick) {
+                            choose(option.pick)
+                        }
+                    }
+                }
+            }
+        }
+        .disabled(options.isEmpty)
+    }
+}
+
+/// A menu item with a native checkmark when it's the one in use. (A label with a checkmark icon doesn't reliably
+/// show its icon in a macOS menu; a toggle always shows its tick.)
+private func menuChoice(_ title: String, _ isOn: Bool, action: @escaping () -> Void) -> some View {
+    Toggle(title, isOn: Binding(get: { isOn }, set: { _ in action() }))
 }

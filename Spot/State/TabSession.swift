@@ -69,8 +69,14 @@ final class TabSession {
 
     /// nil when nothing is open.
     var score: TabScore? {
-        didSet { scoreChanged(from: oldValue) }
+        didSet {
+            // (A flag of its own for the menu bar, which would otherwise be rebuilt for every edit)
+            if isOpen != (score != nil) { isOpen = score != nil }
+            scoreChanged(from: oldValue)
+        }
     }
+    /// Whether a tab is open.
+    private(set) var isOpen = false
     /// Where you are in it: the track showing and the cursor.
     private(set) var editor: TabEditorState?
     private(set) var fileURL: URL?
@@ -421,10 +427,6 @@ final class TabSession {
                 playhead = position
             }
         }
-    }
-
-    var isOpen: Bool {
-        score != nil
     }
 
     var displayName: String {

@@ -9,10 +9,14 @@ public enum KeyQuality: String, Codable, Sendable {
     case major
     case minor
 
+    // Parsed once: the analysis asks for these thousands of times
+    private static let majorFormula = Formula("1 2 3 4 5 6 7")!
+    private static let minorFormula = Formula("1 2 b3 4 5 b6 b7")!
+
     var formula: Formula {
         switch self {
-        case .major: return Formula("1 2 3 4 5 6 7")!
-        case .minor: return Formula("1 2 b3 4 5 b6 b7")!
+        case .major: return KeyQuality.majorFormula
+        case .minor: return KeyQuality.minorFormula
         }
     }
 

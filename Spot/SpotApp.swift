@@ -181,6 +181,29 @@ struct SpotApp: App {
                     .keyboardShortcut("e", modifiers: [.command, .shift])
             }
             
+            // Patterns: chords grouped to repeat, and placed again linked
+            CommandMenu("Pattern") {
+                // Only on the Sequence tab: not enabled by the selection, which the menu bar would then be rebuilt
+                // for on every mouse movement of a drag (the commands do nothing where they don't apply)
+                let onSequence = ui.tab == .Sequence && session.isOpen
+                Button("Group Selection") { session.groupSelection() }
+                    .keyboardShortcut("g", modifiers: [.command])
+                    .disabled(!onSequence)
+                Button("Ungroup") { session.ungroupPattern() }
+                    .keyboardShortcut("g", modifiers: [.command, .shift])
+                    .disabled(!onSequence)
+                Divider()
+                Button("Duplicate") { session.duplicatePattern() }
+                    .keyboardShortcut("d", modifiers: [.command])
+                    .disabled(!onSequence)
+                Button("Make Unique") { session.makePatternUnique() }
+                    .disabled(!onSequence)
+                Button("Delete Pattern") { session.deletePattern() }
+                    .disabled(!onSequence)
+                Button("Rename…") { session.editor?.renamingPattern = session.selectedPattern?.pattern.id }
+                    .disabled(!onSequence)
+            }
+
             // The sequencer's grid, with Live's shortcuts
             CommandMenu("Grid") {
                 let editor = session.editor
@@ -224,7 +247,7 @@ struct SpotApp: App {
                     TransportActions.playSelection(ui: ui, session: session, tab: tabSession, playback: playback)
                 }
                 .disabled(ui.tab == .Tab ? !tabSession.isOpen : (ui.tab != .Sequence || !session.isOpen))
-                Button(session.sequence?.loop == nil ? "Loop" : "Stop Looping") {
+                Button(session.isLooping ? "Stop Looping" : "Loop") {
                     TransportActions.toggleLoop(ui: ui, session: session, tab: tabSession)
                 }
                 .keyboardShortcut("l", modifiers: [.command])
@@ -286,7 +309,7 @@ struct SpotApp: App {
                                                              set: { session.editor?.ghostBeats = $0 })) {
                     Text("1 Beat Early").tag(1.0)
                     Text("2 Beats Early").tag(2.0)
-                    Text("1 Bar Early").tag(session.sequence?.barLength ?? 4)
+                    Text("1 Bar Early").tag(session.barLength)
                 }
                 .disabled(!session.isOpen)
                 Divider()

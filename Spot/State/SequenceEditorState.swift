@@ -83,7 +83,14 @@ final class SequenceEditorState {
     let fretboard = Fretboard()
 
     /// The playhead (empty, from a click) or a range (dragged), as in Live. Play starts from its start.
-    var selection = BeatRange(0, 0)
+    var selection = BeatRange(0, 0) {
+        didSet {
+            if selection.start != playhead { playhead = selection.start }
+        }
+    }
+    /// Where the selection starts (the playhead, while stopped). Its own property, so what only cares where the
+    /// playhead is (the fretboard, NOW) isn't redrawn while a range is dragged out from it.
+    private(set) var playhead: Double = 0
     /// The grid, as in Live: adaptive (following the zoom), fixed at a note value or a number of bars, or off.
     /// Remembered between sequences and launches.
     var grid: GridMode = GridMode.saved {
@@ -159,6 +166,8 @@ final class SequenceEditorState {
     var showsNextScale = true
     /// The chord palette is open for the selection.
     var showsPalette = false
+    /// A pattern being renamed (its id), while the name box is up.
+    var renamingPattern: UUID?
     /// Lane zoom: how wide a bar is, in points.
     var barWidth: Double = 140
     /// Lane scroll: the beat at the left edge while stopped (playing follows the playhead).
@@ -283,7 +292,17 @@ final class SequenceEditorState {
 
     // MARK: - Analysis
 
+    /// Scale suggestions already worked out, by chord, key and previous scale: songs repeat the same few chords, so
+    /// most come round again (and with patterns, all of them do). Cleared when the library's scales change.
+    @ObservationIgnored private var suggestionCache: [String: [ScaleSuggestion]] = [:]
+    @ObservationIgnored private var cachedScaleIds: [String] = []
+
     func analyse(_ sequence: ChordSequence) {
+        let scaleIds = library.scales.map(\.id)
+        if scaleIds != cachedScaleIds {
+            suggestionCache = [:]
+            cachedScaleIds = scaleIds
+        }
         let parser = ChordSymbolParser(chords: library.chords)
         var result = Analysis()
         for region in sequence.chords {
@@ -297,8 +316,14 @@ final class SequenceEditorState {
         var previous: (scale: ScaleDefinition, root: PitchClass)?
         for region in sequence.chords {
             guard let chord = result.chords[region.id] else { continue }
-            let suggestions = ChordScaleMatcher.scales(for: chord.chord, root: chord.root.pitchClass, among: library.scales,
-                                                       context: ChordContext(key: result.key, previous: previous))
+            let cacheKey = "\(chord.chord.id)|\(chord.root.pitchClass.value)|\(result.key.map(\.description) ?? "-")|"
+                + "\(previous.map { "\($0.scale.id)@\($0.root.value)" } ?? "-")"
+            let suggestions = suggestionCache[cacheKey] ?? {
+                let worked = ChordScaleMatcher.scales(for: chord.chord, root: chord.root.pitchClass, among: library.scales,
+                                                      context: ChordContext(key: result.key, previous: previous))
+                suggestionCache[cacheKey] = worked
+                return worked
+            }()
             let scale = region.scaleId.flatMap(library.scale) ?? suggestions.first?.scale
             result.suggestions[region.id] = suggestions
             result.scales[region.id] = scale

@@ -44,19 +44,19 @@ final class ChordSequenceTests: XCTestCase {
         XCTAssertNil(sequence.chord(after: 8))
     }
 
-    func testSectionsAndLength() {
+    func testPartsAndLength() {
         var sequence = ChordSequence(lengthInBars: 8)
-        sequence.setSection("Verse", in: BeatRange(0, 16))
-        sequence.setSection("Chorus", in: BeatRange(16, 32))
-        sequence.setSection("Bridge", in: BeatRange(12, 20))
-        XCTAssertEqual(sequence.sections.map(\.name), ["Verse", "Bridge", "Chorus"])
-        XCTAssertEqual(sequence.section(at: 13)?.name, "Bridge")
-
         sequence.setChord("C", in: BeatRange(0, 32))
+        sequence.makePattern(from: BeatRange(0, 12), name: "Verse")
+        sequence.makePattern(from: BeatRange(20, 32), name: "Chorus")
+        XCTAssertNil(sequence.makePattern(from: BeatRange(8, 24), name: "Bridge"))   // over the others
+        XCTAssertEqual(sequence.partName(at: 13), nil)
+        XCTAssertEqual(sequence.partName(at: 21), "Chorus")
+
         sequence.loop = BeatRange(8, 24)
         sequence.setLength(bars: 4)
-        XCTAssertEqual(sequence.chords.map(\.range), [BeatRange(0, 16)])
-        XCTAssertEqual(sequence.sections.map(\.name), ["Verse", "Bridge"])
+        XCTAssertEqual(sequence.chords.map(\.range), [BeatRange(0, 12), BeatRange(12, 16)])
+        XCTAssertEqual(sequence.patterns.map(\.name), ["Verse"])
         XCTAssertEqual(sequence.loop, BeatRange(8, 16))
         sequence.setLength(bars: 2)
         XCTAssertNil(sequence.loop)
@@ -65,7 +65,7 @@ final class ChordSequenceTests: XCTestCase {
     func testFileRoundTrip() throws {
         var sequence = ChordSequence(tempo: 132, beatsPerBar: 3, lengthInBars: 8)
         sequence.setChord("Bb7#9/D", in: sequence.bar(0), scaleId: "builtin.scale.altered")
-        sequence.setSection("Intro", in: sequence.bar(0))
+        sequence.makePattern(from: sequence.bar(0), name: "Intro")
         sequence.loop = BeatRange(0, 6)
         sequence.key = Key(SpelledNote("Bb")!, .major)
 

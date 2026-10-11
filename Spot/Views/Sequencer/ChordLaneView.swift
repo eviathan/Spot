@@ -146,7 +146,7 @@ struct ChordLaneView: View {
     private var rowHeaders: some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 0) {
-                rowTitle("Sections", systemImage: "rectangle.split.3x1")
+                rowTitle("Patterns", systemImage: "repeat")
                     .frame(height: 30, alignment: .center)
                 rowTitle("Chords", systemImage: "music.quarternote.3")
                     .frame(height: 46, alignment: .center)
@@ -186,28 +186,19 @@ struct ChordLaneView: View {
             // Selection (shown while playing too, like Live) and loop
             SelectionHighlight(editor: editor, beatWidth: beatWidth, height: laneHeight, visible: visible)
 
-            // Sections
-            ForEach(sequence.sections) { section in
-                if let span = LaneSpan(section.range.start, section.range.end, beatWidth: beatWidth, visible: visible) {
-                    // The box and the name as separate shapes, not the box as a background and not
-                    // allowsHitTesting(false): either stopped them drawing far along a zoomed-in lane. (The chord row
-                    // above takes the clicks anyway.)
-                    RoundedRectangle(cornerRadius: 3)
-                        .fill(Color.purple.opacity(0.45))
-                        .frame(width: max(0, span.width - 2), height: 20)
-                        .offset(x: span.x + 1, y: 6)
-                    Text(section.name)
-                        .font(.caption.weight(.semibold))
-                        .lineLimit(1)
-                        .padding(.horizontal, 6)
-                        .frame(width: max(0, span.width - 2), height: 20, alignment: .leading)
-                        .offset(x: span.x + 1, y: 6)
-                }
-            }
+            // Patterns: their tint and repeat lines under the chords (their bars go on top, below)
+            PatternLayer(sequence: sequence, editor: editor, beatWidth: beatWidth, visible: visible, isEditable: !isPlaying,
+                         showsBars: false)
 
             // Chords, which can be moved and resized; clicking or dragging between them selects
+            // (Not rebuilt when only something else changes, e.g. a warp marker: the clips are the costliest part)
             ChordClipsLayer(sequence: sequence, editor: editor, beatWidth: beatWidth,
                             height: waveformTop, isEditable: !isPlaying, visible: visible)
+                .equatable()
+
+            // The patterns' bars, over the chord row's click-catching background so they can be dragged and clicked
+            PatternLayer(sequence: sequence, editor: editor, beatWidth: beatWidth, visible: visible, isEditable: !isPlaying,
+                         showsBars: true)
 
             // Bar lines and numbers (only those on screen), counted from 1.1.1: the bars before it are −1, −2…
             // Zoomed out they thin out, as in Live: numbers every 1, 2, 4, 8… bars (whatever keeps them apart),
@@ -339,8 +330,11 @@ struct ChordLaneView: View {
     /// Drag it to move it, drag an end to resize it (on the grid; ⌥ for free), click it to loop or not.
     @ViewBuilder
     private func loopBrace(visible: ClosedRange<CGFloat>) -> some View {
+        // While it's being dragged it's drawn even off screen: a view removed mid-drag never hears the drag end,
+        // which leaves the window ignoring every click after
         if let range = loopDrag ?? sequence.loopRange,
-           let span = LaneSpan(range.start, range.end, beatWidth: beatWidth, visible: visible, margin: 0) {
+           let span = LaneSpan(range.start, range.end, beatWidth: beatWidth,
+                               visible: loopDrag != nil ? -CGFloat.infinity...CGFloat.infinity : visible, margin: 0) {
             let handle = min(8, span.width / 3)
             let colour = sequence.isLooping ? Color.yellow : Color.gray
             // Lines down the lane at each end, so the looped stretch reads over the chords and the waveform
@@ -632,6 +626,16 @@ private struct StoppedPlayhead: View {
     }
 }
 
+extension ChordClipsLayer: Equatable {
+    /// What the clips show (the analysis they read is watched separately): when none of it changes, they aren't
+    /// rebuilt.
+    static func == (a: ChordClipsLayer, b: ChordClipsLayer) -> Bool {
+        a.editor === b.editor && a.beatWidth == b.beatWidth && a.height == b.height && a.isEditable == b.isEditable
+            && a.visible == b.visible && a.sequence.chords == b.sequence.chords && a.sequence.instances == b.sequence.instances
+            && a.sequence.lengthInBeats == b.sequence.lengthInBeats && a.sequence.startBeat == b.sequence.startBeat
+    }
+}
+
 /// Chords as clips, DAW-style:
 /// - click a chord to select it, double-click to change it (⇧-click extends the selection)
 /// - drag a chord to move it, drag either edge to resize it; it trims whatever it lands on
@@ -682,7 +686,10 @@ private struct ChordClipsLayer: View {
                 .contentShape(Rectangle())
                 .gesture(backgroundGesture, including: isEditable ? .all : .none)
 
-            ForEach(displayed) { region in
+            // Only the chords on screen (and one being dragged): each one SwiftUI has to keep track of costs time on
+            // every update, and a song has hundreds
+            let lowerBeat = Double(visible.lowerBound / beatWidth), upperBeat = Double(visible.upperBound / beatWidth)
+            ForEach(displayed.filter { $0.range.end >= lowerBeat && $0.range.start <= upperBeat || $0.id == dragged?.id }) { region in
                 // The one being dragged is always drawn, so the drag carries on if it leaves the screen
                 let isDragged = dragged?.id == region.id
                 // No margin: a long chord's name stays at the left of the screen when its start is scrolled off
@@ -694,8 +701,10 @@ private struct ChordClipsLayer: View {
                 let handle = min(7, clipWidth / 4)
                 // The box (and the outline while dragging) as plain shapes of their own. Drawn as a background
                 // of the name with the outline as an overlay, the box disappeared far along a zoomed-in lane.
+                // A pattern's repeats are fainter, as in Live (they're the same chords, edited together)
+                let isRepeat = (sequence.chordSources[region.id]?.round ?? 0) > 0
                 RoundedRectangle(cornerRadius: 4)
-                    .fill(parsed == nil ? Color.red.opacity(0.4) : Color.blue.opacity(isDragged ? 0.55 : 0.35))
+                    .fill(parsed == nil ? Color.red.opacity(0.4) : Color.blue.opacity(isDragged ? 0.55 : isRepeat ? 0.2 : 0.35))
                     .frame(width: clipWidth, height: 46)
                     .offset(x: span.x + 1, y: 30)
                 if isDragged {
@@ -1119,7 +1128,9 @@ private struct WaveformRow: View {
 
             ForEach(liveMarkers) { marker in
                 let x = CGFloat(marker.beat) * beatWidth
-                if x >= left - 10 && x <= left + width + 10 {
+                // The one being dragged is always drawn: a view removed mid-drag never hears the drag end, which
+                // leaves the window ignoring every click after
+                if (x >= left - 10 && x <= left + width + 10) || dragging?.id == marker.id {
                     let isActive = dragging?.id == marker.id || hovered == marker.id
                     // The line is only drawn: clicks on it go to the waveform (playhead, ranges, new markers)
                     Rectangle()

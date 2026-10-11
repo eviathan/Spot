@@ -88,53 +88,97 @@ public enum AudioFingerprint {
 
 /// Loudness overview for drawing a waveform: the min and max of each block of samples (channels mixed).
 public struct WaveformPeaks: Sendable {
-    public let samplesPerBlock: Int
-    public let sampleRate: Double
-    public let minimums: [Float]
-    public let maximums: [Float]
+    /// One level of detail: the lowest and highest sample in each block.
+    public struct Level: Sendable {
+        public let samplesPerBlock: Int
+        public let minimums: [Float]
+        public let maximums: [Float]
+    }
 
-    public init(_ audio: AudioData, samplesPerBlock: Int = 256) {
-        self.samplesPerBlock = samplesPerBlock
+    public let sampleRate: Double
+    /// Finest first, each `levelFactor` times coarser, down to a few hundred blocks: whatever the zoom, a column
+    /// of the waveform looks at only a handful of blocks.
+    public let levels: [Level]
+    static let levelFactor = 4
+
+    /// The finest level's.
+    public var samplesPerBlock: Int { levels[0].samplesPerBlock }
+    public var minimums: [Float] { levels[0].minimums }
+    public var maximums: [Float] { levels[0].maximums }
+
+    public init(_ audio: AudioData, samplesPerBlock: Int = 8) {
         self.sampleRate = audio.sampleRate
         let frames = audio.frameCount
-        let blocks = (frames + samplesPerBlock - 1) / samplesPerBlock
-        var minimums = [Float](repeating: 0, count: blocks)
-        var maximums = [Float](repeating: 0, count: blocks)
+        let blockSize = max(1, samplesPerBlock)
+        let blocks = (frames + blockSize - 1) / blockSize
 
-        // The channels mixed (with Accelerate: a plain loop over every sample takes seconds in a debug build)
+        // The channels mixed, padded with silence to whole blocks (all with Accelerate: a plain loop over every
+        // sample takes seconds in a debug build)
         var mixed = audio.channels.first.map { Array($0.prefix(frames)) } ?? []
         for channel in audio.channels.dropFirst() {
             vDSP_vadd(mixed, 1, channel, 1, &mixed, 1, vDSP_Length(frames))
         }
         var scale = 1 / Float(max(audio.channels.count, 1))
         vDSP_vsmul(mixed, 1, &scale, &mixed, 1, vDSP_Length(mixed.count))
+        mixed += [Float](repeating: 0, count: blocks * blockSize - mixed.count)
 
-        mixed.withUnsafeBufferPointer { samples in
-            guard let base = samples.baseAddress else { return }
-            for block in 0..<blocks {
-                let start = block * samplesPerBlock
-                let count = vDSP_Length(min(samplesPerBlock, frames - start))
-                var low: Float = 0, high: Float = 0
-                vDSP_minv(base + start, 1, &low, count)
-                vDSP_maxv(base + start, 1, &high, count)
-                minimums[block] = min(low, 0)
-                maximums[block] = max(high, 0)
-            }
+        // Silence counts: the lowest is at most 0 and the highest at least 0
+        var finest = Level(samplesPerBlock: blockSize,
+                           minimums: WaveformPeaks.reduce(mixed, by: blockSize, vDSP_vmin, start: [Float](repeating: 0, count: blocks)),
+                           maximums: WaveformPeaks.reduce(mixed, by: blockSize, vDSP_vmax, start: [Float](repeating: 0, count: blocks)))
+        if blocks == 0 { finest = Level(samplesPerBlock: blockSize, minimums: [], maximums: []) }
+        var levels = [finest]
+        while let last = levels.last, last.minimums.count > 512 {
+            let factor = WaveformPeaks.levelFactor
+            let count = (last.minimums.count + factor - 1) / factor
+            let pad = [Float](repeating: 0, count: count * factor - last.minimums.count)
+            levels.append(Level(samplesPerBlock: last.samplesPerBlock * factor,
+                                minimums: WaveformPeaks.reduce(last.minimums + pad, by: factor, vDSP_vmin, start: nil),
+                                maximums: WaveformPeaks.reduce(last.maximums + pad, by: factor, vDSP_vmax, start: nil)))
         }
-        self.minimums = minimums
-        self.maximums = maximums
+        self.levels = levels
     }
 
-    /// The quietest and loudest sample between two times in seconds.
+    /// Every `factor` values combined into one (with vDSP_vmin or vDSP_vmax), a whole stride at a time.
+    private static func reduce(_ values: [Float], by factor: Int,
+                               _ combine: (UnsafePointer<Float>, vDSP_Stride, UnsafePointer<Float>, vDSP_Stride,
+                                           UnsafeMutablePointer<Float>, vDSP_Stride, vDSP_Length) -> Void,
+                               start: [Float]?) -> [Float] {
+        let count = values.count / factor
+        guard count > 0 else { return [] }
+        var result = start ?? Array(values[0...].striding(factor, count))
+        values.withUnsafeBufferPointer { source in
+            guard let base = source.baseAddress else { return }
+            result.withUnsafeMutableBufferPointer { out in
+                for offset in (start == nil ? 1 : 0)..<factor {
+                    combine(base + offset, vDSP_Stride(factor), UnsafePointer(out.baseAddress!), 1, out.baseAddress!, 1, vDSP_Length(count))
+                }
+            }
+        }
+        return result
+    }
+
+    /// The quietest and loudest sample between two times in seconds, from the coarsest level that still has a
+    /// few blocks in that time.
     public func range(from start: Double, to end: Double) -> (min: Float, max: Float) {
-        let first = max(0, Int(start * sampleRate) / samplesPerBlock)
-        let last = min(maximums.count - 1, Int(end * sampleRate) / samplesPerBlock)
+        let span = (end - start) * sampleRate
+        // (Worked out, rather than searched for: this runs for every column of the waveform on every redraw)
+        let steps = span > Double(samplesPerBlock * 2)
+            ? Int(log(span / Double(samplesPerBlock * 2)) / log(Double(WaveformPeaks.levelFactor)) + 1e-9) : 0
+        let level = levels[min(max(steps, 0), levels.count - 1)]
+        let first = max(0, Int(start * sampleRate) / level.samplesPerBlock)
+        let last = min(level.maximums.count - 1, Int(end * sampleRate) / level.samplesPerBlock)
         guard first <= last else { return (0, 0) }
         var low: Float = 0, high: Float = 0
-        for block in first...last {
-            low = min(low, minimums[block])
-            high = max(high, maximums[block])
-        }
-        return (low, high)
+        level.minimums.withUnsafeBufferPointer { vDSP_minv($0.baseAddress! + first, 1, &low, vDSP_Length(last - first + 1)) }
+        level.maximums.withUnsafeBufferPointer { vDSP_maxv($0.baseAddress! + first, 1, &high, vDSP_Length(last - first + 1)) }
+        return (min(low, 0), max(high, 0))
+    }
+}
+
+private extension ArraySlice where Element == Float {
+    /// Every `step`th value from the start, `count` of them.
+    func striding(_ step: Int, _ count: Int) -> [Float] {
+        (0..<count).map { self[startIndex + $0 * step] }
     }
 }

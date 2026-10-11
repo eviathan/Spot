@@ -125,6 +125,25 @@ final class AudioDataTests: XCTestCase {
         XCTAssertTrue(peaks.range(from: 0, to: 1) == (-0.5, 0.5))
     }
 
+    /// Every level of detail agrees with the samples themselves (as far as its blocks go).
+    func testPeakLevels() {
+        var generator = SystemRandomNumberGenerator()
+        let samples = (0..<100_003).map { _ in Float.random(in: -1...1, using: &generator) * 0.5 }
+        let peaks = WaveformPeaks(AudioData(channels: [samples], sampleRate: 1000))
+        XCTAssertGreaterThan(peaks.levels.count, 3)
+        XCTAssertLessThanOrEqual(peaks.levels.last!.minimums.count, 512)
+        for (start, length) in [(0, 20), (1234, 100), (5000, 3000), (40_000, 60_003), (0, 100_003)] {
+            let range = peaks.range(from: Double(start) / 1000, to: Double(start + length) / 1000)
+            let level = peaks.levels.last { $0.samplesPerBlock * 2 <= length } ?? peaks.levels[0]
+            // The blocks it reads cover the span, out to their edges
+            let from = start / level.samplesPerBlock * level.samplesPerBlock
+            let to = min(samples.count, ((start + length) / level.samplesPerBlock + 1) * level.samplesPerBlock)
+            let slice = samples[from..<to]
+            XCTAssertEqual(range.min, min(slice.min()!, 0), "\(start) \(length)")
+            XCTAssertEqual(range.max, max(slice.max()!, 0), "\(start) \(length)")
+        }
+    }
+
     /// Counts zero crossings to estimate the frequency of a stretch of samples.
     private func frequency(_ samples: ArraySlice<Float>, sampleRate: Double) -> Double {
         let crossings = zip(samples, samples.dropFirst()).filter { $0 < 0 && $1 >= 0 }.count

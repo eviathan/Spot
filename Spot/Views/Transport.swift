@@ -250,3 +250,21 @@ enum SpaceBarMonitor {
         }
     }
 }
+
+/// Delete (or forward delete) on the Sequence tab clears the selection, except while typing in a text field.
+enum DeleteKeyMonitor {
+    private static var monitor: Any?
+
+    static func install(_ action: @escaping () -> Bool) {
+        guard monitor == nil else { return }
+        monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            let modifiers = event.modifierFlags.intersection([.command, .option, .control, .shift])
+            let isTyping = NSApp.keyWindow?.firstResponder is NSText
+            guard event.keyCode == 51 || event.keyCode == 117, modifiers.isEmpty, !isTyping,
+                  NSApp.keyWindow?.attachedSheet == nil else {
+                return event
+            }
+            return action() ? nil : event
+        }
+    }
+}

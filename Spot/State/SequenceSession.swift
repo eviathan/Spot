@@ -36,8 +36,21 @@ final class SequenceSession {
 
     /// nil when nothing is open.
     var sequence: ChordSequence? {
-        didSet { sequenceChanged(from: oldValue) }
+        didSet {
+            // The menu bar's summary, set only when it changes (reading `sequence` itself, the menu bar would be
+            // rebuilt for every edit and drag)
+            if isOpen != (sequence != nil) { isOpen = sequence != nil }
+            if isLooping != (sequence?.isLooping ?? false) { isLooping = sequence?.isLooping ?? false }
+            if barLength != (sequence?.barLength ?? 4) { barLength = sequence?.barLength ?? 4 }
+            sequenceChanged(from: oldValue)
+        }
     }
+    /// Whether a sequence is open (for the menu bar).
+    private(set) var isOpen = false
+    /// Whether it's looping (for the menu bar).
+    private(set) var isLooping = false
+    /// Its bar, in beats (for the menu bar).
+    private(set) var barLength: Double = 4
     private(set) var editor: SequenceEditorState?
     private(set) var fileURL: URL?
     private(set) var hasUnsavedChanges = false
@@ -95,10 +108,6 @@ final class SequenceSession {
         restore()
     }
 
-    var isOpen: Bool {
-        sequence != nil
-    }
-
     var displayName: String {
         fileURL?.deletingPathExtension().lastPathComponent ?? "Untitled"
     }
@@ -106,7 +115,7 @@ final class SequenceSession {
     /// True when closing would lose work: an unsaved sequence with something in it.
     var needsSaveBeforeClosing: Bool {
         guard let sequence, fileURL == nil else { return false }
-        return !sequence.chords.isEmpty || !sequence.sections.isEmpty
+        return !sequence.chords.isEmpty || !sequence.instances.isEmpty
     }
 
     var isPlaying: Bool {
@@ -392,7 +401,11 @@ final class SequenceSession {
         // A tab edit is an undo step in the tab editor, and changes nothing the analysis looks at
         if !isTabEdit {
             recordUndo(from: old, to: sequence)
-            editor?.analyse(sequence)
+            // The analysis (every chord's scale and shapes) is slow and only looks at the chords and key: not
+            // re-done for a warp marker, the loop, the markers…
+            if old?.chords != sequence.chords || old?.key != sequence.key {
+                editor?.analyse(sequence)
+            }
         }
         
         // The rendered audio depends on the markers and the recording's tempo (not the sequence's: that's
@@ -607,6 +620,68 @@ final class SequenceSession {
         return data
     }
     
+    // MARK: - Patterns
+
+    /// The pattern at the playhead (or the selection's start).
+    var selectedPattern: (instance: PatternInstance, pattern: ChordPattern)? {
+        guard let sequence, let editor else { return nil }
+        return sequence.patternInstance(at: editor.selection.start)
+    }
+
+    /// Whether ⌘G can group the selection: a range, not over a pattern.
+    var canGroupSelection: Bool {
+        guard let sequence, let editor, editor.selection.length > 0 else { return false }
+        return !sequence.instances.contains { $0.range.overlaps(editor.selection) }
+    }
+
+    /// ⌘G: the selected stretch becomes a pattern, selected.
+    func groupSelection() {
+        guard canGroupSelection, let editor, var sequence else { return }
+        let range = editor.selection
+        guard sequence.makePattern(from: range) != nil else { return }
+        self.sequence = sequence
+        editor.select(range, extend: false, in: sequence)
+    }
+
+    /// ⇧⌘G: the pattern at the playhead back to plain chords.
+    func ungroupPattern() {
+        guard let instance = selectedPattern?.instance else { return }
+        sequence?.ungroup(instance.id)
+    }
+
+    /// ⌘D: the pattern again straight after itself (linked), selected.
+    func duplicatePattern() {
+        guard let instance = selectedPattern?.instance, let editor, var sequence else { return }
+        guard let copy = sequence.duplicate(instance.id) else { return }
+        self.sequence = sequence
+        if let placed = sequence.instances.first(where: { $0.id == copy }) {
+            editor.select(placed.range, extend: false, in: sequence)
+        }
+    }
+
+    /// The pattern at the playhead out of the sequence, chords and all.
+    func deletePattern() {
+        guard let instance = selectedPattern?.instance, let editor, var sequence else { return }
+        sequence.removeInstance(instance.id)
+        self.sequence = sequence
+        editor.select(BeatRange(instance.range.start, instance.range.start), extend: false, in: sequence)
+    }
+
+    /// Delete: clears the selection's chords; patterns wholly in it go.
+    func deleteSelection() {
+        guard let editor, editor.selection.length > 0 else { return }
+        sequence?.clearChords(in: editor.selection)
+    }
+
+    func makePatternUnique() {
+        guard let instance = selectedPattern?.instance else { return }
+        sequence?.makeUnique(instance.id)
+    }
+
+    func renamePattern(_ id: UUID, to name: String) {
+        sequence?.rename(pattern: id, to: name)
+    }
+
     // MARK: - The tab
 
     /// Told when a sequence opens or closes, for the tab editor to show its tab (or not).

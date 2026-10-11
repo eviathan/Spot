@@ -67,7 +67,22 @@ final class PlaybackController {
     @ObservationIgnored private var takePlayers: [UUID: TakePlayer] = [:]
     @ObservationIgnored private var takesStarted = false
 
-    private let lookahead = 0.1
+    /// Notes are sent this far ahead (seconds), stamped with when they should sound. Short when they also go to a
+    /// MIDI device (some play notes when they arrive); longer when only Spot's own sound (and apps reading the
+    /// Spot source, which keep to the stamps) plays them, so a busy moment on the main thread doesn't drop them.
+    private var lookahead: Double { settings.midiDestinationID == nil ? 0.4 : 0.1 }
+    /// The recording and the metronome are queued this far ahead (seconds): they're played by the audio engine at
+    /// their times, so they can be, and then a busy moment on the main thread (resizing the window, scrolling,
+    /// a big redraw) doesn't leave a gap.
+    private let bufferedLookahead = 1.0
+    /// Clicks are queued up to this beat.
+    @ObservationIgnored private var clicksUntil: Double = 0
+    /// While looping: the recording and clicks are already queued past the loop's end, into the next time round
+    /// (`audioCursor` and `clicksUntil` are then beats in that next time round, which starts when the clock reaches
+    /// the loop end).
+    @ObservationIgnored private var queuedIntoNextRound = false
+    /// Where the recording picks up after its queue was cleared mid-playback (the loop changed).
+    @ObservationIgnored private var audioResumesAt: Double?
     private let startLatency = 0.05
 
     init(transport: TransportState, settings: AudioSettings) {
@@ -226,7 +241,17 @@ final class PlaybackController {
         } else if self.sequence?.tab == nil, let tab = sequence.tab {
             sendSetup(of: tab, at: HostTime.now)
         }
+        // A different loop: what's queued ahead may run past its new end, so queue it all again from here
+        let loopChanged = self.sequence?.loop != sequence.loop
         self.sequence = sequence
+        if loopChanged {
+            track?.stop()
+            audioCursor = nil
+            audioResumesAt = scheduledUntil
+            clicks?.stop()
+            clicksUntil = scheduledUntil
+            queuedIntoNextRound = false
+        }
     }
 
     private func play(from beat: Double, countIn useCountIn: Bool = true) {
@@ -239,6 +264,9 @@ final class PlaybackController {
         countInStart = beat - countIn
         countInEnd = beat
         audioCursor = nil
+        audioResumesAt = nil
+        clicksUntil = beat - countIn
+        queuedIntoNextRound = false
         takesStarted = false
         startTimer()
     }
@@ -264,6 +292,7 @@ final class PlaybackController {
         playingSequence = nil
         track?.stop()
         audioCursor = nil
+        queuedIntoNextRound = false
         stopTakes()
         transport.stop()
         clicks?.stop()
@@ -366,8 +395,14 @@ final class PlaybackController {
             // (its clicks would sound with the metronome off)
             countInEnd = -.infinity
             // Audio carries straight on from the loop start, queued after the slice that ended at the loop end
-            if audioCursor != nil {
-                audioCursor = loop.start
+            // (usually already, see scheduleAhead)
+            if queuedIntoNextRound {
+                queuedIntoNextRound = false
+            } else {
+                if audioCursor != nil {
+                    audioCursor = loop.start
+                }
+                clicksUntil = loop.start
             }
             if takesStarted {
                 stopTakes()
@@ -378,6 +413,41 @@ final class PlaybackController {
         
         scheduleWindow(from: scheduledUntil, to: until)
         scheduledUntil = max(scheduledUntil, until)
+        scheduleAhead()
+    }
+
+    /// The recording and the clicks, further ahead than the rest. While looping they go on past the loop's end
+    /// into the next time round, so they don't run short there either.
+    private func scheduleAhead() {
+        guard tab == nil else { return }
+        // Where the clock will be, as if it ran straight on (it hasn't gone back to the loop start yet)
+        let target = transport.position(at: HostTime.adding(bufferedLookahead, to: HostTime.now))
+        guard let sequence, let loop = sequence.loop, loop.length > 0, scheduledUntil < loop.end else {
+            queueAhead(to: target, in: sequence, offset: 0)
+            return
+        }
+        if !queuedIntoNextRound {
+            queueAhead(to: min(target, loop.end), in: sequence, offset: 0)
+            // Everything up to the end is queued: go on from the start
+            let audioDone = audioCursor.map { $0 >= loop.end - 1e-9 } ?? (sequence.audio == nil)
+            guard target > loop.end, clicksUntil >= loop.end - 1e-9, audioDone else { return }
+            queuedIntoNextRound = true
+            if audioCursor != nil { audioCursor = loop.start }
+            clicksUntil = loop.start
+        }
+        // The next time round sounds `loop.length` beats on from this one
+        queueAhead(to: min(loop.start + (target - loop.end), loop.end), in: sequence, offset: loop.length)
+    }
+
+    /// Queues the clicks and the recording up to `target`, sounding `offset` beats on from those beats.
+    private func queueAhead(to target: Double, in sequence: SequencePlayback?, offset: Double) {
+        if target > clicksUntil {
+            scheduleClicks(from: clicksUntil, to: target, offset: offset)
+            clicksUntil = target
+        }
+        if let sequence, let audio = sequence.audio, let cursor = audioCursor, target > cursor {
+            scheduleAudio(audio, gain: sequence.audioGain, loopEnd: sequence.loop?.end, from: cursor, to: target)
+        }
     }
     
     private func scheduleWindow(from: Double, to: Double) {
@@ -386,11 +456,15 @@ final class PlaybackController {
             scheduleTab(tab, from: from, to: to)
             return
         }
-        scheduleClicks(from: from, to: to)
+        // (Clicks are usually queued already, further ahead: see scheduleAhead)
+        if !queuedIntoNextRound, to > clicksUntil {
+            scheduleClicks(from: max(from, clicksUntil), to: to)
+            clicksUntil = to
+        }
         if let sequence, let tab = sequence.tab {
             scheduleLinkedTab(tab, startingAt: sequence.tabStart, from: from, to: to)
         }
-        if let sequence, let audio = sequence.audio {
+        if !queuedIntoNextRound, let sequence, let audio = sequence.audio {
             scheduleAudio(audio, gain: sequence.audioGain, loopEnd: sequence.loop?.end, from: from, to: to)
         }
         if sequence != nil, !takesStarted, countInEnd < to {
@@ -435,7 +509,8 @@ final class PlaybackController {
         if audioCursor == nil {
             // From the very start, audio before bar 1 (a pickup) plays during the count-in. Audio that
             // arrives once playback is under way (it was still rendering) joins in now, not back at the start.
-            let start = countInEnd <= 0.001 ? max(countInStart, min(audio.startBeat, countInEnd)) : countInEnd
+            let start = audioResumesAt ?? (countInEnd <= 0.001 ? max(countInStart, min(audio.startBeat, countInEnd)) : countInEnd)
+            audioResumesAt = nil
             let first = max(start, from)
             guard first < to else { return }
             // The loop end only counts if we start before it (clicking past a loop plays on from there)
@@ -463,17 +538,17 @@ final class PlaybackController {
         }
     }
     
-    private func scheduleClicks(from: Double, to: Double) {
+    private func scheduleClicks(from: Double, to: Double, offset: Double = 0) {
         // Beats (and bar accents) count from the bar origin, i.e. a sequence's 1.1.1.
         // Count-in clicks always sound; after that only when the metronome is on
         let origin = transport.barOrigin
         let wanted = Metronome.clicks(from: from - origin, to: to - origin, timeSignature: transport.timeSignature)
-            .filter { transport.isMetronomeOn || $0.beat + origin < countInEnd }
+            .filter { transport.isMetronomeOn || (offset == 0 && $0.beat + origin < countInEnd) }
         guard !wanted.isEmpty, let clicks = clickPlayer() else { return }
 
         clicks.volume = Float(settings.metronomeVolume)
         for click in wanted {
-            clicks.click(accent: click.isAccent, atHostTime: transport.hostTime(forBeat: click.beat + origin))
+            clicks.click(accent: click.isAccent, atHostTime: transport.hostTime(forBeat: click.beat + origin + offset))
         }
     }
     

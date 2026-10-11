@@ -8,7 +8,7 @@ import SpotCore
 
 /// Where the playhead is in a sequence window: the live position while it plays, otherwise the selection.
 func sequencePosition(_ editor: SequenceEditorState, _ playback: PlaybackController, _ transport: TransportState) -> Double {
-    playback.playingSequence == editor.id ? transport.position() : editor.selection.start
+    playback.playingSequence == editor.id ? transport.position() : editor.playhead
 }
 
 /// The current chord and its scale, plus the next chord in lilac: a ring on notes it shares, small markers for new ones.
@@ -216,7 +216,7 @@ struct PerformanceHeader: View {
     private func now(_ region: ChordRegion?, position: Double, isPlaying: Bool) -> some View {
         let beatInBar = Int(sequence.barAndBeat(at: position).beat)
         // The section (there's no count-in for now, so nothing else goes here)
-        let caption = sequence.section(at: max(position, 0))?.name
+        let caption = sequence.partName(at: max(position, 0))
 
         return VStack(alignment: .leading, spacing: 5) {
             HStack(spacing: 6) {
@@ -477,7 +477,7 @@ struct FretboardReadout: View {
                 if card == .now {
                     cardView(region, accent: .primary) {
                         title("NOW")
-                        if let caption = sequence.section(at: max(position, 0))?.name {
+                        if let caption = sequence.partName(at: max(position, 0)) {
                             Text(caption).font(.callout).opacity(0.6).lineLimit(1)
                         }
                         BeatDots(count: sequence.timeSignature.numerator, current: isPlaying ? beatInBar : nil)

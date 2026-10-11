@@ -91,10 +91,16 @@ public struct ChordSequence: Hashable, Codable, Sendable {
     public var lengthInBars: Int
     /// nil to work the key out from the chords.
     public var key: Key?
-    /// Kept sorted by start and never overlapping.
+    /// The song's chords as they're heard: the plain ones and the patterns' laid out where they're used, round
+    /// after round. Sorted by start, never overlapping. (Worked out from `looseChords`, `patterns` and `instances`.)
     public private(set) var chords: [ChordRegion]
-    /// Kept sorted by start and never overlapping.
-    public private(set) var sections: [SequenceSection]
+    /// For each chord in `chords` that comes from a pattern: which, and where.
+    public private(set) var chordSources: [UUID: ChordSource]
+    /// Chords that aren't in a pattern. Sorted, not overlapping, and not under a pattern.
+    public internal(set) var looseChords: [ChordRegion]
+    public internal(set) var patterns: [ChordPattern]
+    /// Where patterns are used. Sorted, not overlapping.
+    public internal(set) var instances: [PatternInstance]
     /// The loop brace: kept when looping is off, so it can be shown and turned back on.
     public var loopRange: BeatRange?
     public var isLooping: Bool
@@ -132,7 +138,10 @@ public struct ChordSequence: Hashable, Codable, Sendable {
         self.lengthInBars = lengthInBars
         self.key = nil
         self.chords = []
-        self.sections = []
+        self.chordSources = [:]
+        self.looseChords = []
+        self.patterns = []
+        self.instances = []
         self.loopRange = nil
         self.isLooping = false
         self.audio = nil
@@ -191,77 +200,136 @@ public struct ChordSequence: Hashable, Codable, Sendable {
         return next.map { ($0, $0.range.start - beat) }
     }
 
-    public func section(at beat: Double) -> SequenceSection? {
-        sections.first { $0.range.contains(beat) }
-    }
-
     // MARK: - Editing
 
-    /// Puts a chord over `range`, trimming or splitting whatever was there.
+    /// Works `chords` out again after a change.
+    mutating func rebuild() {
+        (chords, chordSources) = ChordSequence.layOut(loose: looseChords, patterns: patterns, instances: instances)
+    }
+
+    /// Several changes, then `chords` worked out once.
+    mutating func editAll(_ change: (inout ChordSequence) -> Void) {
+        change(&self)
+        rebuild()
+    }
+
+    /// The part of `range` outside patterns, from its start (plain chords stop where a pattern begins).
+    private func outsidePatterns(_ range: BeatRange) -> BeatRange {
+        let end = instances.first { $0.range.start >= range.start - 1e-9 && $0.range.start < range.end }?.range.start ?? range.end
+        return BeatRange(range.start, end)
+    }
+
+    /// Puts a chord over `range`, trimming or splitting whatever was there. Inside a pattern it goes into the
+    /// pattern (so every time round, and every place it's used, gets it), within that time round.
     public mutating func setChord(_ symbol: String, in range: BeatRange, scaleId: String? = nil) {
         let range = clamped(range)
         guard range.length > 0 else { return }
-        chords = ChordSequence.carve(chords, removing: range)
-        chords.append(ChordRegion(range: range, symbol: symbol, scaleId: scaleId))
-        chords.sort { $0.range.start < $1.range.start }
+        if let round = round(at: range.start) {
+            let end = min(range.end, round.instance.range.end, round.roundStart + round.pattern.length)
+            setPatternChord(round.pattern.id, ChordRegion(range: BeatRange(range.start - round.roundStart, end - round.roundStart),
+                                                          symbol: symbol, scaleId: scaleId))
+        } else {
+            let plain = outsidePatterns(range)
+            guard plain.length > 0 else { return }
+            looseChords = ChordSequence.carve(looseChords, removing: plain)
+            looseChords.append(ChordRegion(range: plain, symbol: symbol, scaleId: scaleId))
+            looseChords.sort { $0.range.start < $1.range.start }
+        }
+        rebuild()
     }
 
     /// Puts an existing chord (moved or resized) at its new range, keeping its id and scale,
-    /// and trims whatever it now covers.
+    /// and trims whatever it now covers. A pattern's chord moves within its pattern.
     public mutating func place(_ region: ChordRegion) {
         var region = region
         region.range = clamped(region.range)
         guard region.range.length > 0 else { return }
-        chords.removeAll { $0.id == region.id }
-        chords = ChordSequence.carve(chords, removing: region.range)
-        chords.append(region)
-        chords.sort { $0.range.start < $1.range.start }
+        if let source = chordSources[region.id] {
+            var chord = region
+            chord.id = source.chordId
+            chord.range = BeatRange(region.range.start - source.roundStart, region.range.end - source.roundStart)
+            setPatternChord(source.patternId, chord)
+        } else {
+            region.range = outsidePatterns(region.range)
+            guard region.range.length > 0 else { return }
+            looseChords.removeAll { $0.id == region.id }
+            looseChords = ChordSequence.carve(looseChords, removing: region.range)
+            looseChords.append(region)
+            looseChords.sort { $0.range.start < $1.range.start }
+        }
+        rebuild()
     }
 
+    /// Clears chords in `range`. Patterns wholly inside it go (as in Live, deleting a selected clip); where it's
+    /// over part of one, its chords there are cleared from the pattern (every time round, and in its copies).
     public mutating func clearChords(in range: BeatRange) {
-        chords = ChordSequence.carve(chords, removing: range)
+        looseChords = ChordSequence.carve(looseChords, removing: range)
+        instances.removeAll { range.start <= $0.range.start + 1e-9 && $0.range.end <= range.end + 1e-9 }
+        patterns.removeAll { pattern in !instances.contains { $0.patternId == pattern.id } }
+        for instance in instances where instance.range.overlaps(range) {
+            guard let pattern = pattern(instance.patternId) else { continue }
+            var roundStart = instance.range.start - instance.phase
+            while roundStart < min(instance.range.end, range.end) {
+                let from = max(range.start, instance.range.start) - roundStart
+                let to = min(range.end, instance.range.end) - roundStart
+                if to > 0 && from < pattern.length {
+                    clearPatternChords(pattern.id, in: BeatRange(max(0, from), min(pattern.length, to)))
+                }
+                roundStart += pattern.length
+            }
+        }
+        rebuild()
     }
 
-    /// Changes one chord's symbol or scale without moving it.
+    /// Changes one chord's symbol or scale without moving it (a pattern's: every time it comes round).
     /// Changing the chord forgets its voicing and position; changing its scale forgets the position.
     public mutating func update(_ id: UUID, symbol: String? = nil, scaleId: String?? = nil) {
-        guard let index = chords.firstIndex(where: { $0.id == id }) else { return }
-        if let symbol, symbol != chords[index].symbol {
-            chords[index].symbol = symbol
-            chords[index].voicing = nil
-            chords[index].position = nil
-        }
-        if let scaleId, scaleId != chords[index].scaleId {
-            chords[index].scaleId = scaleId
-            chords[index].position = nil
+        edit(id) { chord in
+            if let symbol, symbol != chord.symbol {
+                chord.symbol = symbol
+                chord.voicing = nil
+                chord.position = nil
+            }
+            if let scaleId, scaleId != chord.scaleId {
+                chord.scaleId = scaleId
+                chord.position = nil
+            }
         }
     }
 
     /// Chooses (or, with nil, stops choosing) a chord's voicing or scale position.
     public mutating func pick(_ id: UUID, voicing: ShapePick?? = nil, position: ShapePick?? = nil) {
-        guard let index = chords.firstIndex(where: { $0.id == id }) else { return }
-        if let voicing { chords[index].voicing = voicing }
-        if let position { chords[index].position = position }
+        edit(id) { chord in
+            if let voicing { chord.voicing = voicing }
+            if let position { chord.position = position }
+        }
     }
 
-    public mutating func setSection(_ name: String, in range: BeatRange) {
-        let range = clamped(range)
-        guard range.length > 0 else { return }
-        sections = ChordSequence.carve(sections, removing: range)
-        sections.append(SequenceSection(name: name, range: range))
-        sections.sort { $0.range.start < $1.range.start }
-    }
-
-    public mutating func removeSection(_ id: UUID) {
-        sections.removeAll { $0.id == id }
+    /// Changes a chord in `chords`: a plain one, or (one from a pattern) the pattern's.
+    private mutating func edit(_ id: UUID, _ change: (inout ChordRegion) -> Void) {
+        if let source = chordSources[id] {
+            editPatternChord(source.patternId, source.chordId, change)
+        } else if let index = looseChords.firstIndex(where: { $0.id == id }) {
+            change(&looseChords[index])
+        } else {
+            return
+        }
+        rebuild()
     }
 
     /// Changes the length, dropping or trimming anything past the new end.
     public mutating func setLength(bars: Int) {
         lengthInBars = max(1, bars)
         let end = lengthInBeats
-        chords = ChordSequence.carve(chords, removing: BeatRange(end, .infinity))
-        sections = ChordSequence.carve(sections, removing: BeatRange(end, .infinity))
+        looseChords = ChordSequence.carve(looseChords, removing: BeatRange(end, .infinity))
+        instances = instances.compactMap { instance in
+            guard instance.range.start < end - 1e-9 else { return nil }
+            var trimmed = instance
+            trimmed.range = BeatRange(instance.range.start, min(instance.range.end, end))
+            return trimmed
+        }
+        patterns.removeAll { pattern in !instances.contains { $0.patternId == pattern.id } }
+        rebuild()
         if let loopRange, loopRange.start >= end {
             self.loopRange = nil
             isLooping = false
@@ -306,9 +374,9 @@ public struct ChordSequence: Hashable, Codable, Sendable {
         audio.map { $0.map.beat(atSourceTime: $0.reference.duration) }
     }
 
-    /// Where the last thing ends: a chord, a section, a take, the recording or the tab's last notes.
+    /// Where the last thing ends: a chord, a pattern, a take, the recording or the tab's last notes.
     public var contentEnd: Double {
-        max(chords.last?.range.end ?? 0, sections.last?.range.end ?? 0,
+        max(chords.last?.range.end ?? 0, instances.map(\.range.end).max() ?? 0,
             takes.map(\.endBeat).max() ?? 0, audioEndBeat ?? 0, endBeat ?? 0,
             tablature.map { startBeat + $0.contentQuarterNotes } ?? 0)
     }
@@ -328,7 +396,7 @@ public struct ChordSequence: Hashable, Codable, Sendable {
 
     /// Removes `removing` from a list of non-overlapping items: trims items at its edges and
     /// splits one that spans it (the second half gets a new id).
-    private static func carve<Item: BeatRanged>(_ items: [Item], removing: BeatRange) -> [Item] {
+    static func carve<Item: BeatRanged>(_ items: [Item], removing: BeatRange) -> [Item] {
         items.flatMap { item -> [Item] in
             guard item.range.overlaps(removing) else { return [item] }
 
@@ -353,11 +421,12 @@ public struct ChordSequence: Hashable, Codable, Sendable {
     // MARK: - Files
 
     enum CodingKeys: String, CodingKey {
-        case version, tempo, timeSignature, lengthInBars, key, chords, sections, loopRange, isLooping, audio, takes, tablature, tabIsMuted, startBeat, endBeat
+        // `chords` are the plain ones (as files before patterns had them)
+        case version, tempo, timeSignature, lengthInBars, key, chords, patterns, patternInstances, loopRange, isLooping, audio, takes, tablature, tabIsMuted, startBeat, endBeat
     }
 
     private enum LegacyKeys: String, CodingKey {
-        case practiceRate, loop, beatsPerBar
+        case practiceRate, loop, beatsPerBar, sections
     }
 
     public init(from decoder: Decoder) throws {
@@ -376,8 +445,11 @@ public struct ChordSequence: Hashable, Codable, Sendable {
         }
         lengthInBars = try container.decode(Int.self, forKey: .lengthInBars)
         key = try container.decodeIfPresent(Key.self, forKey: .key)
-        chords = (try container.decodeIfPresent([ChordRegion].self, forKey: .chords) ?? []).sorted { $0.range.start < $1.range.start }
-        sections = (try container.decodeIfPresent([SequenceSection].self, forKey: .sections) ?? []).sorted { $0.range.start < $1.range.start }
+        looseChords = (try container.decodeIfPresent([ChordRegion].self, forKey: .chords) ?? []).sorted { $0.range.start < $1.range.start }
+        patterns = try container.decodeIfPresent([ChordPattern].self, forKey: .patterns) ?? []
+        instances = (try container.decodeIfPresent([PatternInstance].self, forKey: .patternInstances) ?? []).sorted { $0.range.start < $1.range.start }
+        chords = []
+        chordSources = [:]
         loopRange = try container.decodeIfPresent(BeatRange.self, forKey: .loopRange)
         isLooping = try container.decodeIfPresent(Bool.self, forKey: .isLooping) ?? false
         // Older files: a loop was on whenever there was one
@@ -398,6 +470,34 @@ public struct ChordSequence: Hashable, Codable, Sendable {
         tabIsMuted = try container.decodeIfPresent(Bool.self, forKey: .tabIsMuted) ?? false
         startBeat = try container.decodeIfPresent(Double.self, forKey: .startBeat) ?? 0
         endBeat = try container.decodeIfPresent(Double.self, forKey: .endBeat)
+        rebuild()
+        // Files from before patterns had sections (named parts): each becomes a named pattern of its chords
+        let sections = try decoder.container(keyedBy: LegacyKeys.self).decodeIfPresent([SequenceSection].self, forKey: .sections) ?? []
+        for section in sections.sorted(by: { $0.range.start < $1.range.start }) {
+            makePattern(from: section.range, name: section.name)
+        }
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(version, forKey: .version)
+        try container.encode(tempo, forKey: .tempo)
+        try container.encode(timeSignature, forKey: .timeSignature)
+        try container.encode(lengthInBars, forKey: .lengthInBars)
+        try container.encodeIfPresent(key, forKey: .key)
+        try container.encode(looseChords, forKey: .chords)
+        if !patterns.isEmpty {
+            try container.encode(patterns, forKey: .patterns)
+            try container.encode(instances, forKey: .patternInstances)
+        }
+        try container.encodeIfPresent(loopRange, forKey: .loopRange)
+        try container.encode(isLooping, forKey: .isLooping)
+        try container.encodeIfPresent(audio, forKey: .audio)
+        try container.encode(takes, forKey: .takes)
+        try container.encodeIfPresent(tablature, forKey: .tablature)
+        if tabIsMuted { try container.encode(tabIsMuted, forKey: .tabIsMuted) }
+        try container.encode(startBeat, forKey: .startBeat)
+        try container.encodeIfPresent(endBeat, forKey: .endBeat)
     }
 
     public func encoded() throws -> Data {

@@ -84,6 +84,13 @@ struct LayoutView: View {
                     TransportActions.playPause(ui: ui, session: session, tab: tabSession, playback: playback)
                 }
             }
+            DeleteKeyMonitor.install { [ui, session] in
+                guard ui.tab == .Sequence, session.isOpen, let editor = session.editor, editor.selection.length > 0 else {
+                    return false
+                }
+                session.deleteSelection()
+                return true
+            }
         }
         .sheet(item: $ui.definitionEditor) { request in
             DefinitionEditorView(request: request)

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C76702F74B7E4CDEADA5E717 /* PatternLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9247A23D9212491B8B29B5F6 /* PatternLayer.swift */; };
 		ECEE6BC13AA14182B21B0B37 /* SpotStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA73BCFED8AE4B1B898508F9 /* SpotStyle.swift */; };
 		8F107D6AA5B346DBBFFFAF1C /* LoadingCurtain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4464A3C64F094F65A320A2AC /* LoadingCurtain.swift */; };
 		F87E372B5B7346BF8F76EA20 /* OverlayScrollers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 674BB744BCC84865A5B76DC5 /* OverlayScrollers.swift */; };
@@ -84,6 +85,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		9247A23D9212491B8B29B5F6 /* PatternLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternLayer.swift; sourceTree = "<group>"; };
 		CA73BCFED8AE4B1B898508F9 /* SpotStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotStyle.swift; sourceTree = "<group>"; };
 		4464A3C64F094F65A320A2AC /* LoadingCurtain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingCurtain.swift; sourceTree = "<group>"; };
 		674BB744BCC84865A5B76DC5 /* OverlayScrollers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayScrollers.swift; sourceTree = "<group>"; };
@@ -178,6 +180,7 @@
 		C3213DDB4B114AF1BF4F2FDD /* Sequencer */ = {
 			isa = PBXGroup;
 			children = (
+				9247A23D9212491B8B29B5F6 /* PatternLayer.swift */,
 				D8F4859D90034CA2A03C616F /* SequenceEditorView.swift */,
 				E6F6126529154F0C8B1B2F43 /* ChordLaneView.swift */,
 				E4E0F9177ADE40C580A9F01D /* SequencerFretboard.swift */,
@@ -468,6 +471,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C76702F74B7E4CDEADA5E717 /* PatternLayer.swift in Sources */,
 				ECEE6BC13AA14182B21B0B37 /* SpotStyle.swift in Sources */,
 				8F107D6AA5B346DBBFFFAF1C /* LoadingCurtain.swift in Sources */,
 				F87E372B5B7346BF8F76EA20 /* OverlayScrollers.swift in Sources */,
