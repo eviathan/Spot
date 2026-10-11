@@ -246,7 +246,6 @@ final class SequenceSession {
 
     private func load(_ sequence: ChordSequence, from url: URL?) {
         let editor = SequenceEditorState(library: library)
-        editor.snap = 1  // A beat to start with
         editor.analyse(sequence)
         // Open at the start marker, with the playhead on it
         editor.select(BeatRange(sequence.startBeat, sequence.startBeat), extend: false, in: sequence)

@@ -181,6 +181,38 @@ struct SpotApp: App {
                     .keyboardShortcut("e", modifiers: [.command, .shift])
             }
             
+            // The sequencer's grid, with Live's shortcuts
+            CommandMenu("Grid") {
+                let editor = session.editor
+                let enabled = ui.tab == .Sequence && editor != nil
+                Button("Narrow Grid") { editor?.narrowGrid() }
+                    .keyboardShortcut("1", modifiers: [.command])
+                    .disabled(!enabled)
+                Button("Widen Grid") { editor?.widenGrid() }
+                    .keyboardShortcut("2", modifiers: [.command])
+                    .disabled(!enabled)
+                Button(editor?.isTripletGrid == true ? "Straight Grid" : "Triplet Grid") { editor?.isTripletGrid.toggle() }
+                    .keyboardShortcut("3", modifiers: [.command])
+                    .disabled(!enabled)
+                Button(editor?.grid == .off ? "Snap to Grid" : "Don't Snap to Grid") { editor?.toggleSnap() }
+                    .keyboardShortcut("4", modifiers: [.command])
+                    .disabled(!enabled)
+                Divider()
+                Button(editor.map { if case .adaptive = $0.grid { return "Fixed Grid" } else { return "Adaptive Grid" } } ?? "Adaptive Grid") {
+                    guard let editor else { return }
+                    if case .adaptive = editor.grid {
+                        // The fixed grid nearest what the adaptive one is now
+                        let now = editor.snap
+                        editor.grid = GridMode.fixed(beatsPerBar: session.sequence?.beatsPerBar ?? 4)
+                            .min { abs($0.beats(beatsPerBar: Double(session.sequence?.beatsPerBar ?? 4), beatWidth: 1, triplet: editor.isTripletGrid) - now)
+                                 < abs($1.beats(beatsPerBar: Double(session.sequence?.beatsPerBar ?? 4), beatWidth: 1, triplet: editor.isTripletGrid) - now) } ?? .note(1)
+                    } else {
+                        editor.grid = .adaptive(.medium)
+                    }
+                }
+                .disabled(!enabled)
+            }
+
             CommandMenu("Playback") {
                 Button(transport.isPlaying ? "Stop Playing" : (ui.tab == .Tab ? "Play from Start (Space)" : "Play from 1.1.1 (Space)")) {
                     TransportActions.playPause(ui: ui, session: session, tab: tabSession, playback: playback)

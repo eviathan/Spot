@@ -84,8 +84,58 @@ final class SequenceEditorState {
 
     /// The playhead (empty, from a click) or a range (dragged), as in Live. Play starts from its start.
     var selection = BeatRange(0, 0)
-    /// The grid in beats, for placing the playhead, selecting and moving and resizing chords; 0 is off.
-    var snap: Double = 1
+    /// The grid, as in Live: adaptive (following the zoom), fixed at a note value or a number of bars, or off.
+    /// Remembered between sequences and launches.
+    var grid: GridMode = GridMode.saved {
+        didSet {
+            if grid != .off { lastGrid = grid }
+            UserDefaults.standard.set(grid.saveValue, forKey: GridMode.key)
+        }
+    }
+    /// Triplet grid: every grid step ⅔ as long.
+    var isTripletGrid: Bool = UserDefaults.standard.bool(forKey: GridMode.tripletKey) {
+        didSet { UserDefaults.standard.set(isTripletGrid, forKey: GridMode.tripletKey) }
+    }
+    /// What the grid was before snapping was turned off (⌘4 turns it back on).
+    @ObservationIgnored private var lastGrid: GridMode = .note(1)
+
+    /// The grid now, in beats, for placing the playhead, selecting and moving and resizing chords; 0 is off.
+    /// Adaptive, it depends on the zoom.
+    var snap: Double {
+        grid.beats(beatsPerBar: laneBeatsPerBar, beatWidth: beatWidth, triplet: isTripletGrid)
+    }
+
+    /// The grid now, named: "1/16", "1 Bar", "1/8T"…
+    var gridName: String {
+        GridMode.name(beats: snap, beatsPerBar: laneBeatsPerBar, triplet: isTripletGrid)
+    }
+
+    /// ⌘1: a finer grid (adaptive: narrower; fixed: the next shorter value).
+    func narrowGrid() {
+        switch grid {
+        case .adaptive(let density): grid = .adaptive(density.narrower)
+        case .off: grid = lastGrid
+        default:
+            let values = GridMode.fixed(beatsPerBar: Int(laneBeatsPerBar))
+            if let index = values.firstIndex(of: grid), index > 0 { grid = values[index - 1] }
+        }
+    }
+
+    /// ⌘2: a wider grid.
+    func widenGrid() {
+        switch grid {
+        case .adaptive(let density): grid = .adaptive(density.wider)
+        case .off: grid = lastGrid
+        default:
+            let values = GridMode.fixed(beatsPerBar: Int(laneBeatsPerBar))
+            if let index = values.firstIndex(of: grid), index < values.count - 1 { grid = values[index + 1] }
+        }
+    }
+
+    /// ⌘4: snapping off, or back on as it was.
+    func toggleSnap() {
+        grid = grid == .off ? lastGrid : .off
+    }
     /// How long a chord put at the playhead is: the grid, but at least a beat.
     private var chordUnit: Double {
         snap >= 1 ? snap : 1
@@ -442,5 +492,116 @@ final class SequenceEditorState {
         }
         let from = position(range.start), to = position(range.end - 0.001)
         return "\(from.bar).\(from.beat) – \(to.bar).\(to.beat)"
+    }
+}
+
+
+/// How the lane's grid is chosen, as in Live.
+enum GridMode: Hashable {
+    /// Follows the zoom: the finest grid whose lines are at least so far apart.
+    case adaptive(GridDensity)
+    /// A note value, in quarter notes (1/16 is 0.25).
+    case note(Double)
+    /// A number of bars (½ for half a bar).
+    case bars(Double)
+    case off
+
+    /// The grid in beats.
+    func beats(beatsPerBar: Double, beatWidth: Double, triplet: Bool) -> Double {
+        let scale = triplet ? 2.0 / 3 : 1
+        switch self {
+        case .off:
+            return 0
+        case .note(let quarters):
+            return quarters * scale
+        case .bars(let bars):
+            return bars * beatsPerBar * scale
+        case .adaptive(let density):
+            guard beatWidth > 0 else { return scale }
+            var candidates: [Double] = [0.125, 0.25, 0.5, 1]
+            if Int(beatsPerBar) % 2 == 0 { candidates.append(beatsPerBar / 2) }
+            var bars = 1.0
+            while bars <= 1024 {
+                candidates.append(bars * beatsPerBar)
+                bars *= 2
+            }
+            return (candidates.first { $0 * scale * beatWidth >= density.spacing } ?? candidates.last!) * scale
+        }
+    }
+
+    /// The fixed grids, finest first (⌘1 and ⌘2 step through them).
+    static func fixed(beatsPerBar: Int) -> [GridMode] {
+        [.note(0.125), .note(0.25), .note(0.5), .note(1)]
+            + (beatsPerBar % 2 == 0 && beatsPerBar > 2 ? [.bars(0.5)] : [])
+            + [.bars(1), .bars(2), .bars(4), .bars(8)]
+    }
+
+    /// "1/16", "½ Bar", "2 Bars", with T for triplets.
+    static func name(beats: Double, beatsPerBar: Double, triplet: Bool) -> String {
+        guard beats > 0 else { return "Off" }
+        let plain = triplet ? beats * 3 / 2 : beats
+        let t = triplet ? "T" : ""
+        if plain >= beatsPerBar - 1e-9 {
+            let bars = plain / beatsPerBar
+            if abs(bars - bars.rounded()) < 1e-9 {
+                return "\(Int(bars.rounded())) Bar\(Int(bars.rounded()) == 1 ? "" : "s")\(t)"
+            }
+        }
+        if abs(plain - beatsPerBar / 2) < 1e-9, plain > 1 { return "½ Bar\(t)" }
+        return "1/\(Int((4 / plain).rounded()))\(t)"
+    }
+
+    // MARK: Saving
+
+    static let key = "sequence.grid"
+    static let tripletKey = "sequence.tripletGrid"
+
+    static var saved: GridMode {
+        UserDefaults.standard.string(forKey: key).flatMap(GridMode.init(saveValue:)) ?? .note(1)
+    }
+
+    var saveValue: String {
+        switch self {
+        case .adaptive(let density): return "adaptive:\(density.rawValue)"
+        case .note(let quarters): return "note:\(quarters)"
+        case .bars(let bars): return "bars:\(bars)"
+        case .off: return "off"
+        }
+    }
+
+    init?(saveValue: String) {
+        let parts = saveValue.split(separator: ":", maxSplits: 1).map(String.init)
+        switch parts.first {
+        case "adaptive": guard let density = parts.last.flatMap(GridDensity.init(rawValue:)) else { return nil }; self = .adaptive(density)
+        case "note": guard let value = parts.last.flatMap(Double.init) else { return nil }; self = .note(value)
+        case "bars": guard let value = parts.last.flatMap(Double.init) else { return nil }; self = .bars(value)
+        case "off": self = .off
+        default: return nil
+        }
+    }
+}
+
+/// How fine the adaptive grid is: the least space between its lines.
+enum GridDensity: String, CaseIterable {
+    case narrowest, narrow, medium, wide, widest
+
+    var spacing: Double {
+        switch self {
+        case .narrowest: return 6
+        case .narrow: return 12
+        case .medium: return 24
+        case .wide: return 48
+        case .widest: return 96
+        }
+    }
+
+    var name: String { rawValue.capitalized }
+
+    var narrower: GridDensity {
+        GridDensity.allCases[max(0, (GridDensity.allCases.firstIndex(of: self) ?? 0) - 1)]
+    }
+
+    var wider: GridDensity {
+        GridDensity.allCases[min(GridDensity.allCases.count - 1, (GridDensity.allCases.firstIndex(of: self) ?? 0) + 1)]
     }
 }

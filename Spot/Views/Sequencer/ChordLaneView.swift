@@ -10,6 +10,15 @@ import SpotCore
 /// select; while playing the lane moves past a playhead fixed a quarter of the way across.
 /// Only the visible part of the waveform is drawn, so long songs stay quick.
 struct ChordLaneView: View {
+    /// Every how many bars to draw something (1, 2, 4, 8…) so that they're at least `minimumSpacing` apart.
+    static func barStep(barPixels: CGFloat, minimumSpacing: CGFloat) -> Int {
+        var step = 1
+        while barPixels * CGFloat(step) < minimumSpacing && step < 4096 {
+            step *= 2
+        }
+        return step
+    }
+
     let sequence: ChordSequence
     let editor: SequenceEditorState
 
@@ -201,20 +210,28 @@ struct ChordLaneView: View {
                             height: waveformTop, isEditable: !isPlaying, visible: visible)
 
             // Bar lines and numbers (only those on screen), counted from 1.1.1: the bars before it are −1, −2…
+            // Zoomed out they thin out, as in Live: numbers every 1, 2, 4, 8… bars (whatever keeps them apart),
+            // bar lines at the closest step that isn't a blur, and beat lines fading out as beats get narrow.
             let bpb = Double(sequence.beatsPerBar)
+            let barPixels = beatWidth * CGFloat(bpb)
+            let labelStep = ChordLaneView.barStep(barPixels: barPixels, minimumSpacing: 44)
+            let lineStep = ChordLaneView.barStep(barPixels: barPixels, minimumSpacing: 10)
+            let beatOpacity = min(max((beatWidth - 10) / 8, 0), 1) * 0.1
             let firstBar = Int(floor((Double(visible.lowerBound / beatWidth) - origin) / bpb))
             let lastBar = Int(ceil((Double(visible.upperBound / beatWidth) - origin) / bpb))
-            ForEach(firstBar..<max(firstBar, lastBar + 1), id: \.self) { bar in
+            let firstLine = Int(floor(Double(firstBar) / Double(lineStep))) * lineStep
+            ForEach(Array(stride(from: firstLine, through: max(firstLine, lastBar), by: lineStep)), id: \.self) { bar in
                 let barStart = origin + Double(bar) * bpb
                 let x = CGFloat(barStart) * beatWidth
+                let isNumbered = bar % labelStep == 0
                 if barStart >= -0.001 && barStart <= sequence.lengthInBeats {
                     Rectangle()
-                        .fill(Color.white.opacity(0.35))
+                        .fill(Color.white.opacity(isNumbered ? 0.35 : 0.18))
                         .frame(width: 1, height: laneHeight - 18)
                         .offset(x: x, y: 0)
                         .allowsHitTesting(false)
                     // Bar 1 is labelled by the 1.1.1 flag
-                    if bar != 0 {
+                    if bar != 0 && isNumbered {
                         Text("\(bar >= 0 ? bar + 1 : bar)")
                             .font(.caption2)
                             .opacity(bar < 0 ? 0.4 : 0.6)
@@ -222,13 +239,34 @@ struct ChordLaneView: View {
                             .allowsHitTesting(false)
                     }
                 }
-                ForEach(1..<max(1, sequence.beatsPerBar), id: \.self) { beat in
-                    let beatAt = barStart + Double(beat)
-                    if beatAt >= 0 && beatAt <= sequence.lengthInBeats {
+                if beatOpacity > 0 {
+                    ForEach(1..<max(1, sequence.beatsPerBar), id: \.self) { beat in
+                        let beatAt = barStart + Double(beat)
+                        if beatAt >= 0 && beatAt <= sequence.lengthInBeats {
+                            Rectangle()
+                                .fill(Color.white.opacity(beatOpacity))
+                                .frame(width: 1, height: laneHeight - 48)
+                                .offset(x: CGFloat(beatAt) * beatWidth, y: 30)
+                                .allowsHitTesting(false)
+                        }
+                    }
+                }
+            }
+
+            // The grid between the beats (finer than a beat, or triplets), faintly, while its lines aren't too close
+            let grid = editor.snap
+            if grid > 0, grid * Double(beatWidth) >= 6,
+               abs(grid - grid.rounded()) > 1e-9 || grid < 1 {
+                let firstStep = Int(floor((Double(visible.lowerBound / beatWidth) - origin) / grid))
+                let lastStep = Int(ceil((Double(visible.upperBound / beatWidth) - origin) / grid))
+                ForEach(firstStep..<max(firstStep, lastStep + 1), id: \.self) { step in
+                    let beat = origin + Double(step) * grid
+                    let offBeat = abs((beat - origin) - (beat - origin).rounded()) > 1e-6
+                    if offBeat && beat >= 0 && beat <= sequence.lengthInBeats {
                         Rectangle()
-                            .fill(Color.white.opacity(0.1))
+                            .fill(Color.white.opacity(0.05))
                             .frame(width: 1, height: laneHeight - 48)
-                            .offset(x: CGFloat(beatAt) * beatWidth, y: 30)
+                            .offset(x: CGFloat(beat) * beatWidth, y: 30)
                             .allowsHitTesting(false)
                     }
                 }

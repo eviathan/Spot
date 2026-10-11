@@ -153,19 +153,8 @@ private struct LaneEditorBar: View {
                 Button("Remove Section “\(section.name)”") { sequence.removeSection(section.id) }
             }
 
-            let bar = Double(sequence.beatsPerBar)
-            let grids: [(name: String, beats: Double)] = [("Bar", bar)] + (sequence.beatsPerBar % 2 == 0 ? [("Half bar", bar / 2)] : [])
-                + [("Beat", 1), ("1/8", 0.5), ("1/16", 0.25), ("Off", 0)]
-            BarMenu(title: "Snap", value: grids.first { $0.beats == editor.snap }?.name ?? "Off",
-                    help: "The grid for the playhead, selecting, and moving and resizing chords. Chords also stick to each other's edges; hold ⌥ while dragging to ignore both.") {
-                ForEach(grids, id: \.beats) { grid in
-                    if grid.beats == 0 { Divider() }
-                    choice(grid.name, editor.snap == grid.beats) {
-                        editor.snap = grid.beats
-                    }
-                }
-            }
-
+            gridMenu
+            
             tabMenu
 
             if let error = editor.chordError {
@@ -208,6 +197,38 @@ private struct LaneEditorBar: View {
 }
 
 extension LaneEditorBar {
+    /// The grid, as in Live: adaptive (following the zoom, from Narrowest to Widest) or fixed at a note value or
+    /// bars, with triplets, or off. ⌘1 / ⌘2 narrow and widen it, ⌘3 triplets, ⌘4 snapping on and off.
+    @ViewBuilder
+    var gridMenu: some View {
+        let grid = editor.grid
+        let value: String = {
+            switch grid {
+            case .off: return "Off"
+            case .adaptive: return "Adaptive · \(editor.gridName)"
+            default: return editor.gridName
+            }
+        }()
+        BarMenu(title: "Grid", value: value,
+                help: "The grid for the playhead, selecting, and moving and resizing chords: adaptive (it follows the zoom) or fixed. ⌘1 narrower, ⌘2 wider, ⌘3 triplets, ⌘4 snap on or off. Chords also stick to each other's edges; hold ⌥ while dragging to ignore both.") {
+            Section("Adaptive") {
+                ForEach(GridDensity.allCases, id: \.self) { density in
+                    choice(density.name, grid == .adaptive(density)) { editor.grid = .adaptive(density) }
+                }
+            }
+            Section("Fixed") {
+                ForEach(GridMode.fixed(beatsPerBar: sequence.beatsPerBar).reversed(), id: \.self) { fixed in
+                    choice(GridMode.name(beats: fixed.beats(beatsPerBar: Double(sequence.beatsPerBar), beatWidth: 1, triplet: false),
+                                         beatsPerBar: Double(sequence.beatsPerBar), triplet: false),
+                           grid == fixed) { editor.grid = fixed }
+                }
+            }
+            Divider()
+            choice("Triplets", editor.isTripletGrid) { editor.isTripletGrid.toggle() }
+            choice("Off", grid == .off) { editor.toggleSnap() }
+        }
+    }
+
     /// The sequence's tab: edit it (in the Tab tab), mute it, bring in its chord names.
     @ViewBuilder
     var tabMenu: some View {

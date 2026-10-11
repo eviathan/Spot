@@ -95,13 +95,10 @@ struct Footer: View {
         let value = min(max(value, 2), 7)
         if editsTab {
             tabSession.setBeatsPerBar(value)
-        } else if editsSequence, let editor = session.editor, let old = session.sequence?.beatsPerBar {
+        } else if editsSequence, let old = session.sequence?.beatsPerBar {
             guard value != old else { return }
+            // (A grid of bars stays bars: the grid is kept in bars or note values, not beats)
             session.sequence?.beatsPerBar = value
-            // A grid of a bar stays a bar
-            if editor.snap == Double(old) {
-                editor.snap = Double(value)
-            }
         } else {
             transport.beatsPerBar = value
         }
