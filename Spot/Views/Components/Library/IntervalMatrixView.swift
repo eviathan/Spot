@@ -40,22 +40,23 @@ struct IntervalMatrixView: View {
         let chords = self.chords
 
         if !chords.isEmpty {
-            VStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: 10) {
                 HStack {
+                    SpotHeading("Chords in the scale")
+                    Spacer()
                     if let source = selection.chordSourceScale, selection.kind == .chord {
                         Button("← \(source.spelledRoot.description) \(source.scale.name)") {
                             selection.returnToScale()
                         }
-                        .buttonStyle(.link)
+                        .buttonStyle(SpotPillButtonStyle())
                     }
-                    
                     Picker("", selection: $useSevenths) {
                         Text("Triads").tag(false)
                         Text("Sevenths").tag(true)
                     }
                     .pickerStyle(.segmented)
                     .labelsHidden()
-                    .frame(maxWidth: 200)
+                    .frame(maxWidth: 170)
                 }
 
                 HStack(alignment: .bottom, spacing: 4) {
@@ -64,11 +65,7 @@ struct IntervalMatrixView: View {
                     }
                 }
             }
-            .padding([.top], 8)
-            .padding([.bottom], 12)
-            .frame(maxWidth: .infinity)
-            .foregroundColor(.black)
-            .background(Color(hue: 1.00, saturation: 0.00, brightness: 0.93, opacity: 1.00))
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
@@ -85,12 +82,12 @@ struct IntervalMatrixView: View {
                 .padding(.top, 4)
             Text(diatonic.chord.map { chordRoot.description + $0.displaySymbol } ?? "–")
                 .font(.caption2)
+                .foregroundStyle(SpotStyle.secondary)
                 .lineLimit(1)
         }
-        .frame(width: 56)
-        .padding(.vertical, 4)
-        .background(selection.isSelected(diatonic) ? Color.black.opacity(0.12) : Color.clear)
-        .cornerRadius(4)
+        .frame(width: 54)
+        .padding(.vertical, 6)
+        .background(RoundedRectangle(cornerRadius: 6).fill(selection.isSelected(diatonic) ? Color.white.opacity(0.10) : Color.clear))
         .contentShape(Rectangle())
         .onTapGesture { selection.select(diatonic) }
         .help(diatonic.chord.map { "Show " + chordRoot.description + " " + $0.name } ?? "")

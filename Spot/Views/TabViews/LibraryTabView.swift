@@ -61,7 +61,6 @@ struct LibraryTabView: View {
                         LibraryDetailView()
                             .frame(minWidth: 450, maxWidth: 450, maxHeight: .infinity)
                             .transition(.move(edge: .trailing).combined(with: .opacity))
-                            .background(.gray)
                     }
                 }
             }
@@ -81,8 +80,8 @@ struct LibraryTabView: View {
             TreeItem(name: "Favourites", type: .item, isSelected: library.favouritesOnly) {
                 library.favouritesOnly.toggle()
             },
-        ] + [LibraryEntryKind.scale, .chord, .interval].map { kind in
-            TreeItem(name: "\(kind)s", type: .item, isSelected: library.kindFilter == kind && library.familyFilter == nil) {
+        ] + ([.scale, .chord, .interval] as [LibraryEntryKind]).map { kind in
+            TreeItem(name: "\(kind.description)s", type: .item, isSelected: library.kindFilter == kind && library.familyFilter == nil) {
                 library.familyFilter = nil
                 library.kindFilter = library.kindFilter == kind ? nil : kind
             }

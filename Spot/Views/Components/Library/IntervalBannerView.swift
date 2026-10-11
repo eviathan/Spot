@@ -30,14 +30,11 @@ struct IntervalBannerView: View {
     }
     
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 6) {
             ForEach(degrees, id: \.self) { degree in
                 drawMarker(degree.intervalName, markerColor: theme.intervalColors[degree.pitchClassOffset])
             }
         }
-        .padding([.top], 4)
-        .padding([.bottom], 12)
-        .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/)
-        .background(Color(hue: 1.00, saturation: 0.00, brightness: 0.93, opacity: 1.00))
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

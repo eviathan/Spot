@@ -25,115 +25,151 @@ struct LibraryDetailView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            VStack(spacing: 12) {
-                Text(selection.title)
-                    .font(.title)
-                    .multilineTextAlignment(.center)
-
-                if selection.kind != .interval {
-                    definitionActions
+        ScrollView {
+            VStack(alignment: .leading, spacing: 22) {
+                // What it is, what you can do with it, its tags
+                VStack(alignment: .leading, spacing: 10) {
+                    SpotHeading("\(selection.kind)")
+                    Text(selection.title)
+                        .font(.system(size: 26, weight: .semibold))
+                        .fixedSize(horizontal: false, vertical: true)
+                    if selection.kind != .interval {
+                        definitionActions
+                    }
+                    TagEditorView(id: selection.selectedId)
+                        .foregroundStyle(SpotStyle.secondary)
                 }
-
-                TagEditorView(id: selection.selectedId)
-
-                Divider().padding(.horizontal, 40)
 
                 if selection.shapeDraft != nil {
-                    ShapeDraftControls()
-                } else {
-                    shapeNavigator
+                    VStack(alignment: .leading, spacing: 8) {
+                        SpotHeading("Shape")
+                        ShapeDraftControls()
+                            .spotCard()
+                    }
+                } else if selection.currentShape != nil || selection.kind != .interval {
+                    VStack(alignment: .leading, spacing: 8) {
+                        SpotHeading("Shape")
+                        shapeNavigator
+                            .spotCard()
+                    }
                 }
-            }
-            .padding(.horizontal, 16)
-            .frame(maxHeight: .infinity)
 
-            IntervalMatrixView()
-            IntervalBannerView(degrees: selection.formula.degrees)
+                VStack(alignment: .leading, spacing: 8) {
+                    SpotHeading("Intervals")
+                    IntervalBannerView(degrees: selection.formula.degrees)
+                }
+
+                IntervalMatrixView()
+            }
+            .padding(20)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .foregroundStyle(.white)
+        .background(SpotStyle.card)
+        .overlay(alignment: .leading) {
+            Rectangle().fill(SpotStyle.border).frame(width: 1)
+        }
+        .environment(\.colorScheme, .dark)
+        .tint(SpotStyle.accent)
     }
 
     private var definitionActions: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 8) {
             if isEditable {
                 Button("Edit…") { ui.definitionEditor = .edit(selection.selectedId) }
             }
-            Button(isEditable ? "Duplicate" : "Duplicate to edit…") {
+            Button(isEditable ? "Duplicate" : "Duplicate to Edit…") {
                 if let copy = library.duplicate(selection.selectedId) {
                     ui.definitionEditor = .edit(copy)
                 }
             }
             if isEditable {
-                Button("Delete", role: .destructive) {
+                Button("Delete") {
                     library.deleteDefinition(selection.selectedId)
                     selection.refreshDefinitions()
                 }
+                .buttonStyle(SpotPillButtonStyle(isDestructive: true))
             }
         }
-        .controlSize(.small)
+        .buttonStyle(SpotPillButtonStyle())
     }
 
     @ViewBuilder
     private var shapeNavigator: some View {
-        if let shape = selection.currentShape, let index = selection.currentShapeIndex {
-            HStack(spacing: 12) {
-                Button(action: selection.previousShape) {
-                    Image(systemName: "chevron.left")
-                }
-                .buttonStyle(.plain)
-                .help("Previous shape (⌘[)")
-
-                VStack(spacing: 2) {
-                    Text(shape.name)
-                    Text("\(shape.system) · \(index + 1) of \(selection.shapes.count)")
-                        .font(.caption)
-                        .opacity(0.6)
-                }
-                .frame(minWidth: 260)
-
-                Button(action: selection.nextShape) {
-                    Image(systemName: "chevron.right")
-                }
-                .buttonStyle(.plain)
-                .help("Next shape (⌘])")
-                
-                Button {
-                    if let placement = shape.placements(root: selection.root, on: selection.fretboard).first {
-                        playback.preview(Audition.events(for: shape, placement: placement,
-                                                         on: selection.fretboard, clock: transport.clock))
+        VStack(spacing: 14) {
+            if let shape = selection.currentShape, let index = selection.currentShapeIndex {
+                HStack(spacing: 10) {
+                    Button(action: selection.previousShape) {
+                        Image(systemName: "chevron.left")
+                            .frame(width: 28, height: 28)
+                            .background(Circle().fill(SpotStyle.control))
                     }
-                } label: {
-                    Image(systemName: "play.circle")
-                        .imageScale(.large)
-                }
-                .buttonStyle(.plain)
-                .help("Hear this shape over MIDI (⌘↩). ⌥-click a note on the fretboard to hear just that note.")
-            }
-        }
+                    .buttonStyle(.plain)
+                    .help("Previous shape (⌘[)")
 
-        if selection.shapeSystems.count > 1 {
-            Picker("Shapes", selection: shapeSystemBinding) {
-                Text("All shapes").tag("")
-                ForEach(selection.shapeSystems, id: \.self) { system in
-                    Text(system).tag(system)
-                }
-            }
-            .pickerStyle(.menu)
-            .frame(maxWidth: 260)
-        }
+                    VStack(spacing: 3) {
+                        Text(shape.name)
+                            .font(.system(size: 15, weight: .semibold))
+                        Text("\(shape.system) · \(index + 1) of \(selection.shapes.count)")
+                            .font(.caption)
+                            .foregroundStyle(SpotStyle.secondary)
+                    }
+                    .frame(maxWidth: .infinity)
 
-        if selection.kind != .interval {
-            HStack(spacing: 12) {
-                Button("New shape") { selection.startNewShape(copyingCurrent: false) }
-                if selection.currentShape != nil {
-                    Button("Copy shape") { selection.startNewShape(copyingCurrent: true) }
+                    Button(action: selection.nextShape) {
+                        Image(systemName: "chevron.right")
+                            .frame(width: 28, height: 28)
+                            .background(Circle().fill(SpotStyle.control))
+                    }
+                    .buttonStyle(.plain)
+                    .help("Next shape (⌘])")
+
+                    Button {
+                        if let placement = shape.placements(root: selection.root, on: selection.fretboard).first {
+                            playback.preview(Audition.events(for: shape, placement: placement,
+                                                             on: selection.fretboard, clock: transport.clock))
+                        }
+                    } label: {
+                        Image(systemName: "play.fill")
+                            .font(.system(size: 12))
+                            .foregroundStyle(.black)
+                            .frame(width: 30, height: 30)
+                            .background(Circle().fill(SpotStyle.accent))
+                    }
+                    .buttonStyle(.plain)
+                    .help("Hear this shape (⌘↩). ⌥-click a note on the fretboard to hear just that note.")
                 }
-                if let shape = selection.currentShape, library.isUserShape(shape.id) {
-                    Button("Edit shape") { selection.editCurrentShape() }
-                    Button("Delete shape", role: .destructive) { selection.deleteCurrentShape() }
-                }
+            } else {
+                Text("No shapes yet")
+                    .foregroundStyle(SpotStyle.secondary)
             }
-            .controlSize(.small)
+
+            if selection.shapeSystems.count > 1 {
+                Picker("Shapes", selection: shapeSystemBinding) {
+                    Text("All shapes").tag("")
+                    ForEach(selection.shapeSystems, id: \.self) { system in
+                        Text(system).tag(system)
+                    }
+                }
+                .pickerStyle(.menu)
+                .labelsHidden()
+                .frame(maxWidth: 240)
+            }
+
+            if selection.kind != .interval {
+                HStack(spacing: 8) {
+                    Button("New Shape") { selection.startNewShape(copyingCurrent: false) }
+                    if selection.currentShape != nil {
+                        Button("Copy Shape") { selection.startNewShape(copyingCurrent: true) }
+                    }
+                    if let shape = selection.currentShape, library.isUserShape(shape.id) {
+                        Button("Edit Shape") { selection.editCurrentShape() }
+                        Button("Delete") { selection.deleteCurrentShape() }
+                            .buttonStyle(SpotPillButtonStyle(isDestructive: true))
+                    }
+                }
+                .buttonStyle(SpotPillButtonStyle())
+            }
         }
     }
 }
@@ -149,7 +185,7 @@ private struct ShapeDraftControls: View {
                     .font(.headline)
                 Text("Click notes on the fretboard to add or remove them. Right-click a note to set its finger.")
                     .font(.caption)
-                    .opacity(0.7)
+                    .foregroundStyle(SpotStyle.secondary)
                     .multilineTextAlignment(.center)
 
                 Form {
@@ -168,16 +204,19 @@ private struct ShapeDraftControls: View {
                 }
                 .frame(maxWidth: 320)
 
-                HStack(spacing: 12) {
+                HStack(spacing: 8) {
                     Text("\(draft.notes.count) notes")
                         .font(.caption)
-                        .opacity(0.7)
+                        .foregroundStyle(SpotStyle.secondary)
+                    Spacer()
                     Button("Cancel") { selection.cancelShapeDraft() }
-                    Button("Save shape") { selection.saveShapeDraft() }
+                        .buttonStyle(SpotPillButtonStyle())
+                    Button("Save Shape") { selection.saveShapeDraft() }
                         .keyboardShortcut(.defaultAction)
                         .disabled(draft.notes.isEmpty)
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.small)
                 }
-                .controlSize(.small)
             }
         }
     }

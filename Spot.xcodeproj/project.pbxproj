@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		ECEE6BC13AA14182B21B0B37 /* SpotStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA73BCFED8AE4B1B898508F9 /* SpotStyle.swift */; };
 		8F107D6AA5B346DBBFFFAF1C /* LoadingCurtain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4464A3C64F094F65A320A2AC /* LoadingCurtain.swift */; };
 		F87E372B5B7346BF8F76EA20 /* OverlayScrollers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 674BB744BCC84865A5B76DC5 /* OverlayScrollers.swift */; };
 		E9D10F1615064B5897E86EB4 /* TabPrinter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95159D034BD4946AAAC2D2C /* TabPrinter.swift */; };
@@ -83,6 +84,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		CA73BCFED8AE4B1B898508F9 /* SpotStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotStyle.swift; sourceTree = "<group>"; };
 		4464A3C64F094F65A320A2AC /* LoadingCurtain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingCurtain.swift; sourceTree = "<group>"; };
 		674BB744BCC84865A5B76DC5 /* OverlayScrollers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayScrollers.swift; sourceTree = "<group>"; };
 		A95159D034BD4946AAAC2D2C /* TabPrinter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabPrinter.swift; sourceTree = "<group>"; };
@@ -301,6 +303,7 @@
 		D3AA9B752BCD9FFC00C78DF3 /* Layout */ = {
 			isa = PBXGroup;
 			children = (
+				CA73BCFED8AE4B1B898508F9 /* SpotStyle.swift */,
 				4464A3C64F094F65A320A2AC /* LoadingCurtain.swift */,
 				674BB744BCC84865A5B76DC5 /* OverlayScrollers.swift */,
 				D3AA9B6E2BCD9AAA00C78DF3 /* LayoutView.swift */,
@@ -465,6 +468,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ECEE6BC13AA14182B21B0B37 /* SpotStyle.swift in Sources */,
 				8F107D6AA5B346DBBFFFAF1C /* LoadingCurtain.swift in Sources */,
 				F87E372B5B7346BF8F76EA20 /* OverlayScrollers.swift in Sources */,
 				E9D10F1615064B5897E86EB4 /* TabPrinter.swift in Sources */,

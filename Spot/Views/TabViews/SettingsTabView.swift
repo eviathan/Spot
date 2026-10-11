@@ -48,7 +48,7 @@ struct SettingsTabView: View {
                             Text(settings.soundFontURL?.deletingPathExtension().lastPathComponent ?? "macOS (built in)")
                                 .lineLimit(1)
                                 .truncationMode(.middle)
-                                .foregroundStyle(SettingsStyle.secondary)
+                                .foregroundStyle(SpotStyle.secondary)
                             if settings.soundFontBookmark != nil {
                                 Button("Use Built In") {
                                     settings.soundFontBookmark = nil
@@ -150,29 +150,16 @@ struct SettingsTabView: View {
             .frame(maxWidth: 720)
             .frame(maxWidth: .infinity)
         }
-        .background(SettingsStyle.page)
+        .background(SpotStyle.page)
         .foregroundStyle(.white)
         // Menus, sliders and switches drawn for a dark background, in the transport's green
         .environment(\.colorScheme, .dark)
-        .tint(SettingsStyle.accent)
+        .tint(SpotStyle.accent)
         .onAppear {
             destinations = playback.midiDestinations()
             inputs = AudioDevices.inputs()
         }
     }
-}
-
-/// The colours the rest of Spot uses.
-private enum SettingsStyle {
-    /// The page (as behind the tab and the Library).
-    static let page = Color(hue: 0.62, saturation: 0.38, brightness: 0.24)
-    /// A card on it (as the Library's menu).
-    static let card = Color(hue: 0.63, saturation: 0.30, brightness: 0.19)
-    /// Headings and notes (as the dimmed footer icons, a little lighter to read as text).
-    static let secondary = Color(hue: 0.62, saturation: 0.22, brightness: 0.70)
-    static let divider = Color.white.opacity(0.07)
-    /// As the play button while playing.
-    static let accent = Color(red: 0.55, green: 0.85, blue: 0.45)
 }
 
 /// A titled card of rows, with an optional note under it.
@@ -192,7 +179,7 @@ private struct SettingsSection<Content: View>: View {
             Text(title.uppercased())
                 .font(.system(size: 11, weight: .semibold))
                 .kerning(0.8)
-                .foregroundStyle(SettingsStyle.secondary)
+                .foregroundStyle(SpotStyle.secondary)
                 .padding(.leading, 4)
             VStack(spacing: 0) {
                 // Rows, with a hairline between them
@@ -200,12 +187,12 @@ private struct SettingsSection<Content: View>: View {
                     content()
                 }
             }
-            .background(RoundedRectangle(cornerRadius: 10).fill(SettingsStyle.card))
+            .background(RoundedRectangle(cornerRadius: 10).fill(SpotStyle.card))
             .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color.white.opacity(0.06)))
             if let note {
                 Text(note)
                     .font(.callout)
-                    .foregroundStyle(SettingsStyle.secondary)
+                    .foregroundStyle(SpotStyle.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 4)
                     .padding(.top, 2)
@@ -221,7 +208,7 @@ private struct DividedRows: _VariadicView_MultiViewRoot {
             child
             if child.id != children.last?.id {
                 Rectangle()
-                    .fill(SettingsStyle.divider)
+                    .fill(SpotStyle.divider)
                     .frame(height: 1)
                     .padding(.leading, 16)
             }
@@ -264,7 +251,7 @@ private struct SettingsValue: View {
     var body: some View {
         Text(text)
             .font(.system(size: 12).monospacedDigit())
-            .foregroundStyle(SettingsStyle.secondary)
+            .foregroundStyle(SpotStyle.secondary)
             .frame(width: 52, alignment: .trailing)
     }
 }
