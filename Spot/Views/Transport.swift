@@ -65,16 +65,16 @@ struct Transport: View {
         .buttonStyle(PlainButtonStyle())
         .frame(width: 30, height: 30)
         
-        Button(action: onClickTransportRecord)
-        {
-            Image(systemName: session.isRecording ? "smallcircle.fill.circle.fill" : "circle.fill")
-                .imageScale(.large)
-                .foregroundColor(session.isRecording ? Color(red:0.83, green:0.38, blue:0.42) : .white)
-        }
-        .buttonStyle(PlainButtonStyle())
-        .frame(width: 30, height: 30)
-        .help(ui.tab == .Sequence && session.isOpen ? "Record a take over the sequence" : "Open a sequence to record over it")
-        .disabled(!(ui.tab == .Sequence && session.isOpen))
+        // Button(action: onClickTransportRecord)
+        // {
+        //     Image(systemName: session.isRecording ? "smallcircle.fill.circle.fill" : "circle.fill")
+        //         .imageScale(.large)
+        //         .foregroundColor(session.isRecording ? Color(red:0.83, green:0.38, blue:0.42) : .white)
+        // }
+        // .buttonStyle(PlainButtonStyle())
+        // .frame(width: 30, height: 30)
+        // .help(ui.tab == .Sequence && session.isOpen ? "Record a take over the sequence" : "Open a sequence to record over it")
+        // .disabled(!(ui.tab == .Sequence && session.isOpen))
         
         Button(action: onClickTransportRestart)
         {
