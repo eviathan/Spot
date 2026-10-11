@@ -91,7 +91,6 @@ struct PatternLayer: View {
         // The bar: drag to move, click to select, double-click to rename
         RoundedRectangle(cornerRadius: 3)
             .fill(purple.opacity(isDragged ? 0.75 : isSelected ? 0.65 : 0.45))
-            .overlay(RoundedRectangle(cornerRadius: 3).strokeBorder(Color.white.opacity(isSelected ? 0.5 : 0)))
             .frame(width: max(0, span.width - 2), height: PatternLayer.barHeight)
             .offset(x: span.x + 1, y: PatternLayer.barTop)
             .gesture(dragGesture(instance, pattern: pattern, part: .body), including: isEditable ? .all : .none)
@@ -144,6 +143,16 @@ struct PatternLayer: View {
         .clipped()
         .offset(x: span.x + 1, y: PatternLayer.barTop)
         .allowsHitTesting(false)
+
+        // The outline a shape of its own, not an overlay: with one, the bar vanished now and then far along a
+        // zoomed-in lane (as the chord clips did)
+        if isSelected {
+            RoundedRectangle(cornerRadius: 3)
+                .strokeBorder(Color.white.opacity(0.5))
+                .frame(width: max(0, span.width - 2), height: PatternLayer.barHeight)
+                .offset(x: span.x + 1, y: PatternLayer.barTop)
+                .allowsHitTesting(false)
+        }
 
         // The ends, to drag (not where the real end is off screen)
         if !span.startCut {

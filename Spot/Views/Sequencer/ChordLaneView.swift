@@ -28,6 +28,8 @@ struct ChordLaneView: View {
 
     /// The height the lane has to fill.
     @State private var availableHeight: CGFloat = 0
+    /// What's drawn while a mouse button is down (see `drawnRange`).
+    @State private var pressedRange = PressedRange()
     /// The loop brace as it's being dragged.
     @State private var loopDrag: BeatRange?
     /// The start or end marker as it's being dragged, so the grid follows it.
@@ -80,7 +82,7 @@ struct ChordLaneView: View {
                 GeometryReader { geometry in
                     let viewport = geometry.size.width
                     let left = CGFloat(editor.viewStart) * beatWidth
-                    lane(visible: left...(left + viewport))
+                    lane(visible: drawnRange(left...(left + viewport)))
                         .overlay(alignment: .topLeading) {
                             if isPlaying {
                                 PlayingPlayhead(editor: editor, beatWidth: beatWidth, height: laneHeight)
@@ -139,6 +141,21 @@ struct ChordLaneView: View {
             }
             .padding(.vertical, 5)
         }
+    }
+
+    /// The part of the lane to draw: what's on screen, except while a mouse button is down. Then nothing drawn
+    /// since the press goes, even if a scroll or zoom (a trackpad, while the button's held) takes it off screen:
+    /// a view removed while it's being pressed never hears the mouse come up, and SwiftUI then ignores every
+    /// click in the window.
+    private func drawnRange(_ onScreen: ClosedRange<CGFloat>) -> ClosedRange<CGFloat> {
+        let beats = Double(onScreen.lowerBound / beatWidth)...Double(onScreen.upperBound / beatWidth)
+        if !MouseButtons.isDown {
+            pressedRange.beats = beats
+            return onScreen
+        }
+        let held = pressedRange.beats.map { min($0.lowerBound, beats.lowerBound)...max($0.upperBound, beats.upperBound) } ?? beats
+        pressedRange.beats = held
+        return CGFloat(held.lowerBound) * beatWidth...CGFloat(held.upperBound) * beatWidth
     }
 
     /// What each row of the lane is, lined up with it: sections and chords, the recording (with its
@@ -742,15 +759,16 @@ private struct ChordClipsLayer: View {
 
     @ViewBuilder
     private func edgeHandle(_ region: ChordRegion, _ part: Part, width: CGFloat) -> some View {
-        if isEditable {
-            Color.clear
-                .frame(width: width, height: 46)
-                .contentShape(Rectangle())
-                .onHover { inside in
-                    if inside { NSCursor.resizeLeftRight.push() } else { NSCursor.pop() }
-                }
-                .gesture(clipGesture(region, part))
-        }
+        // Always there (disabled while playing), not added and removed: a handle removed while it's pressed (Play
+        // pressed mid-drag) would leave the window ignoring clicks
+        Color.clear
+            .frame(width: width, height: 46)
+            .contentShape(Rectangle())
+            .onHover { inside in
+                guard isEditable else { return }
+                if inside { NSCursor.resizeLeftRight.push() } else { NSCursor.pop() }
+            }
+            .gesture(clipGesture(region, part), including: isEditable ? .all : .none)
     }
 
     // MARK: - Gestures
@@ -860,6 +878,29 @@ private struct ChordClipsLayer: View {
 /// The part of `start..<end` (beats) that's on screen, in lane x. Long shapes are drawn only this much, so
 /// zooming right in (to single samples) doesn't build views millions of points wide. No margin by default:
 /// far along a zoomed-in lane, shapes that start off the left of the screen weren't drawn at all.
+/// Whether a mouse button is down in this app: from its events, as they're handled (so it agrees with the gestures).
+enum MouseButtons {
+    private(set) static var isDown = false
+    private static var monitor: Any?
+
+    static func install() {
+        guard monitor == nil else { return }
+        monitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .leftMouseUp, .rightMouseDown, .rightMouseUp,
+                                                              .otherMouseDown, .otherMouseUp]) { event in
+            switch event.type {
+            case .leftMouseDown, .rightMouseDown, .otherMouseDown: isDown = true
+            default: isDown = false
+            }
+            return event
+        }
+    }
+}
+
+/// The beats drawn while the mouse was down (a plain reference: remembering it isn't a change to redraw for).
+final class PressedRange {
+    var beats: ClosedRange<Double>?
+}
+
 struct LaneSpan {
     var x: CGFloat
     var width: CGFloat
@@ -1143,7 +1184,9 @@ private struct WaveformRow: View {
                         .onHover { hovered = $0 ? marker.id : (hovered == marker.id ? nil : hovered) }
                         .gesture(markerDrag(marker, map: map))
                         .simultaneousGesture(TapGesture(count: 2).onEnded {
-                            session.sequence?.audio?.removeMarker(marker.id)
+                            // Once the drag it's also part of has heard the mouse come up (removed first, the
+                            // drag would never end, and the window would ignore clicks)
+                            DispatchQueue.main.async { session.sequence?.audio?.removeMarker(marker.id) }
                         })
                         .contextMenu {
                             Button("Set 1.1.1 Here") { session.sequence?.startBeat = max(0, marker.beat) }

@@ -26,6 +26,7 @@ struct SpotApp: App {
     init() {
         NSWindow.allowsAutomaticWindowTabbing = false
         OverlayScrollers.install()
+        MouseButtons.install()
 
         let builtIn: LibraryBundle
         do {
