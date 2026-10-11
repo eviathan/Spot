@@ -15,7 +15,7 @@ struct IntervalMatrixView: View {
     @Environment(LibraryStore.self) private var library
 
     @State private var useSevenths = false
-    @State var markerSize: CGFloat = 22;
+    @State var markerSize: CGFloat = 28;
 
     private var chords: [DiatonicChord] {
         guard let source = selection.chordSourceScale else { return [] }
@@ -76,6 +76,7 @@ struct IntervalMatrixView: View {
             // Chord tones stacked in thirds, lowest at the bottom
             ForEach(diatonic.scaleDegrees.reversed(), id: \.self) { degree in
                 drawMarker(degree.intervalName, markerColor: theme.intervalColors[degree.pitchClassOffset])
+                    .padding(.bottom, 4)
             }
             Text(diatonic.numeral)
                 .font(.caption.weight(.bold))
