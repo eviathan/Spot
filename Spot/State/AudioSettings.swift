@@ -38,6 +38,26 @@ final class AudioSettings {
         didSet { defaults.set(recordingOffsetMs, forKey: "audio.recordingOffsetMs") }
     }
 
+    /// Play through Spot's own guitar sound (as well as over MIDI).
+    var usesBuiltInSound: Bool {
+        didSet { defaults.set(usesBuiltInSound, forKey: "audio.usesBuiltInSound") }
+    }
+    /// A SoundFont (.sf2) or DLS file to use for it (a security-scoped bookmark); nil for macOS's own instruments.
+    var soundFontBookmark: Data? {
+        didSet { defaults.set(soundFontBookmark, forKey: "audio.soundFontBookmark") }
+    }
+    /// 0–1.
+    var builtInSoundVolume: Double {
+        didSet { defaults.set(builtInSoundVolume, forKey: "audio.builtInSoundVolume") }
+    }
+
+    /// The SoundFont file, if one's chosen and can be found.
+    var soundFontURL: URL? {
+        guard let soundFontBookmark else { return nil }
+        var isStale = false
+        return try? URL(resolvingBookmarkData: soundFontBookmark, options: .withSecurityScope, bookmarkDataIsStale: &isStale)
+    }
+
     @ObservationIgnored private let defaults: UserDefaults
 
     init(defaults: UserDefaults = .standard) {
@@ -49,5 +69,8 @@ final class AudioSettings {
         countInBars = defaults.object(forKey: "audio.countInBars") as? Int ?? 1
         inputDeviceID = (defaults.object(forKey: "audio.inputDeviceID") as? Int).map { UInt32($0) }
         recordingOffsetMs = defaults.object(forKey: "audio.recordingOffsetMs") as? Double ?? 0
+        usesBuiltInSound = defaults.object(forKey: "audio.usesBuiltInSound") as? Bool ?? true
+        soundFontBookmark = defaults.data(forKey: "audio.soundFontBookmark")
+        builtInSoundVolume = defaults.object(forKey: "audio.builtInSoundVolume") as? Double ?? 0.8
     }
 }

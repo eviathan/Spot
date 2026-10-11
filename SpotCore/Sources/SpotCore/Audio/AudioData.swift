@@ -3,6 +3,7 @@
 //  SpotCore
 //
 
+import Accelerate
 import AVFoundation
 import CryptoKit
 
@@ -95,26 +96,30 @@ public struct WaveformPeaks: Sendable {
     public init(_ audio: AudioData, samplesPerBlock: Int = 256) {
         self.samplesPerBlock = samplesPerBlock
         self.sampleRate = audio.sampleRate
-        let blocks = (audio.frameCount + samplesPerBlock - 1) / samplesPerBlock
+        let frames = audio.frameCount
+        let blocks = (frames + samplesPerBlock - 1) / samplesPerBlock
         var minimums = [Float](repeating: 0, count: blocks)
         var maximums = [Float](repeating: 0, count: blocks)
-        let scale = 1 / Float(max(audio.channels.count, 1))
 
-        for block in 0..<blocks {
-            let start = block * samplesPerBlock
-            let end = min(start + samplesPerBlock, audio.frameCount)
-            var low: Float = 0, high: Float = 0
-            for frame in start..<end {
-                var sample: Float = 0
-                for channel in audio.channels {
-                    sample += channel[frame]
-                }
-                sample *= scale
-                low = min(low, sample)
-                high = max(high, sample)
+        // The channels mixed (with Accelerate: a plain loop over every sample takes seconds in a debug build)
+        var mixed = audio.channels.first.map { Array($0.prefix(frames)) } ?? []
+        for channel in audio.channels.dropFirst() {
+            vDSP_vadd(mixed, 1, channel, 1, &mixed, 1, vDSP_Length(frames))
+        }
+        var scale = 1 / Float(max(audio.channels.count, 1))
+        vDSP_vsmul(mixed, 1, &scale, &mixed, 1, vDSP_Length(mixed.count))
+
+        mixed.withUnsafeBufferPointer { samples in
+            guard let base = samples.baseAddress else { return }
+            for block in 0..<blocks {
+                let start = block * samplesPerBlock
+                let count = vDSP_Length(min(samplesPerBlock, frames - start))
+                var low: Float = 0, high: Float = 0
+                vDSP_minv(base + start, 1, &low, count)
+                vDSP_maxv(base + start, 1, &high, count)
+                minimums[block] = min(low, 0)
+                maximums[block] = max(high, 0)
             }
-            minimums[block] = low
-            maximums[block] = high
         }
         self.minimums = minimums
         self.maximums = maximums

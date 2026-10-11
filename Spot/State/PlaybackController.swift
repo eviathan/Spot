@@ -490,7 +490,52 @@ final class PlaybackController {
         if midi?.destinationID != settings.midiDestinationID {
             midi?.destinationID = settings.midiDestinationID
         }
+        updateSynth()
         return midi
+    }
+
+    /// Spot's own sound, on or off, with the SoundFont and volume chosen in Settings.
+    @ObservationIgnored private var synth: SoftSynth?
+    @ObservationIgnored private var synthBank: Data??
+
+    private func updateSynth() {
+        guard settings.usesBuiltInSound else {
+            if synth != nil {
+                synth?.allNotesOff()
+                synth = nil
+                midi?.synth = nil
+                synthBank = nil
+            }
+            return
+        }
+        if synth == nil {
+            do {
+                synth = try SoftSynth()
+            } catch {
+                problem = "Spot's own sound couldn't start: \(error.localizedDescription)"
+                return
+            }
+        }
+        if synthBank != .some(settings.soundFontBookmark) {
+            synthBank = .some(settings.soundFontBookmark)
+            let url = settings.soundFontURL
+            let accessing = url?.startAccessingSecurityScopedResource() ?? false
+            defer { if accessing { url?.stopAccessingSecurityScopedResource() } }
+            do {
+                try synth?.loadSoundBank(url)
+            } catch {
+                problem = error.localizedDescription
+            }
+        }
+        synth?.volume = Float(settings.builtInSoundVolume)
+        if midi?.synth !== synth {
+            midi?.synth = synth
+        }
+    }
+
+    /// Applies a change made in Settings to Spot's own sound straight away.
+    func soundSettingsChanged() {
+        _ = midiOutput()
     }
 
     private func clickPlayer() -> ClickPlayer? {

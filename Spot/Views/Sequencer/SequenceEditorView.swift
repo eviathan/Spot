@@ -16,19 +16,7 @@ struct SequenceEditorView: View {
 
     var body: some View {
         if let sequence = session.sequence, session.isPreparingAudio {
-            // Nothing to work with until the recording can be heard: just what's happening
-            VStack(spacing: 12) {
-                ProgressView()
-                    .controlSize(.large)
-                    // White: the macOS spinner takes its colour from the appearance, not a tint
-                    .tint(.white)
-                    .environment(\.colorScheme, .dark)
-                    .padding(.bottom, 12)
-                Text("Loading \(sequence.audio?.reference.fileName ?? "audio")…")
-                    .font(.title3)
-                    .opacity(0.8)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            AudioLoadingView(fileName: sequence.audio?.reference.fileName)
         } else if let editor = session.editor, let sequence = session.sequence {
             let binding = Binding(get: { session.sequence ?? sequence }, set: { session.sequence = $0 })
             VStack(spacing: 0) {
@@ -39,6 +27,26 @@ struct SequenceEditorView: View {
                 LaneEditorBar(sequence: binding, editor: editor)
             }
         }
+    }
+}
+
+/// Nothing to work with until the recording can be heard: just what's happening. (The Sequence and Tab tabs.)
+struct AudioLoadingView: View {
+    let fileName: String?
+
+    var body: some View {
+        VStack(spacing: 12) {
+            ProgressView()
+                .controlSize(.large)
+                // White: the macOS spinner takes its colour from the appearance, not a tint
+                .tint(.white)
+                .environment(\.colorScheme, .dark)
+                .padding(.bottom, 12)
+            Text("Loading \(fileName ?? "audio")…")
+                .font(.title3)
+                .opacity(0.8)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 

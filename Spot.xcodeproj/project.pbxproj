@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8F107D6AA5B346DBBFFFAF1C /* LoadingCurtain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4464A3C64F094F65A320A2AC /* LoadingCurtain.swift */; };
+		F87E372B5B7346BF8F76EA20 /* OverlayScrollers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 674BB744BCC84865A5B76DC5 /* OverlayScrollers.swift */; };
 		E9D10F1615064B5897E86EB4 /* TabPrinter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95159D034BD4946AAAC2D2C /* TabPrinter.swift */; };
 		8BEFE04140E04D1AA8DE53C0 /* TabStaffView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24ED30E490144F8F83F1B3F3 /* TabStaffView.swift */; };
 		8BD5B5CC92994063BDAA6529 /* TabEditorState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46428AC22FBE403381E81493 /* TabEditorState.swift */; };
@@ -81,6 +83,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		4464A3C64F094F65A320A2AC /* LoadingCurtain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingCurtain.swift; sourceTree = "<group>"; };
+		674BB744BCC84865A5B76DC5 /* OverlayScrollers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayScrollers.swift; sourceTree = "<group>"; };
 		A95159D034BD4946AAAC2D2C /* TabPrinter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabPrinter.swift; sourceTree = "<group>"; };
 		24ED30E490144F8F83F1B3F3 /* TabStaffView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabStaffView.swift; sourceTree = "<group>"; };
 		46428AC22FBE403381E81493 /* TabEditorState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabEditorState.swift; sourceTree = "<group>"; };
@@ -297,6 +301,8 @@
 		D3AA9B752BCD9FFC00C78DF3 /* Layout */ = {
 			isa = PBXGroup;
 			children = (
+				4464A3C64F094F65A320A2AC /* LoadingCurtain.swift */,
+				674BB744BCC84865A5B76DC5 /* OverlayScrollers.swift */,
 				D3AA9B6E2BCD9AAA00C78DF3 /* LayoutView.swift */,
 				D3AA9B782BCDA06B00C78DF3 /* TabView.swift */,
 				D3AA9B7A2BCDA08300C78DF3 /* Header.swift */,
@@ -459,6 +465,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8F107D6AA5B346DBBFFFAF1C /* LoadingCurtain.swift in Sources */,
+				F87E372B5B7346BF8F76EA20 /* OverlayScrollers.swift in Sources */,
 				E9D10F1615064B5897E86EB4 /* TabPrinter.swift in Sources */,
 				8BEFE04140E04D1AA8DE53C0 /* TabStaffView.swift in Sources */,
 				8BD5B5CC92994063BDAA6529 /* TabEditorState.swift in Sources */,

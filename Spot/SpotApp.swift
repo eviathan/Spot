@@ -25,6 +25,7 @@ struct SpotApp: App {
 
     init() {
         NSWindow.allowsAutomaticWindowTabbing = false
+        OverlayScrollers.install()
 
         let builtIn: LibraryBundle
         do {
@@ -68,6 +69,9 @@ struct SpotApp: App {
                 .toolbar {
                     Color.clear
                 }
+                // In macOS full screen the (empty) toolbar would stay as a grey strip across the top: hidden there,
+                // with the header, so Spot fills the screen
+                .toolbar(ui.isWindowFullScreen ? .hidden : .visible, for: .windowToolbar)
         }
         .modelContainer(container)
         .windowStyle(.hiddenTitleBar)

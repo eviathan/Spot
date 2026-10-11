@@ -79,7 +79,7 @@ struct PendingImport: Identifiable {
 /// Window layout and open sheets. Sidebars are saved between launches.
 @Observable
 final class UIState {
-    var tab: TabViewType = .Library
+    var tab: TabViewType = .Sequence
     var definitionEditor: DefinitionEditorRequest?
     var openPanel: OpenPanel? {
         didSet { if let openPanel { lastOpenPanel = openPanel } }
@@ -157,16 +157,19 @@ final class UIState {
             if newValue { expandedTabs.insert("\(tab)") } else { expandedTabs.remove("\(tab)") }
         }
     }
+    /// The window is in macOS full screen (no header then: there's no title bar to stand in for).
+    var isWindowFullScreen = false
+
     /// The tabs in their full-screen mode.
     private var expandedTabs: Set<String> {
         didSet { defaults.set(Array(expandedTabs).sorted(), forKey: "ui.expandedTabs") }
     }
     var showsFretboardOnly: Bool {
-        isFretboardOnly && tab != .Settings && tab != .Tab
+        isFretboardOnly && tab != .Settings && tab != .Tab && tab != .Library
     }
     /// The Tab tab's full screen: the tab without the fretboard above it.
     var hidesFretboard: Bool {
-        isFretboardOnly && tab == .Tab
+        isFretboardOnly && (tab == .Tab || tab == .Library)
     }
 
     @ObservationIgnored private let defaults: UserDefaults

@@ -23,23 +23,29 @@ struct LayoutView: View {
         @Bindable var ui = ui
 
         VStack(alignment:.leading, spacing: 0) {
-            Header()
-                .frame(maxWidth: .infinity)
+            // A fixed height: without the fretboard below it (the expanded Library, Tab and Settings tabs), the
+            // page would otherwise squeeze it away
+            if !ui.isWindowFullScreen {
+                Header()
+                    .frame(maxWidth: .infinity)
+                    .frame(height: Header.height)
+                    .layoutPriority(1)
+            }
 
 
             if ui.showsFretboardOnly {
-                // The fretboard on its own, a little taller, in the middle of the space; on the Sequence tab,
-                // the chord now above it and the next one below
                 let sequenceOpen = ui.tab == .Sequence && session.sequence != nil && session.editor != nil
+
                 if sequenceOpen, let sequence = session.sequence, let editor = session.editor {
                     FretboardReadout(sequence: sequence, editor: editor, card: .now)
                 }
+
                 InstrumentView()
                     .environment(\.fretboardMaxHeight, 620)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+
                 if sequenceOpen, let sequence = session.sequence, let editor = session.editor {
                     FretboardReadout(sequence: sequence, editor: editor, card: .next)
-                        // Lifts it a little, to balance the fret numbers under the neck
                         .padding(.bottom, 16)
                 }
             } else {
@@ -48,16 +54,29 @@ struct LayoutView: View {
                         .frame(maxWidth: .infinity)
                 }
 
+                // Clipped: backgrounds reach up into the title bar area by default, which (with the fretboard hidden)
+                // would paint over the header
                 TabView ()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .clipped()
             }
 
             Footer()
                 .frame(maxWidth: .infinity, minHeight: footerHeight, maxHeight: footerHeight)
         }
+        // Over everything while the recording gets ready; it closes up into the header
+        .overlay(alignment: .top) { LoadingCurtain() }
+        .onReceive(NotificationCenter.default.publisher(for: NSWindow.willEnterFullScreenNotification)) { _ in
+            withAnimation(.easeInOut(duration: 0.2)) { ui.isWindowFullScreen = true }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSWindow.willExitFullScreenNotification)) { _ in
+            withAnimation(.easeInOut(duration: 0.2)) { ui.isWindowFullScreen = false }
+        }
         .edgesIgnoringSafeArea(.all)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
+            // Opened straight into full screen (restored by macOS): no notification for that
+            ui.isWindowFullScreen = NSApp.windows.contains { $0.styleMask.contains(.fullScreen) }
             SpaceBarMonitor.install { [ui, session, tabSession, playback] option in
                 if option {
                     TransportActions.playSelection(ui: ui, session: session, tab: tabSession, playback: playback)
@@ -73,7 +92,6 @@ struct LayoutView: View {
             ImportReviewView(pending: pending)
         }
         .sheet(isPresented: $ui.isChoosingExport, onDismiss: {
-            // The save panel can only open once the options sheet has gone
             if ui.exportFile != nil {
                 ui.isExporting = true
             }

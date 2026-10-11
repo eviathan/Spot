@@ -8,7 +8,9 @@
 import SwiftUI
 
 struct Header: View {
-    let backgroundColor = Color(hue: 0.75, saturation: 0.01, brightness: 0.80, opacity: 1.00)
+    static let height: CGFloat = 52
+
+    static let backgroundColor = Color(hue: 0.75, saturation: 0.01, brightness: 0.80, opacity: 1.00)
     //Color(hue: 0.63, saturation: 0.28, brightness: 0.20, opacity: 1.00)
 //    Color(hue: 0.61, saturation: 0.42, brightness: 0.31, opacity: 1.00)
     
@@ -28,8 +30,8 @@ struct Header: View {
                 .frame(maxHeight: .infinity)
         }
         .padding([.all], 12)
-        .frame(maxWidth: .infinity, maxHeight: 52)
-        .background(backgroundColor)
+        .frame(maxWidth: .infinity, maxHeight: Header.height)
+        .background(Header.backgroundColor)
         .foregroundColor(.white)
         .gesture(
             DragGesture()

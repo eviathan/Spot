@@ -59,6 +59,9 @@ final class SequenceSession {
         return audioStatus == .loading || (audioStatus == .ready && rendered == nil)
     }
 
+    /// How far getting the recording ready has got, 0–1: reading it (to 0.35), then lining it up with the grid.
+    private(set) var audioProgress: Double = 0
+
     private(set) var isRecording = false
     @ObservationIgnored private var recorder: InputRecorder?
     @ObservationIgnored private var recordingFile: (url: URL, name: String, tempo: Double)?
@@ -783,6 +786,7 @@ final class SequenceSession {
         }
         audioURL = url
         audioStatus = .loading
+        audioProgress = 0.05
         
         let owner = WeakSession(self)
         Task.detached(priority: .userInitiated) {
@@ -793,6 +797,7 @@ final class SequenceSession {
                     guard let session = owner.session, session.audioURL == url else { return }
                     session.sourceAudio = audio
                     session.peaks = peaks
+                    session.audioProgress = 0.35
                     session.audioStatus = .ready
                     session.scheduleRender(delay: 0)
                 }
@@ -895,8 +900,17 @@ final class SequenceSession {
         }
         
         // Quiet: at the recording's own tempo this is mostly a copy, and only stretched sections take any time
+        // The first render is what loading waits for: report how far it's got
+        let reportsProgress = rendered == nil
         renderTask = Task.detached(priority: .userInitiated) {
-            let result = WarpRenderer.render(source, map: map, tempo: tempo, from: start, to: end) { _ in !Task.isCancelled }
+            var reported = 0.0
+            let result = WarpRenderer.render(source, map: map, tempo: tempo, from: start, to: end) { fraction in
+                if reportsProgress, fraction - reported >= 0.02 {
+                    reported = fraction
+                    DispatchQueue.main.async { owner.session?.audioProgress = 0.35 + 0.65 * fraction }
+                }
+                return !Task.isCancelled
+            }
             guard !Task.isCancelled else { return }
             // Nothing to render (e.g. the recording lies outside the sequence): silence, rather than
             // waiting for audio that will never come
@@ -912,6 +926,7 @@ final class SequenceSession {
     private func finishRender(_ result: RenderedAudio) {
         inFlight = nil
         rendered = result
+        audioProgress = 1
         if isPlaying, let sequence, let editor {
             playback.update(playbackData(sequence, editor: editor), id: editor.id)
         }

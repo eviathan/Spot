@@ -10,7 +10,6 @@ import Foundation
 enum TabViewType {
     case Library
     case Sequence
-    /// Tablature (replaced Chord Practice).
     case Tab
     case Settings
 }

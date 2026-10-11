@@ -13,7 +13,10 @@ struct TabTabView: View {
     @Environment(UIState.self) private var ui
 
     var body: some View {
-        if session.isOpen {
+        if session.isSequenceTab, sequenceSession.isPreparingAudio {
+            // The sequence's tab plays with its recording: wait for it, as the Sequence tab does
+            AudioLoadingView(fileName: sequenceSession.sequence?.audio?.reference.fileName)
+        } else if session.isOpen {
             TabEditorView()
         } else {
             launcher

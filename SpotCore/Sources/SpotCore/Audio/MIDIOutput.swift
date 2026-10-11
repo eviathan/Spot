@@ -25,6 +25,8 @@ public final class MIDIOutput {
     public let name: String
     /// 0–15 (shown to people as 1–16).
     public var channel: UInt8 = 0
+    /// Also play everything on this synth inside Spot (for when nothing's listening to the MIDI); nil for none.
+    public var synth: SoftSynth?
     /// Also send directly here; nil to only use the virtual source.
     public var destinationID: MIDIUniqueID? {
         didSet { destination = destinationID.flatMap(MIDIOutput.endpoint(for:)) }
@@ -99,6 +101,7 @@ public final class MIDIOutput {
             MIDIFlushOutput(destination)
         }
         send(status: 0xB0, 123, 0, at: 0)
+        synth?.allNotesOff()
     }
 
     /// One MIDI 1.0 channel voice message as a Universal MIDI Packet word.
@@ -123,6 +126,12 @@ public final class MIDIOutput {
         MIDIReceivedEventList(source, &list)
         if let destination {
             MIDISendEventList(port, destination, &list)
+        }
+        if let synth {
+            // Program change is the one two-byte message sent here
+            let bytes = status == 0xC0 ? [status | (channel & 0x0F), UInt8(min(max(data1, 0), 127))]
+                                       : [status | (channel & 0x0F), UInt8(min(max(data1, 0), 127)), UInt8(min(max(data2, 0), 127))]
+            synth.send(bytes, atHostTime: time)
         }
     }
 

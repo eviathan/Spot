@@ -13,10 +13,10 @@ struct ModeSwitcher: View {
     let unselectedColor: Color = Color(hue: 0.62, saturation: 0.38, brightness: 0.38, opacity: 1.00)
     
     var body: some View {
-        Button(action: { ui.tab = .Library }) {
-            Image(systemName: "rectangle.split.3x1")
+        Button(action: { ui.tab = .Sequence }) {
+            Image(systemName: "text.justify")
                 .imageScale(.large)
-                .foregroundColor(ui.tab == .Library ? .white : unselectedColor)
+                .foregroundColor(ui.tab == .Sequence ? .white : unselectedColor)
         }
         .buttonStyle(PlainButtonStyle())
         .frame(width: 30, height: 30)
@@ -30,10 +30,10 @@ struct ModeSwitcher: View {
         .frame(width: 30, height: 30)
         .help("Tab")
         
-        Button(action: { ui.tab = .Sequence }) {
-            Image(systemName: "text.justify")
+        Button(action: { ui.tab = .Library }) {
+            Image(systemName: "rectangle.split.3x1")
                 .imageScale(.large)
-                .foregroundColor(ui.tab == .Sequence ? .white : unselectedColor)
+                .foregroundColor(ui.tab == .Library ? .white : unselectedColor)
         }
         .buttonStyle(PlainButtonStyle())
         .frame(width: 30, height: 30)
