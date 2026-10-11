@@ -41,9 +41,9 @@ struct Transport: View {
         TransportActions.toggleLoop(ui: ui, session: session, tab: tabSession)
     }
     
-    /// The sequence's transport: on the Sequence tab, or on the Tab tab with the tab it links.
+    /// The transport is the sequence's (from any page, unless the Tab tab is showing a tab of its own).
     private var editsSequence: Bool {
-        session.isOpen && (ui.tab == .Sequence || (ui.tab == .Tab && tabSession.linkedSequence != nil))
+        TransportActions.target(ui: ui, session: session, tab: tabSession) == .sequence
     }
     
     private var isLooping: Bool {
@@ -94,7 +94,7 @@ struct Transport: View {
         }
         .buttonStyle(PlainButtonStyle())
         .frame(width: 30, height: 30)
-        .help(ui.tab == .Tab
+        .help(TransportActions.target(ui: ui, session: session, tab: tabSession) == .tab
               ? "Play the tab from the start, or stop (space). ⌥Space plays from the cursor."
               : "Play from 1.1.1, or stop (space). ⌥Space plays from the playhead (or just the selected range).")
         
@@ -155,29 +155,51 @@ private struct PositionDisplay: View {
 }
 
 /// Play/pause, stop and back-to-start, shared by the footer, the Playback menu and the space bar.
-/// On the Sequence tab they control the open sequence; elsewhere, the metronome transport.
+/// They work from every page: on whatever's playing, or the open sequence (or, on the Tab tab, its tab).
 enum TransportActions {
+    enum Target {
+        /// The Tab tab's own tab (one that isn't a sequence's: a sequence's tab plays with the sequence).
+        case tab
+        case sequence
+        /// Nothing open: just the clock and metronome.
+        case metronome
+    }
+
+    /// What the transport plays: what's playing; on the Tab tab, its tab; anywhere else, the open sequence (or,
+    /// with none, a tab that's open).
+    static func target(ui: UIState, session: SequenceSession, tab: TabSession) -> Target {
+        if tab.isPlaying && tab.linkedSequence == nil { return .tab }
+        if session.isPlaying { return .sequence }
+        if ui.tab == .Tab && tab.isOpen { return tab.linkedSequence == nil ? .tab : .sequence }
+        if session.isOpen { return .sequence }
+        if tab.isOpen { return tab.linkedSequence == nil ? .tab : .sequence }
+        return .metronome
+    }
+
     /// Space: play from the start marker (1.1.1), or stop.
     static func playPause(ui: UIState, session: SequenceSession, tab: TabSession, playback: PlaybackController) {
-        if tab.isPlaying || (ui.tab == .Tab && tab.isOpen && !playback.transport.isPlaying) {
-            tab.togglePlay()
-        } else if session.isPlaying || (ui.tab == .Sequence && session.isOpen && !playback.transport.isPlaying) {
-            session.togglePlay()
-        } else {
-            playback.togglePlay()
+        switch target(ui: ui, session: session, tab: tab) {
+        case .tab: tab.togglePlay()
+        case .sequence: session.togglePlay()
+        case .metronome: playback.togglePlay()
         }
     }
 
     /// ⌥Space: play from the playhead (a selected range on its own, stopping at its end); while playing,
-    /// jump back to the playhead.
+    /// jump back to the playhead. On the Tab tab, from the cursor.
     static func playSelection(ui: UIState, session: SequenceSession, tab: TabSession, playback: PlaybackController) {
-        if ui.tab == .Tab && tab.isOpen {
-            // From the cursor (while playing, jump back to it)
+        switch target(ui: ui, session: session, tab: tab) {
+        case .tab:
             tab.play(fromCursor: true)
-        } else if session.isPlaying || (ui.tab == .Sequence && session.isOpen && !playback.transport.isPlaying) {
-            session.playSelection()
-        } else {
-            playPause(ui: ui, session: session, tab: tab, playback: playback)
+        case .sequence:
+            // The sequence's tab, on the Tab tab: from its cursor
+            if ui.tab == .Tab && tab.linkedSequence != nil {
+                tab.play(fromCursor: true)
+            } else {
+                session.playSelection()
+            }
+        case .metronome:
+            playback.togglePlay()
         }
     }
     
@@ -213,6 +235,7 @@ enum TransportActions {
     /// Loops the open sequence's selection, or turns the loop off.
     /// On the Tab tab with the sequence's tab, the selected beats are looped (or looping turned on or off).
     static func toggleLoop(ui: UIState, session: SequenceSession, tab: TabSession) {
+        guard target(ui: ui, session: session, tab: tab) == .sequence else { return }
         if ui.tab == .Tab, tab.linkedSequence != nil {
             session.loop(tab.selectionBeats)
         } else {
@@ -221,9 +244,10 @@ enum TransportActions {
     }
     
     static func toStart(ui: UIState, session: SequenceSession, tab: TabSession, playback: PlaybackController) {
-        if ui.tab == .Tab && tab.isOpen {
+        let target = target(ui: ui, session: session, tab: tab)
+        if target == .tab || (target == .sequence && ui.tab == .Tab && tab.linkedSequence != nil) {
             tab.returnToStart()
-        } else if ui.tab == .Sequence && session.isOpen {
+        } else if target == .sequence {
             session.returnToStart()
         } else if playback.transport.isPlaying {
             playback.stop()

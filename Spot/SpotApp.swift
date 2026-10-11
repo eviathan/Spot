@@ -78,6 +78,7 @@ struct SpotApp: App {
         .windowStyle(.hiddenTitleBar)
         .windowToolbarStyle(UnifiedWindowToolbarStyle(showsTitle: false))
         .commands {
+
             // New, Open, Close and Save act on the Tab tab's file when it's showing, otherwise on the sequence
             CommandGroup(replacing: .newItem) {
                 if ui.tab == .Tab {
@@ -114,12 +115,20 @@ struct SpotApp: App {
                     .keyboardShortcut("n", modifiers: [.command, .option, .shift])
             }
             
-            // Undo and Redo act on what you're working on: text being typed, the open sequence, or the open tab
-            CommandGroup(replacing: .undoRedo) {
-                Button("Undo") { undoOrRedo(redo: false) }
-                    .keyboardShortcut("z", modifiers: [.command])
-                Button("Redo") { undoOrRedo(redo: true) }
-                    .keyboardShortcut("z", modifiers: [.command, .shift])
+            // (Grouped: a commands block takes ten at most)
+            Group {
+                // Settings is a tab of the window, not a window of its own: ⌘, goes to it, as in any Mac app
+                CommandGroup(replacing: .appSettings) {
+                    Button("Settings…") { ui.tab = .Settings }
+                        .keyboardShortcut(",", modifiers: [.command])
+                }
+                // Undo and Redo act on what you're working on: text being typed, the open sequence, or the open tab
+                CommandGroup(replacing: .undoRedo) {
+                    Button("Undo") { undoOrRedo(redo: false) }
+                        .keyboardShortcut("z", modifiers: [.command])
+                    Button("Redo") { undoOrRedo(redo: true) }
+                        .keyboardShortcut("z", modifiers: [.command, .shift])
+                }
             }
 
             CommandGroup(replacing: .saveItem) {
@@ -239,20 +248,22 @@ struct SpotApp: App {
             }
 
             CommandMenu("Playback") {
-                Button(transport.isPlaying ? "Stop Playing" : (ui.tab == .Tab ? "Play from Start (Space)" : "Play from 1.1.1 (Space)")) {
+                // From any page, like the transport (see TransportActions.target)
+                let target = TransportActions.target(ui: ui, session: session, tab: tabSession)
+                Button(transport.isPlaying ? "Stop Playing" : (target == .tab ? "Play from Start (Space)" : "Play from 1.1.1 (Space)")) {
                     TransportActions.playPause(ui: ui, session: session, tab: tabSession, playback: playback)
                 }
                 .keyboardShortcut("p", modifiers: [.command])
                 // ⌥Space does this too (handled with the space bar, so it isn't listed here)
-                Button(ui.tab == .Tab ? "Play from Cursor (⌥Space)" : "Play from Playhead (⌥Space)") {
+                Button(ui.tab == .Tab && target != .metronome ? "Play from Cursor (⌥Space)" : "Play from Playhead (⌥Space)") {
                     TransportActions.playSelection(ui: ui, session: session, tab: tabSession, playback: playback)
                 }
-                .disabled(ui.tab == .Tab ? !tabSession.isOpen : (ui.tab != .Sequence || !session.isOpen))
+                .disabled(target == .metronome)
                 Button(session.isLooping ? "Stop Looping" : "Loop") {
                     TransportActions.toggleLoop(ui: ui, session: session, tab: tabSession)
                 }
                 .keyboardShortcut("l", modifiers: [.command])
-                .disabled(!(ui.tab == .Sequence && session.isOpen) && !(ui.tab == .Tab && tabSession.linkedSequence != nil))
+                .disabled(target != .sequence)
                 Button("Stop") {
                     TransportActions.stop(ui: ui, session: session, tab: tabSession, playback: playback)
                 }
