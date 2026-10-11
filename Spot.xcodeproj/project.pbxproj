@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		C76702F74B7E4CDEADA5E717 /* PatternLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9247A23D9212491B8B29B5F6 /* PatternLayer.swift */; };
+		C79447B3D6DE4B258E385818 /* VideoViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F8A1E1F2C394026B9EBCB7D /* VideoViews.swift */; };
 		ECEE6BC13AA14182B21B0B37 /* SpotStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA73BCFED8AE4B1B898508F9 /* SpotStyle.swift */; };
 		8F107D6AA5B346DBBFFFAF1C /* LoadingCurtain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4464A3C64F094F65A320A2AC /* LoadingCurtain.swift */; };
 		F87E372B5B7346BF8F76EA20 /* OverlayScrollers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 674BB744BCC84865A5B76DC5 /* OverlayScrollers.swift */; };
@@ -82,10 +83,12 @@
 		E82D8C1A06F24A67B5218D0D /* SequenceDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B10EFD464274E03AA280694 /* SequenceDocument.swift */; };
 		F5926709CDBE4CBB9990692A /* LibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B448B4CAE39F456B9C5FBB61 /* LibraryStore.swift */; };
 		F6C19D5ABF9041C1B884B709 /* SequenceSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AD58EB22CE341C68A455B05 /* SequenceSession.swift */; };
+		73990DD8E4D1477092118767 /* VideoPlayback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 908E76852A7C4FCB91172E2C /* VideoPlayback.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		9247A23D9212491B8B29B5F6 /* PatternLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternLayer.swift; sourceTree = "<group>"; };
+		5F8A1E1F2C394026B9EBCB7D /* VideoViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoViews.swift; sourceTree = "<group>"; };
 		CA73BCFED8AE4B1B898508F9 /* SpotStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotStyle.swift; sourceTree = "<group>"; };
 		4464A3C64F094F65A320A2AC /* LoadingCurtain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingCurtain.swift; sourceTree = "<group>"; };
 		674BB744BCC84865A5B76DC5 /* OverlayScrollers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverlayScrollers.swift; sourceTree = "<group>"; };
@@ -95,6 +98,7 @@
 		230CB2A2C0DC48B5998B0214 /* TabTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabTabView.swift; sourceTree = "<group>"; };
 		A2A925FB850C421990FB3760 /* TabSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSession.swift; sourceTree = "<group>"; };
 		0AD58EB22CE341C68A455B05 /* SequenceSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SequenceSession.swift; sourceTree = "<group>"; };
+		908E76852A7C4FCB91172E2C /* VideoPlayback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPlayback.swift; sourceTree = "<group>"; };
 		1A0D22CCFF4342079D042040 /* LibraryFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryFile.swift; sourceTree = "<group>"; };
 		36EB5C8FA9EE42CA9F4EE49B /* PlaybackController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackController.swift; sourceTree = "<group>"; };
 		503CAFC0C11E4AF493A4F4D9 /* AudioSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSettings.swift; sourceTree = "<group>"; };
@@ -181,6 +185,7 @@
 			isa = PBXGroup;
 			children = (
 				9247A23D9212491B8B29B5F6 /* PatternLayer.swift */,
+				5F8A1E1F2C394026B9EBCB7D /* VideoViews.swift */,
 				D8F4859D90034CA2A03C616F /* SequenceEditorView.swift */,
 				E6F6126529154F0C8B1B2F43 /* ChordLaneView.swift */,
 				E4E0F9177ADE40C580A9F01D /* SequencerFretboard.swift */,
@@ -373,6 +378,7 @@
 				46428AC22FBE403381E81493 /* TabEditorState.swift */,
 				A2A925FB850C421990FB3760 /* TabSession.swift */,
 				0AD58EB22CE341C68A455B05 /* SequenceSession.swift */,
+				908E76852A7C4FCB91172E2C /* VideoPlayback.swift */,
 				F46EF17E845942AE9217E36C /* SequenceEditorState.swift */,
 				7B10EFD464274E03AA280694 /* SequenceDocument.swift */,
 				36EB5C8FA9EE42CA9F4EE49B /* PlaybackController.swift */,
@@ -472,6 +478,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C76702F74B7E4CDEADA5E717 /* PatternLayer.swift in Sources */,
+				C79447B3D6DE4B258E385818 /* VideoViews.swift in Sources */,
 				ECEE6BC13AA14182B21B0B37 /* SpotStyle.swift in Sources */,
 				8F107D6AA5B346DBBFFFAF1C /* LoadingCurtain.swift in Sources */,
 				F87E372B5B7346BF8F76EA20 /* OverlayScrollers.swift in Sources */,
@@ -482,6 +489,7 @@
 				9C965E4016EE464FBC44FFB1 /* TabSession.swift in Sources */,
 				370AABE7FE394507BEF4D84D /* ChordPalette.swift in Sources */,
 				F6C19D5ABF9041C1B884B709 /* SequenceSession.swift in Sources */,
+				73990DD8E4D1477092118767 /* VideoPlayback.swift in Sources */,
 				D8F071B19CC84BAA9515DE95 /* SequenceEditorView.swift in Sources */,
 				79DFE9711A8547148E42448F /* SequencerFretboard.swift in Sources */,
 				338BE742F89C4425A22C4E28 /* ChordLaneView.swift in Sources */,

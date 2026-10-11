@@ -366,6 +366,8 @@ struct BarMenu<Content: View>: View {
 struct AudioTrackHeader: View {
     let sequence: ChordSequence
     let editor: SequenceEditorState
+    /// Wider with a video, whose picture is shown here, beside its filmstrip.
+    var width: CGFloat = laneHeaderWidth
     let height: CGFloat
 
     @Environment(SequenceSession.self) private var session
@@ -376,59 +378,35 @@ struct AudioTrackHeader: View {
 
         VStack(alignment: .leading, spacing: 6) {
             if let audio = sequence.audio {
-                HStack(spacing: 6) {
-                    Image(systemName: "waveform")
-                        .foregroundStyle(.cyan)
-                    Text(audio.reference.fileName)
-                        .font(.callout.weight(.semibold))
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                    Spacer(minLength: 0)
-                    status
-                    Menu {
-                        Button("Clear Warp Markers") { session.sequence?.audio?.removeAllMarkers() }
-                            .disabled(audio.warpMarkers.count <= 1)
-                        Button("Locate File…") { ui.isRelinkingAudio = true }
-                        Button("Replace Audio…") { ui.isImportingAudio = true }
-                        Divider()
-                        Button("Remove Audio", role: .destructive) { session.removeAudio() }
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
+                title(audio)
+                if audio.reference.hasVideo {
+                    // The picture, as big as the row allows, then the tempo and level on one line under it
+                    Group {
+                        if let video = session.video {
+                            VideoViewer(player: video.player)
+                                .aspectRatio(video.aspectRatio, contentMode: .fit)
+                        } else {
+                            Color.black
+                        }
                     }
-                    .menuStyle(.borderlessButton)
-                    .menuIndicator(.hidden)
-                    .fixedSize()
-                    .help("Audio")
-                }
-                .help("Double-click the waveform to add a warp marker and drag it onto its beat. Markers are picked up by their arrows; ⇧-drag one to slide the audio under it.")
-
-                RecordingTempo(sequence: binding, editor: editor)
-
-                HStack(spacing: 6) {
-                    Button {
-                        session.sequence?.audio?.isMuted.toggle()
-                    } label: {
-                        Image(systemName: audio.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill")
-                            .foregroundStyle(audio.isMuted ? .orange : .primary)
-                            .frame(width: 18)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                    HStack(spacing: 10) {
+                        RecordingTempo(sequence: binding, editor: editor)
+                        Spacer(minLength: 0)
+                        level(audio)
+                            .frame(maxWidth: 170)
                     }
-                    .buttonStyle(.plain)
-                    .help(audio.isMuted ? "The recording is muted: click to hear it" : "Mute the recording")
-
-                    Slider(value: Binding(get: { sequence.audio?.gain ?? 0 }, set: { session.sequence?.audio?.gain = $0 }), in: -24...6)
-                        .controlSize(.small)
-                        .help("Recording level")
-                    Text("\(Int(audio.gain.rounded())) dB")
-                        .font(.caption.monospacedDigit())
-                        .opacity(0.7)
-                        .frame(width: 40, alignment: .trailing)
+                } else {
+                    RecordingTempo(sequence: binding, editor: editor)
+                    level(audio)
                 }
             } else {
                 Label("Audio", systemImage: "waveform")
                     .font(.callout.weight(.semibold))
                     .opacity(0.7)
-                Button("Add Audio…") { ui.isImportingAudio = true }
-                Text("Play along with a recording, lined up with the grid.")
+                Button("Add Audio or Video…") { ui.isImportingAudio = true }
+                Text("Play along with a recording or a video, lined up with the grid.")
                     .font(.caption)
                     .opacity(0.6)
                     .fixedSize(horizontal: false, vertical: true)
@@ -437,7 +415,58 @@ struct AudioTrackHeader: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 8)
-        .frame(width: laneHeaderWidth, height: height, alignment: .topLeading)
+        .frame(width: width, height: height, alignment: .topLeading)
+    }
+
+    private func title(_ audio: AudioTrack) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: audio.reference.hasVideo ? "film" : "waveform")
+                .foregroundStyle(.cyan)
+            Text(audio.reference.fileName)
+                .font(.callout.weight(.semibold))
+                .lineLimit(1)
+                .truncationMode(.middle)
+            Spacer(minLength: 0)
+            status
+            Menu {
+                Button("Clear Warp Markers") { session.sequence?.audio?.removeAllMarkers() }
+                    .disabled(audio.warpMarkers.count <= 1)
+                Button("Locate File…") { ui.isRelinkingAudio = true }
+                Button(audio.reference.hasVideo ? "Replace Video…" : "Replace Audio…") { ui.isImportingAudio = true }
+                Divider()
+                Button(audio.reference.hasVideo ? "Remove Video" : "Remove Audio", role: .destructive) { session.removeAudio() }
+            } label: {
+                Image(systemName: "ellipsis.circle")
+            }
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .fixedSize()
+            .help(audio.reference.hasVideo ? "Video" : "Audio")
+        }
+        .help("Double-click the waveform to add a warp marker and drag it onto its beat. Markers are picked up by their arrows; ⇧-drag one to slide the audio under it.")
+    }
+
+    /// Mute and level.
+    private func level(_ audio: AudioTrack) -> some View {
+        HStack(spacing: 6) {
+            Button {
+                session.sequence?.audio?.isMuted.toggle()
+            } label: {
+                Image(systemName: audio.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill")
+                    .foregroundStyle(audio.isMuted ? .orange : .primary)
+                    .frame(width: 18)
+            }
+            .buttonStyle(.plain)
+            .help(audio.isMuted ? "The recording is muted: click to hear it" : "Mute the recording")
+
+            Slider(value: Binding(get: { sequence.audio?.gain ?? 0 }, set: { session.sequence?.audio?.gain = $0 }), in: -24...6)
+                .controlSize(.small)
+                .help("Recording level")
+            Text("\(Int(audio.gain.rounded())) dB")
+                .font(.caption.monospacedDigit())
+                .opacity(0.7)
+                .frame(width: 40, alignment: .trailing)
+        }
     }
 
     @ViewBuilder

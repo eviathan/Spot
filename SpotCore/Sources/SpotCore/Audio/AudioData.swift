@@ -41,6 +41,73 @@ public struct AudioData: Sendable {
         return AudioData(channels: channels, sampleRate: format.sampleRate)
     }
 
+    /// Reads the sound of any file AVFoundation can open: an audio file, or a video's soundtrack.
+    public static func loadMedia(_ url: URL) async throws -> AudioData {
+        if let audio = try? load(url) {
+            return audio
+        }
+        let asset = AVURLAsset(url: url)
+        guard let track = try await asset.loadTracks(withMediaType: .audio).first else {
+            throw MediaError.noSound
+        }
+        let descriptions = try await track.load(.formatDescriptions)
+        guard let description = descriptions.first,
+              let format = CMAudioFormatDescriptionGetStreamBasicDescription(description)?.pointee else {
+            throw MediaError.noSound
+        }
+        let sampleRate = format.mSampleRate
+        let channelCount = max(1, Int(format.mChannelsPerFrame))
+
+        let reader = try AVAssetReader(asset: asset)
+        let output = AVAssetReaderTrackOutput(track: track, outputSettings: [
+            AVFormatIDKey: kAudioFormatLinearPCM,
+            AVLinearPCMBitDepthKey: 32,
+            AVLinearPCMIsFloatKey: true,
+            AVLinearPCMIsNonInterleaved: false,
+            AVLinearPCMIsBigEndianKey: false,
+            AVSampleRateKey: sampleRate,
+            AVNumberOfChannelsKey: channelCount,
+        ])
+        reader.add(output)
+        guard reader.startReading() else { throw reader.error ?? MediaError.noSound }
+
+        // Interleaved samples as they come, then split into channels (with Accelerate: a loop over every sample
+        // is slow in a debug build)
+        var interleaved: [Float] = []
+        while let buffer = output.copyNextSampleBuffer() {
+            guard let block = CMSampleBufferGetDataBuffer(buffer) else { continue }
+            let length = CMBlockBufferGetDataLength(block)
+            let start = interleaved.count
+            interleaved.append(contentsOf: repeatElement(0, count: length / MemoryLayout<Float>.size))
+            interleaved.withUnsafeMutableBytes { bytes in
+                _ = CMBlockBufferCopyDataBytes(block, atOffset: 0, dataLength: length,
+                                               destination: bytes.baseAddress! + start * MemoryLayout<Float>.size)
+            }
+        }
+        if reader.status == .failed { throw reader.error ?? MediaError.noSound }
+
+        let frames = interleaved.count / channelCount
+        var channels = [[Float]](repeating: [Float](repeating: 0, count: frames), count: channelCount)
+        interleaved.withUnsafeBufferPointer { source in
+            for channel in 0..<channelCount where frames > 0 {
+                var zero: Float = 0
+                channels[channel].withUnsafeMutableBufferPointer { destination in
+                    vDSP_vsadd(source.baseAddress! + channel, vDSP_Stride(channelCount), &zero,
+                               destination.baseAddress!, 1, vDSP_Length(frames))
+                }
+            }
+        }
+        return AudioData(channels: channels, sampleRate: sampleRate)
+    }
+
+    public enum MediaError: LocalizedError {
+        case noSound
+
+        public var errorDescription: String? {
+            "It has no sound to play along with."
+        }
+    }
+
     /// A buffer AVAudioEngine can play, covering `range` of frames (zeros outside the audio).
     public func buffer(frames range: Range<Int>) -> AVAudioPCMBuffer? {
         guard range.count > 0,
@@ -83,6 +150,55 @@ public enum AudioFingerprint {
             hasher.update(data: try handle.read(upToCount: chunk) ?? Data())
         }
         return hasher.finalize().prefix(12).map { String(format: "%02x", $0) }.joined()
+    }
+}
+
+/// What's in a media file, for one whose sound AVAudioFile can't read (a video).
+public struct MediaInfo: Sendable {
+    public var duration: Double
+    public var sampleRate: Double
+    public var channelCount: Int
+    public var hasVideo: Bool
+
+    /// Waits for AVFoundation to look (it doesn't need the calling thread, so this is safe on the main thread).
+    public init(_ url: URL) throws {
+        let semaphore = DispatchSemaphore(value: 0)
+        let box = ResultBox()
+        Task.detached {
+            box.result = await Result(catching: { try await MediaInfo.read(url) })
+            semaphore.signal()
+        }
+        semaphore.wait()
+        self = try box.result!.get()
+    }
+
+    private init(duration: Double, sampleRate: Double, channelCount: Int, hasVideo: Bool) {
+        self.duration = duration
+        self.sampleRate = sampleRate
+        self.channelCount = channelCount
+        self.hasVideo = hasVideo
+    }
+
+    private static func read(_ url: URL) async throws -> MediaInfo {
+        let asset = AVURLAsset(url: url)
+        guard let sound = try await asset.loadTracks(withMediaType: .audio).first else { throw AudioData.MediaError.noSound }
+        let format = try await sound.load(.formatDescriptions).first.flatMap {
+            CMAudioFormatDescriptionGetStreamBasicDescription($0)?.pointee
+        }
+        let duration = try await asset.load(.duration).seconds
+        let hasVideo = !(try await asset.loadTracks(withMediaType: .video).isEmpty)
+        return MediaInfo(duration: duration.isFinite ? duration : 0, sampleRate: format?.mSampleRate ?? 44_100,
+                         channelCount: Int(format?.mChannelsPerFrame ?? 2), hasVideo: hasVideo)
+    }
+
+    private final class ResultBox: @unchecked Sendable {
+        var result: Result<MediaInfo, Error>?
+    }
+}
+
+extension Result where Failure == Error {
+    init(catching body: () async throws -> Success) async {
+        do { self = .success(try await body()) } catch { self = .failure(error) }
     }
 }
 

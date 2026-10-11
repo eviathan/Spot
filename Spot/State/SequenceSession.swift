@@ -6,6 +6,7 @@
 import Foundation
 import Observation
 import AVFoundation
+import UniformTypeIdentifiers
 import SpotCore
 
 /// The sequence open in the Sequence tab and the `.spot` file behind it.
@@ -61,6 +62,8 @@ final class SequenceSession {
     /// Set when a relinked file isn't the recording the sequence was made with.
     private(set) var audioWarning: String?
     private(set) var peaks: WaveformPeaks?
+    /// When the recording is a video file: its picture, following playback, and its frames.
+    private(set) var video: VideoPlayback?
     /// The audio lined up with the grid, ready to play; nil until the first render is done.
     private(set) var rendered: RenderedAudio?
 
@@ -841,15 +844,37 @@ final class SequenceSession {
     private func makeReference(_ url: URL) throws -> AudioReference {
         let accessing = url.startAccessingSecurityScopedResource()
         defer { if accessing { url.stopAccessingSecurityScopedResource() } }
+        let bookmark = try? url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
+        // A video file: its soundtrack is the recording
+        if UTType(filenameExtension: url.pathExtension)?.conforms(to: .movie) == true || (try? AVAudioFile(forReading: url)) == nil {
+            let media = try MediaInfo(url)
+            return AudioReference(bookmark: bookmark, lastKnownPath: url.path, fileName: url.lastPathComponent,
+                                  duration: media.duration, sampleRate: media.sampleRate, channelCount: media.channelCount,
+                                  fingerprint: try AudioFingerprint.of(url), hasVideo: media.hasVideo)
+        }
         let file = try AVAudioFile(forReading: url)
         return AudioReference(
-            bookmark: try? url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil),
+            bookmark: bookmark,
             lastKnownPath: url.path,
             fileName: url.lastPathComponent,
             duration: Double(file.length) / file.processingFormat.sampleRate,
             sampleRate: file.processingFormat.sampleRate,
             channelCount: Int(file.processingFormat.channelCount),
             fingerprint: try AudioFingerprint.of(url))
+    }
+
+    /// Where the video should be: the moment in the recording at the playhead (playing, and how fast it's going
+    /// there, through the warp markers and at the sequence's tempo).
+    private func videoTarget() -> (time: Double, speed: Double)? {
+        guard let sequence, let audio = sequence.audio, let editor else { return nil }
+        let map = audio.map
+        guard isPlaying else {
+            return (map.sourceTime(atBeat: editor.playhead), 0)
+        }
+        let beat = transport.position()
+        let time = map.sourceTime(atBeat: beat)
+        let ahead = map.sourceTime(atBeat: beat + 0.05)
+        return (time, max(0, (ahead - time) / 0.05 * transport.bpm / 60))
     }
     
     /// Finds and decodes the sequence's audio in the background, then renders it.
@@ -868,11 +893,16 @@ final class SequenceSession {
         audioURL = url
         audioStatus = .loading
         audioProgress = 0.05
+        if reference.hasVideo {
+            let video = VideoPlayback(url: url, duration: reference.duration)
+            video.target = { [weak self] in self?.videoTarget() }
+            self.video = video
+        }
         
         let owner = WeakSession(self)
         Task.detached(priority: .userInitiated) {
             do {
-                let audio = try AudioData.load(url)
+                let audio = try await AudioData.loadMedia(url)
                 let peaks = WaveformPeaks(audio)
                 await MainActor.run {
                     guard let session = owner.session, session.audioURL == url else { return }
@@ -898,6 +928,8 @@ final class SequenceSession {
         pendingFullRender = false
         pendingRenderRange = nil
         renderDelay?.cancel()
+        video?.close()
+        video = nil
         audioURL?.stopAccessingSecurityScopedResource()
         audioURL = nil
         sourceAudio = nil

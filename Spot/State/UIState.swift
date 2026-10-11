@@ -22,7 +22,7 @@ enum OpenPanel: Equatable {
         case .library: return [.spotLibrary, .json]
         case .sequence: return [.spotSequence]
         case .tab: return [.spotTab] + UTType.guitarProTypes
-        case .audio, .relinkAudio: return [.audio]
+        case .audio, .relinkAudio: return [.audio, .movie]
         }
     }
 }

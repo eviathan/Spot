@@ -16,9 +16,11 @@ public struct AudioReference: Hashable, Codable, Sendable {
     public var channelCount: Int
     /// Identifies the audio, to warn when a relinked file isn't the same recording.
     public var fingerprint: String
+    /// A video file (its sound is the recording): shown with its frames, and played alongside.
+    public var hasVideo: Bool
 
     public init(bookmark: Data?, lastKnownPath: String, fileName: String, duration: Double,
-                sampleRate: Double, channelCount: Int, fingerprint: String) {
+                sampleRate: Double, channelCount: Int, fingerprint: String, hasVideo: Bool = false) {
         self.bookmark = bookmark
         self.lastKnownPath = lastKnownPath
         self.fileName = fileName
@@ -26,6 +28,24 @@ public struct AudioReference: Hashable, Codable, Sendable {
         self.sampleRate = sampleRate
         self.channelCount = channelCount
         self.fingerprint = fingerprint
+        self.hasVideo = hasVideo
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case bookmark, lastKnownPath, fileName, duration, sampleRate, channelCount, fingerprint, hasVideo
+    }
+
+    /// Files from before videos have no `hasVideo`.
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        bookmark = try container.decodeIfPresent(Data.self, forKey: .bookmark)
+        lastKnownPath = try container.decode(String.self, forKey: .lastKnownPath)
+        fileName = try container.decode(String.self, forKey: .fileName)
+        duration = try container.decode(Double.self, forKey: .duration)
+        sampleRate = try container.decode(Double.self, forKey: .sampleRate)
+        channelCount = try container.decode(Int.self, forKey: .channelCount)
+        fingerprint = try container.decode(String.self, forKey: .fingerprint)
+        hasVideo = try container.decodeIfPresent(Bool.self, forKey: .hasVideo) ?? false
     }
 }
 

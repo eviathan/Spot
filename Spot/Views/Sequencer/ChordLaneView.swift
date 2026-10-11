@@ -30,6 +30,14 @@ struct ChordLaneView: View {
     @State private var availableHeight: CGFloat = 0
     /// What's drawn while a mouse button is down (see `drawnRange`).
     @State private var pressedRange = PressedRange()
+    /// The lane's whole width, headers and all.
+    @State private var totalWidth: CGFloat = 0
+
+    /// The row headers' width: wider with a video, whose picture is shown there (a third of the lane, beside its
+    /// filmstrip), so every row's timeline still lines up.
+    private var headerWidth: CGFloat {
+        sequence.audio?.reference.hasVideo == true ? max(laneHeaderWidth, (totalWidth * 0.3).rounded()) : laneHeaderWidth
+    }
     /// The loop brace as it's being dragged.
     @State private var loopDrag: BeatRange?
     /// The start or end marker as it's being dragged, so the grid follows it.
@@ -136,11 +144,16 @@ struct ChordLaneView: View {
             }
 
             HStack(spacing: 0) {
-                Color.clear.frame(width: laneHeaderWidth, height: 1)
+                Color.clear.frame(width: headerWidth, height: 1)
                 LaneOverview(editor: editor, lengthInBeats: sequence.lengthInBeats, isPlaying: isPlaying)
             }
             .padding(.vertical, 5)
         }
+        .background(GeometryReader { geometry in
+            Color.clear
+                .onAppear { totalWidth = geometry.size.width }
+                .onChange(of: geometry.size.width) { _, width in totalWidth = width }
+        })
     }
 
     /// The part of the lane to draw: what's on screen, except while a mouse button is down. Then nothing drawn
@@ -170,7 +183,7 @@ struct ChordLaneView: View {
             }
             .frame(height: waveformTop, alignment: .top)
             Divider()
-            AudioTrackHeader(sequence: sequence, editor: editor, height: waveformHeight + 3)
+            AudioTrackHeader(sequence: sequence, editor: editor, width: headerWidth, height: waveformHeight + 3)
             if !sequence.takes.isEmpty {
                 Divider()
                 rowTitle("Takes", systemImage: "mic")
@@ -178,7 +191,7 @@ struct ChordLaneView: View {
             }
             Spacer(minLength: 0)
         }
-        .frame(width: laneHeaderWidth)
+        .frame(width: headerWidth)
         .frame(maxHeight: .infinity, alignment: .top)
         .background(Color.black.opacity(0.14))
         .overlay(alignment: .trailing) { Divider() }
@@ -1111,11 +1124,24 @@ private struct WaveformRow: View {
                 }
             }
 
+            // A video's frames along the top, as in an editor's timeline (each one the moment at its middle)
+            let filmstrip = audio.reference.hasVideo ? Self.filmstripHeight(height) : 0
+            if let frames = session.video?.frames {
+                Filmstrip(frames: frames, version: frames.version, map: map, left: left, width: width,
+                          height: filmstrip, beatWidth: beatWidth, duration: audio.reference.duration)
+                    .frame(width: width, height: filmstrip)
+                    .offset(x: left, y: 11)
+                    .allowsHitTesting(false)
+            }
+
             if let peaks = session.peaks {
                 let source = session.sourceAudio
                 Canvas { context, size in
-                    let middle = size.height / 2
-                    let y = { (value: Float) in middle - CGFloat(value) * middle * 0.95 }
+                    // (Under the filmstrip, if there is one)
+                    let top = filmstrip > 0 ? filmstrip + 11 : 0
+                    let middle = top + (size.height - top) / 2
+                    let half = (size.height - top) / 2
+                    let y = { (value: Float) in middle - CGFloat(value) * half * 0.95 }
                     var path = Path()
                     // Zoomed in, the overview isn't detailed enough: the samples themselves, as each column's
                     // range, or (closer still) a line through them
@@ -1226,6 +1252,11 @@ private struct WaveformRow: View {
             return audio.warpedTempo(over: editor.selection)
         }
         return audio.tempoBefore(marker.id)
+    }
+
+    /// A video's filmstrip: up to half the row, the waveform under it.
+    static func filmstripHeight(_ rowHeight: CGFloat) -> CGFloat {
+        min(110, max(36, (rowHeight - 11) * 0.5))
     }
 
     /// Coordinates for dragging: lane x, fixed while markers move.
