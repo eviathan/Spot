@@ -186,7 +186,8 @@ private struct TabEditorView: View {
         case .rightArrow: session.moveBeat(by: 1, extending: shift)
         case .upArrow: session.moveString(by: 1)
         case .downArrow: session.moveString(by: -1)
-        case .delete, .deleteForward: session.deleteAtCursor()
+        // (The Mac's delete key, backspace, sends U+007F, not SwiftUI's `.delete`, U+0008)
+        case .delete, .deleteForward, KeyEquivalent("\u{7F}"): session.deleteAtCursor()
         default:
             // With ⇧: let ring, and slides in or out
             switch press.characters {
