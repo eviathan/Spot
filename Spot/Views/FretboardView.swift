@@ -398,8 +398,8 @@ struct PianoView: View {
                         .frame(width: blackWidth, height: blackHeight)
                         .offset(x: CGFloat(whitesBelow) * whiteWidth - blackWidth / 2 + PianoView.nudge(note) * whiteWidth)
                 }
-                // The back of the keys goes under the panel above
-                LinearGradient(colors: [theme.fretboardColor.opacity(0.16), theme.fretboardColor.opacity(0)],
+                // The back of the keys goes under the panel above (a shade, in a light theme or a dark one)
+                LinearGradient(colors: [Color.black.opacity(0.18), Color.black.opacity(0)],
                                startPoint: .top, endPoint: .bottom)
                     .frame(height: 10)
                     .allowsHitTesting(false)
@@ -420,7 +420,9 @@ struct PianoView: View {
         let shape = UnevenRoundedRectangle(bottomLeadingRadius: 6, bottomTrailingRadius: 6, style: .continuous)
         let lit = marker.flatMap { $0.isPlain ? nil : $0 }
         return shape
-            .fill(LinearGradient(colors: [Color(white: 0.985), Color(white: 0.955)], startPoint: .top, endPoint: .bottom))
+            .fill(theme.pianoWhiteKey)
+            // A touch darker towards the front
+            .overlay { shape.fill(LinearGradient(colors: [.clear, Color.black.opacity(0.04)], startPoint: .top, endPoint: .bottom)) }
             .overlay { if let lit, lit.sounding > 0 { shape.fill(lit.ring.opacity(0.32 * lit.sounding)) } }
             // Edged as the strings are drawn; open at the back, where the key goes under the panel
             .overlay { KeyEdge(radius: 6).stroke(theme.stringColor.opacity(FretboardView.neckOpacity), lineWidth: 1) }
@@ -444,7 +446,8 @@ struct PianoView: View {
         let shape = UnevenRoundedRectangle(bottomLeadingRadius: 4, bottomTrailingRadius: 4, style: .continuous)
         let lit = marker.flatMap { $0.isPlain ? nil : $0 }
         return shape
-            .fill(LinearGradient(colors: [theme.fretboardColor.opacity(0.92), theme.fretboardColor], startPoint: .top, endPoint: .bottom))
+            .fill(theme.pianoBlackKey)
+            .overlay { shape.fill(LinearGradient(colors: [Color.white.opacity(0.06), .clear], startPoint: .top, endPoint: .bottom)) }
             .overlay { if let lit, lit.sounding > 0 { shape.fill(lit.ring.opacity(0.4 * lit.sounding)) } }
             // A lighter front edge, as a black key's sloped end catches the light
             .overlay(alignment: .bottom) { shape.fill(Color.white.opacity(0.08)).frame(height: 6) }

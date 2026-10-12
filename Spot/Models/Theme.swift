@@ -101,11 +101,24 @@ final class Theme {
     }
 
     private func isDark(intervalKey: String) -> Bool {
-        guard let rgba = rgba("intervals." + intervalKey) else { return false }
-        // Relative luminance (WCAG): white text wins below about 0.18
+        // White text wins below about 0.18
+        (luminance(of: "intervals." + intervalKey) ?? 1) < 0.18
+    }
+
+    /// A colour's relative luminance (WCAG), 0 for black to 1 for white.
+    private func luminance(of key: String) -> Double? {
+        guard let rgba = rgba(key) else { return nil }
         let channel = { (value: Double) in value <= 0.03928 ? value / 12.92 : pow((value + 0.055) / 1.055, 2.4) }
-        let luminance = 0.2126 * channel(rgba.red) + 0.7152 * channel(rgba.green) + 0.0722 * channel(rgba.blue)
-        return luminance < 0.18
+        return 0.2126 * channel(rgba.red) + 0.7152 * channel(rgba.green) + 0.0722 * channel(rgba.blue)
+    }
+
+    /// The piano's white keys: the fretboard's note colour (light in a light theme, dark in a dark one).
+    var pianoWhiteKey: Color { defaultMarkerColor }
+
+    /// The piano's black keys, darker than the white ones whatever the theme: the darker of the fretboard's ink and
+    /// its background (the ink is light in a dark theme, for text on the dark neck).
+    var pianoBlackKey: Color {
+        (luminance(of: "fretboard.ink") ?? 0) <= (luminance(of: "fretboard.background") ?? 1) ? fretboardColor : fretboardBackground
     }
 
     private static func octave(_ semitones: Int) -> Int {
