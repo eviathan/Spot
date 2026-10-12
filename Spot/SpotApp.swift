@@ -23,6 +23,7 @@ struct SpotApp: App {
     @State private var tabSession: TabSession
     @State private var session: SequenceSession
     @State private var themes = ThemeStore.shared
+    @NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
 
     init() {
         NSWindow.allowsAutomaticWindowTabbing = false
@@ -48,6 +49,7 @@ struct SpotApp: App {
         _audioSettings = State(initialValue: audioSettings)
         let playback = PlaybackController(transport: transport, settings: audioSettings)
         _playback = State(initialValue: playback)
+        AppDelegate.playback = playback
         let session = SequenceSession(library: library, playback: playback, transport: transport)
         _session = State(initialValue: session)
         let tabSession = TabSession(playback: playback, transport: transport)
@@ -440,5 +442,20 @@ struct SpotApp: App {
         guard let shape = selection.currentShape,
               let placement = shape.placements(root: selection.root, on: selection.fretboard).first else { return }
         playback.preview(Audition.events(for: shape, placement: placement, on: selection.fretboard, clock: transport.clock))
+    }
+}
+
+/// Quitting while something plays: fades it out first, rather than the sound stopping mid-wave (a click).
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    static weak var playback: PlaybackController?
+
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        guard let playback = AppDelegate.playback, playback.transport.isPlaying else { return .terminateNow }
+        playback.stop()
+        // Long enough for the fade (a few milliseconds) to reach the speakers
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.06) {
+            sender.reply(toApplicationShouldTerminate: true)
+        }
+        return .terminateLater
     }
 }

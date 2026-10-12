@@ -25,6 +25,8 @@ struct LoadingCurtain: View {
     @State private var progress: Double = 0
     @State private var openedAt = Date()
     @State private var closing: DispatchWorkItem?
+    /// The first showing, at launch: the IKKO logo goes below the ♮ (not when opening a sequence later).
+    @State private var isLaunch = true
 
     private static let glyphSize: CGFloat = 120
     private static let headerGlyphSize: CGFloat = 38
@@ -33,6 +35,7 @@ struct LoadingCurtain: View {
     private static let closeDuration = 0.75
     private static let fadeToBlack = 0.15
     private static let logoFade = 0.4
+    private static let ikkoSize: CGFloat = 110
 
     var body: some View {
         GeometryReader { geometry in
@@ -43,6 +46,18 @@ struct LoadingCurtain: View {
                 Text("♮")
                     .modifier(AnimatableFontSize(size: isOpen ? LoadingCurtain.glyphSize : LoadingCurtain.headerGlyphSize))
                     .opacity(logoOpacity)
+                    // At launch: the IKKO logo below it (an overlay, so the ♮ stays in the middle and closes up just
+                    // the same), fading as it closes
+                    .overlay(alignment: .bottom) {
+                        if isLaunch {
+                            Image("IkkoLogo")
+                                .resizable()
+                                .interpolation(.high)
+                                .frame(width: LoadingCurtain.ikkoSize, height: LoadingCurtain.ikkoSize)
+                                .offset(y: LoadingCurtain.ikkoSize + 8)
+                                .opacity(isOpen ? 1 : 0)
+                        }
+                    }
             }
             .foregroundColor(.white)
             .frame(height: isOpen ? geometry.size.height : (ui.isWindowFullScreen ? 0 : Header.height))
@@ -84,6 +99,7 @@ struct LoadingCurtain: View {
         var instant = Transaction()
         instant.disablesAnimations = true
         withTransaction(instant) {
+            isLaunch = false
             isShown = false
             isOpen = true
             logoOpacity = 0
