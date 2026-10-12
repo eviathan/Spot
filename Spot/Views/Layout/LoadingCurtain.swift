@@ -27,6 +27,7 @@ struct LoadingCurtain: View {
     @State private var closing: DispatchWorkItem?
     /// The first showing, at launch: the IKKO logo goes below the ♮ (not when opening a sequence later).
     @State private var isLaunch = true
+    @State private var ikkoOpacity: Double = 1
 
     private static let glyphSize: CGFloat = 120
     private static let headerGlyphSize: CGFloat = 38
@@ -36,6 +37,8 @@ struct LoadingCurtain: View {
     private static let fadeToBlack = 0.15
     private static let logoFade = 0.4
     private static let ikkoSize: CGFloat = 110
+    /// The IKKO logo fades out this long before the curtain starts closing up.
+    private static let ikkoFade = 0.3
 
     var body: some View {
         GeometryReader { geometry in
@@ -55,7 +58,7 @@ struct LoadingCurtain: View {
                                 .interpolation(.high)
                                 .frame(width: LoadingCurtain.ikkoSize, height: LoadingCurtain.ikkoSize)
                                 .offset(y: LoadingCurtain.ikkoSize + 8)
-                                .opacity(isOpen ? 1 : 0)
+                                .opacity(ikkoOpacity)
                         }
                     }
             }
@@ -125,18 +128,33 @@ struct LoadingCurtain: View {
     private func close() {
         guard isReady else { return }   // still fading in; that finishes and comes back here
         withAnimation(.easeOut(duration: 0.3)) { progress = 1 }
-        let wait = max(0, LoadingCurtain.minimumTime - Date().timeIntervalSince(openedAt)) + 0.4
+        // Just long enough for the bar to fill (and to have been seen), then straight on
+        let wait = max(LoadingCurtain.minimumTime - Date().timeIntervalSince(openedAt), 0.3)
         let work = DispatchWorkItem {
-            // Eased in and out with no overshoot (a spring settles with a wobble at the end), then a fade over the
-            // header underneath, which it now matches, rather than a sudden swap
-            withAnimation(.timingCurve(0.65, 0, 0.3, 1, duration: LoadingCurtain.closeDuration)) { isOpen = false }
-            DispatchQueue.main.asyncAfter(deadline: .now() + LoadingCurtain.closeDuration) {
-                guard !isOpen else { return }
-                withAnimation(.easeOut(duration: 0.25)) { isShown = false }
+            // The IKKO logo (at launch) goes first, so only the ♮ moves
+            let logoFade = isLaunch && ikkoOpacity > 0 ? LoadingCurtain.ikkoFade : 0
+            if logoFade > 0 {
+                withAnimation(.easeOut(duration: logoFade)) { ikkoOpacity = 0 }
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + logoFade) {
+                // Loading again meanwhile: stay open
+                guard !session.isPreparingAudio else { return }
+                closeUp()
             }
         }
         closing = work
         DispatchQueue.main.asyncAfter(deadline: .now() + wait, execute: work)
+    }
+
+    /// Closes up into the header, then fades over it.
+    private func closeUp() {
+        // Eased in and out with no overshoot (a spring settles with a wobble at the end), then a fade over the
+        // header underneath, which it now matches, rather than a sudden swap
+        withAnimation(.timingCurve(0.65, 0, 0.3, 1, duration: LoadingCurtain.closeDuration)) { isOpen = false }
+        DispatchQueue.main.asyncAfter(deadline: .now() + LoadingCurtain.closeDuration) {
+            guard !isOpen else { return }
+            withAnimation(.easeOut(duration: 0.25)) { isShown = false }
+        }
     }
 }
 
