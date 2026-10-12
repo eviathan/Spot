@@ -124,20 +124,23 @@ struct LibraryDetailView: View {
                     .buttonStyle(.plain)
                     .help("Next shape (⌘])")
 
+                    // Play, or stop while it's playing
+                    let isPlaying = playback.audition != nil
                     Button {
-                        if let placement = shape.placements(root: selection.root, on: selection.fretboard).first {
-                            playback.preview(Audition.events(for: shape, placement: placement,
-                                                             on: selection.fretboard, clock: transport.clock))
+                        if isPlaying {
+                            playback.stopAudition()
+                        } else if let placement = shape.placements(root: selection.root, on: selection.fretboard).first {
+                            playback.audition(shape, placement: placement, on: selection.fretboard, clock: transport.clock)
                         }
                     } label: {
-                        Image(systemName: "play.fill")
+                        Image(systemName: isPlaying ? "stop.fill" : "play.fill")
                             .font(.system(size: 12))
                             .foregroundStyle(.black)
                             .frame(width: 30, height: 30)
                             .background(Circle().fill(SpotStyle.accent))
                     }
                     .buttonStyle(.plain)
-                    .help("Hear this shape (⌘↩). ⌥-click a note on the fretboard to hear just that note.")
+                    .help(isPlaying ? "Stop (⌘↩)" : "Hear this shape (⌘↩). ⌥-click a note on the fretboard to hear just that note.")
                 }
             } else {
                 Text("No shapes yet")

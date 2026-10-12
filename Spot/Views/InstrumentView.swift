@@ -29,6 +29,7 @@ struct InstrumentView: View {
 struct LibraryFretboard: View {
     @Environment(SelectionState.self) private var selection
     @Environment(DisplaySettings.self) private var display
+    @Environment(PlaybackController.self) private var playback
     @Environment(\.theme) private var theme
 
     var body: some View {
@@ -60,16 +61,38 @@ struct LibraryFretboard: View {
                                        canSetFinger: isDrawing && marker.isInPosition)
             }
 
-        FretboardView(fretboard: fretboard,
-                      markers: markers,
-                      onTap: { marker in
-                          if isDrawing {
-                              selection.toggleDraftNote(at: marker.position)
-                          } else {
-                              selection.root = marker.pitchClass
-                          }
-                      },
-                      onSetFinger: { marker, finger in selection.setDraftFinger(finger, at: marker.position) })
+        // While a shape is being heard: each note lit as it sounds
+        let audition = playback.audition
+        TimelineView(.animation(minimumInterval: 1 / 60, paused: audition == nil)) { context in
+            FretboardView(fretboard: fretboard,
+                          markers: audition.map { lit(markers, $0.intensity(at: context.date)) } ?? markers,
+                          onTap: { marker in
+                              if isDrawing {
+                                  selection.toggleDraftNote(at: marker.position)
+                              } else {
+                                  selection.root = marker.pitchClass
+                              }
+                          },
+                          onSetFinger: { marker, finger in selection.setDraftFinger(finger, at: marker.position) })
+        }
+        // Something else picked (another chord or scale, root or shape): what was playing stops
+        .onChange(of: "\(selection.selectedId)|\(selection.root.value)|\(selection.currentShapeIndex ?? -1)") {
+            playback.stopAudition()
+        }
+    }
+
+    /// Notes sounding: a little bigger, with a white ring, as much as they're lit.
+    private func lit(_ markers: [FretboardMarker], _ intensity: [FretPosition: Double]) -> [FretboardMarker] {
+        guard !intensity.isEmpty else { return markers }
+        return markers.map { marker in
+            guard let level = intensity[marker.marker.position], level > 0 else { return marker }
+            var lit = marker
+            lit.scale *= 1 + 0.3 * level
+            lit.halo = Color.white.opacity(level)
+            lit.haloWidth = 3
+            lit.haloDashed = false
+            return lit
+        }
     }
 
     private func label(for marker: FretMarker) -> String {

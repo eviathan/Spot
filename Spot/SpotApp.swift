@@ -318,7 +318,7 @@ struct SpotApp: App {
                 Button("Normal Speed") { playback.setPracticeSpeed(1) }
                     .keyboardShortcut("0", modifiers: [.command, .option])
                 Divider()
-                Button("Preview Shape") { previewCurrentShape() }
+                Button(playback.audition != nil ? "Stop Preview" : "Preview Shape") { previewCurrentShape() }
                     .keyboardShortcut(.return, modifiers: [.command])
                     .disabled(ui.tab != .Library)
             }
@@ -439,9 +439,10 @@ struct SpotApp: App {
     }
 
     private func previewCurrentShape() {
+        guard playback.audition == nil else { return playback.stopAudition() }
         guard let shape = selection.currentShape,
               let placement = shape.placements(root: selection.root, on: selection.fretboard).first else { return }
-        playback.preview(Audition.events(for: shape, placement: placement, on: selection.fretboard, clock: transport.clock))
+        playback.audition(shape, placement: placement, on: selection.fretboard, clock: transport.clock)
     }
 }
 

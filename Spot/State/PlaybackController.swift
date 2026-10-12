@@ -389,6 +389,46 @@ final class PlaybackController {
         startTimer()
     }
 
+    /// A shape being heard in the Library, for its fretboard to light up the notes as they sound; nil once it's over.
+    private(set) var audition: AuditionHighlight?
+
+    /// Plays a shape as the Library does (chords strummed, scales up and down), lighting up each note as it sounds.
+    func audition(_ shape: Shape, placement: [FretPosition: ShapeNote], on fretboard: Fretboard, clock: TempoClock) {
+        stopAudition()
+        let events = Audition.events(for: shape, placement: placement, on: fretboard, clock: clock)
+        auditionNotes = Set(events.map(\.note))
+        preview(events)
+        // (The notes start 0.02s from now, see preview)
+        let byNote = Dictionary(grouping: placement.keys, by: fretboard.midiNote(at:))
+        let highlight = AuditionHighlight(startedAt: Date().addingTimeInterval(0.02), notes: events.map { event in
+            (Set(byNote[event.note] ?? []), event.time, event.time + event.duration)
+        })
+        audition = highlight
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.02 + highlight.length + AuditionHighlight.release) { [weak self] in
+            if self?.audition?.id == highlight.id { self?.audition = nil }
+        }
+    }
+
+    @ObservationIgnored private var auditionNotes: Set<Int> = []
+
+    /// Stops a shape being heard, notes and all.
+    func stopAudition() {
+        guard audition != nil else { return }
+        audition = nil
+        pending.removeAll()
+        guard let midi = midiOutput() else { return }
+        midi.channel = UInt8(max(1, min(16, settings.midiChannel)) - 1)
+        if transport.isPlaying {
+            // Something else is playing too: just the shape's notes
+            auditionNotes.forEach { midi.noteOff($0) }
+        } else {
+            // Everything, including notes already sent to sound a moment from now
+            midi.allNotesOff()
+        }
+        auditionNotes = []
+        stopTimerIfIdle()
+    }
+
     func previewNote(_ note: Int) {
         preview([NoteEvent(note: note, time: 0, duration: 0.8)])
     }
@@ -627,5 +667,39 @@ final class PlaybackController {
             problem = "The metronome couldn't start audio: \(error.localizedDescription)"
             return nil
         }
+    }
+}
+
+/// Which notes of a shape being heard are sounding when.
+struct AuditionHighlight {
+    let id = UUID()
+    let startedAt: Date
+    /// Each note's places on the fretboard, and when it sounds (seconds from the start).
+    let notes: [(positions: Set<FretPosition>, start: Double, end: Double)]
+
+    /// How long a note's light takes to go once it stops.
+    static let release = 0.15
+
+    var length: Double {
+        notes.map(\.end).max() ?? 0
+    }
+
+    /// How lit each place is at `date`: 1 as its note starts, easing off while it rings, then gone.
+    func intensity(at date: Date) -> [FretPosition: Double] {
+        let time = date.timeIntervalSince(startedAt)
+        var result: [FretPosition: Double] = [:]
+        for note in notes where time >= note.start && time < note.end + AuditionHighlight.release {
+            let level: Double
+            if time < note.end {
+                // A quick pop on the attack, then holding a little lower
+                level = 0.6 + 0.4 * exp(-(time - note.start) * 8)
+            } else {
+                level = 0.6 * (1 - (time - note.end) / AuditionHighlight.release)
+            }
+            for position in note.positions {
+                result[position] = max(result[position] ?? 0, level)
+            }
+        }
+        return result
     }
 }
