@@ -94,6 +94,11 @@ final class TabSession {
 
     let playback: PlaybackController
     let transport: TransportState
+    /// Each fret typed is heard (not while playing).
+    var previewsNotes = UserDefaults.standard.object(forKey: TabSession.previewsNotesKey) as? Bool ?? true {
+        didSet { defaults.set(previewsNotes, forKey: TabSession.previewsNotesKey) }
+    }
+    private static let previewsNotesKey = "tab.previewsNotes"
 
     init(playback: PlaybackController, transport: TransportState) {
         self.playback = playback
@@ -737,6 +742,11 @@ extension TabSession {
         editor.cursor.beat = index
         editor.pendingDigit = (fret, Date(), editor.cursor)
         editor.selectionAnchor = nil
+        // Heard as it goes in (a second digit plays the two-digit fret)
+        if previewsNotes, !transport.isPlaying, let score, score.tracks.indices.contains(trackIndex),
+           score.tracks[trackIndex].tuning.strings.indices.contains(editor.cursor.string) {
+            playback.previewNote(score.tracks[trackIndex].pitch(string: editor.cursor.string, fret: fret))
+        }
     }
 
     /// Next or previous beat. Past the end of a full bar it goes into the next bar (adding one after the last);

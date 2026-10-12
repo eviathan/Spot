@@ -335,6 +335,9 @@ struct SpotApp: App {
                 Button("Zoom Out") { ui.tab == .Tab ? tabSession.editor?.zoom(by: 1 / 1.25) : session.editor?.zoom(by: 1 / 1.5) }
                     .keyboardShortcut("-", modifiers: [.command])
                     .disabled(ui.tab == .Tab ? !tabSession.isOpen : (ui.tab != .Sequence || !session.isOpen))
+                Toggle("Hear Notes as You Type", isOn: Binding(get: { tabSession.previewsNotes },
+                                                               set: { tabSession.previewsNotes = $0 }))
+                    .disabled(ui.tab != .Tab)
                 Toggle("Follow Playhead", isOn: Binding(get: { session.editor?.followsPlayhead ?? false },
                                                         set: { session.editor?.followsPlayhead = $0 }))
                     .disabled(!session.isOpen)

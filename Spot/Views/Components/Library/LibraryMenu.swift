@@ -80,7 +80,10 @@ struct LibraryMenu: View {
                     .imageScale(.large)
                     .foregroundColor(.white)
             }
-            .menuStyle(.borderlessButton)
+            // Drawn by SwiftUI, so the label keeps its colour (a borderless-button menu is drawn by AppKit, which tints
+            // the image grey whatever it's given)
+            .menuStyle(.button)
+            .buttonStyle(.plain)
             .menuIndicator(.hidden)
             .frame(width: 30)
             .help("New scale or chord, import or export")
