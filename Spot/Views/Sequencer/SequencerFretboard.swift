@@ -511,7 +511,12 @@ struct FretboardReadout: View {
                     cardView(region, accent: .primary) {
                         title("NOW")
                         if let caption = pinned != nil ? "Pinned" : sequence.partName(at: max(position, 0)) {
-                            Text(caption).font(.callout).opacity(0.6).lineLimit(1)
+                            // Text(caption).font(.callout).opacity(0.6).lineLimit(1)
+                            Image(systemName: "pin.fill")
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundStyle(Color.primary)
+                                .frame(width: 16, height: 16)
+                                .contentShape(Rectangle())
                         }
                         BeatDots(count: sequence.timeSignature.numerator, current: isPlaying ? beatInBar : nil)
                     }

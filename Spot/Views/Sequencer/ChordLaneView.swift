@@ -790,7 +790,7 @@ private struct ChordClipsLayer: View {
         } label: {
             Image(systemName: isPinned ? "pin.fill" : "pin")
                 .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(isPinned ? Color.primary : Color.primary.opacity(0.6))
+                .foregroundStyle(.white)
                 .frame(width: 16, height: 16)
                 .contentShape(Rectangle())
         }

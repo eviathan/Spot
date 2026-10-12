@@ -43,6 +43,14 @@ public final class ClickPlayer {
         engine.stop()
     }
 
+    /// Forgets any scheduled clicks, and carries on (the engine keeps running).
+    public func clear() {
+        player.stop()
+        if engine.isRunning {
+            player.play()
+        }
+    }
+
     public func click(accent: Bool, atHostTime time: UInt64) {
         player.scheduleBuffer(accent ? accentClick : normalClick, at: AVAudioTime(hostTime: time))
     }
