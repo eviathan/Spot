@@ -8,8 +8,9 @@
 import SwiftUI
 import SpotCore
 
-/// Mode, transport, then the musical settings. On the Sequence tab (with a sequence open) the root,
-/// tempo, tap and time signature belong to the sequence; elsewhere to the library selection and the metronome.
+/// Mode, transport, then the musical settings. The key is always the sequence's (the Library has its own root, in
+/// its panel, so picking a scale there never changes a sequence). On the Sequence tab (with a sequence open) the
+/// tempo, tap and time signature belong to the sequence too; elsewhere to the metronome.
 struct Footer: View {
     @Environment(SelectionState.self) private var selection
     @Environment(TransportState.self) private var transport
@@ -38,7 +39,7 @@ struct Footer: View {
         ui.tab == .Tab && tabSession.isOpen && tabSession.linkedSequence == nil
     }
 
-    // MARK: Root / key
+    // MARK: Key (the sequence's)
 
     /// The sequence's key: the one chosen, or the one worked out from the chords.
     private var sequenceKey: Key? {
@@ -46,12 +47,9 @@ struct Footer: View {
     }
 
     private func incrementRoot(_ value: Int) {
-        if editsSequence {
-            let key = sequenceKey ?? Key(conventional: PitchClass(0), .major)
-            session.sequence?.key = Key(conventional: key.tonic.pitchClass.transposed(by: value), key.quality)
-        } else {
-            selection.transposeRoot(by: value)
-        }
+        guard session.isOpen else { return }
+        let key = sequenceKey ?? Key(conventional: PitchClass(0), .major)
+        session.sequence?.key = Key(conventional: key.tonic.pitchClass.transposed(by: value), key.quality)
     }
 
     // MARK: Tempo
@@ -219,40 +217,34 @@ struct Footer: View {
             } label: {
                 Text(keyLabel)
                     .font(.system(size: 20))
-                    .foregroundColor(editsSequence && session.sequence?.key == nil ? dimmed : .white)
+                    .foregroundColor(session.sequence?.key == nil ? dimmed : .white)
                     .frame(minWidth: 50)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .disabled(!session.isOpen)
             .popover(isPresented: $isPickingKey, arrowEdge: .top) {
                 keyPicker
             }
-            .help(editsSequence
+            .help(session.isOpen
                   ? "The sequence's key\(session.sequence?.key == nil ? " (worked out from the chords)" : ""). Click to choose major, minor or a mode; ⇧-click to swap major and minor. The arrows change the root."
-                  : "The root, and the key: click to choose major, minor or a mode (it picks that scale); ⇧-click to swap major and minor. The arrows change the root.")
+                  : "The sequence's key, once one is open. (The Library's root is in its panel.)")
         }
     }
 
-    /// The key as shown: "B", "Bm", "B dor"; in the Library, just the root unless a key's scale is showing.
+    /// The key as shown: "B", "Bm", "B dor".
     private var keyLabel: String {
-        if editsSequence {
-            return sequenceKey?.shortName ?? "–"
-        }
-        return "\(selection.spelledRoot)\(selection.keyQuality?.shortSuffix ?? "")"
+        sequenceKey?.shortName ?? "–"
     }
 
-    /// The quality chosen now (the sequence's, or the Library's scale if it's a key's).
     private var currentQuality: KeyQuality? {
-        editsSequence ? sequenceKey?.quality : selection.keyQuality
+        sequenceKey?.quality
     }
 
     private func setQuality(_ quality: KeyQuality) {
-        if editsSequence {
-            let tonic = sequenceKey?.tonic.pitchClass ?? PitchClass(0)
-            session.sequence?.key = Key(conventional: tonic, quality)
-        } else if let scale = library.scale(quality.scaleId) {
-            selection.selectScale(scale)
-        }
+        guard session.isOpen else { return }
+        let tonic = sequenceKey?.tonic.pitchClass ?? PitchClass(0)
+        session.sequence?.key = Key(conventional: tonic, quality)
     }
 
     /// ⇧-click: major to minor (on the same root), and anything minor-sounding to major.
@@ -260,10 +252,10 @@ struct Footer: View {
         setQuality(currentQuality?.isMinor == true ? .major : .minor)
     }
 
-    /// Major or minor, the other modes, and (for a sequence) working the key out from its chords.
+    /// Major or minor, the other modes, and working the key out from the chords.
     private var keyPicker: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(editsSequence ? "Key" : "Key (picks its scale)")
+            Text("Key")
                 .font(.headline)
             HStack(spacing: 6) {
                 keyChoice(.major, title: "Major")
@@ -277,18 +269,16 @@ struct Footer: View {
                     keyChoice(quality, title: quality.name)
                 }
             }
-            if editsSequence {
-                Divider()
-                Toggle("Work it out from the chords", isOn: Binding(
-                    get: { session.sequence?.key == nil },
-                    set: { automatic in
-                        if automatic {
-                            session.sequence?.key = nil
-                        } else if let key = sequenceKey {
-                            session.sequence?.key = key
-                        }
-                    }))
-            }
+            Divider()
+            Toggle("Work it out from the chords", isOn: Binding(
+                get: { session.sequence?.key == nil },
+                set: { automatic in
+                    if automatic {
+                        session.sequence?.key = nil
+                    } else if let key = sequenceKey {
+                        session.sequence?.key = key
+                    }
+                }))
             Text("⇧-click the key to swap major and minor")
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -298,7 +288,7 @@ struct Footer: View {
     }
 
     private func keyChoice(_ quality: KeyQuality, title: String) -> some View {
-        let isOn = currentQuality == quality && !(editsSequence && session.sequence?.key == nil)
+        let isOn = currentQuality == quality && session.sequence?.key != nil
         return Button {
             setQuality(quality)
         } label: {

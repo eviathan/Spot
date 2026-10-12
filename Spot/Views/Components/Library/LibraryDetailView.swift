@@ -33,6 +33,7 @@ struct LibraryDetailView: View {
                     Text(selection.title)
                         .font(.system(size: 26, weight: .semibold))
                         .fixedSize(horizontal: false, vertical: true)
+                    rootPicker
                     if selection.kind != .interval {
                         definitionActions
                     }
@@ -71,6 +72,77 @@ struct LibraryDetailView: View {
         }
         .environment(\.colorScheme, .dark)
         .tint(SpotStyle.accent)
+    }
+
+    /// The Library's own root (and, for a scale, the key it's the scale of): apart from the sequence's key, in the
+    /// footer, so looking something up here never changes a sequence.
+    private var rootPicker: some View {
+        HStack(spacing: 8) {
+            Button { selection.transposeRoot(by: -1) } label: {
+                Image(systemName: "chevron.left")
+                    .frame(width: 26, height: 26)
+                    .background(Circle().fill(SpotStyle.control))
+            }
+            .buttonStyle(.plain)
+            .help("Root down a semitone")
+
+            // Every root, the current one ticked
+            Menu {
+                Picker("Root", selection: Binding(get: { selection.root.value }, set: { selection.root = PitchClass($0) })) {
+                    ForEach(0..<12, id: \.self) { value in
+                        Text(SpelledNote.conventional(PitchClass(value)).description).tag(value)
+                    }
+                }
+                .pickerStyle(.inline)
+                .labelsHidden()
+            } label: {
+                Text(selection.spelledRoot.description)
+                    .font(.system(size: 15, weight: .semibold))
+                    .frame(minWidth: 44, minHeight: 26)
+                    .background(Capsule().fill(SpotStyle.control))
+            }
+            .menuStyle(.button)
+            .buttonStyle(.plain)
+            .menuIndicator(.hidden)
+            .fixedSize()
+            .help("The root here in the Library (the sequence's key is in the footer)")
+
+            Button { selection.transposeRoot(by: 1) } label: {
+                Image(systemName: "chevron.right")
+                    .frame(width: 26, height: 26)
+                    .background(Circle().fill(SpotStyle.control))
+            }
+            .buttonStyle(.plain)
+            .help("Root up a semitone")
+
+            // // A scale: which key's (major, minor or a mode), picking that scale
+            // if selection.kind == .scale {
+            //     Menu {
+            //         ForEach([KeyQuality.major, .minor, .dorian, .phrygian, .lydian, .mixolydian, .locrian], id: \.self) { quality in
+            //             Button {
+            //                 if let scale = library.scale(quality.scaleId) { selection.selectScale(scale) }
+            //             } label: {
+            //                 if selection.keyQuality == quality {
+            //                     Label(quality.name.capitalized, systemImage: "checkmark")
+            //                 } else {
+            //                     Text(quality.name.capitalized)
+            //                 }
+            //             }
+            //         }
+            //     } label: {
+            //         Text(selection.keyQuality?.name.capitalized ?? "Key…")
+            //             .font(.system(size: 13))
+            //             .padding(.horizontal, 10)
+            //             .frame(minHeight: 26)
+            //             .background(Capsule().fill(SpotStyle.control))
+            //     }
+            //     .menuStyle(.button)
+            //     .buttonStyle(.plain)
+            //     .menuIndicator(.hidden)
+            //     .fixedSize()
+            //     .help("Show this root's major or minor scale, or one of its modes")
+            // }
+        }
     }
 
     private var definitionActions: some View {
