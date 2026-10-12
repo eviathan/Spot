@@ -53,8 +53,8 @@ struct LayoutView: View {
 
                 InstrumentView()
                     .environment(\.fretboardMaxHeight, 620)
-                    // Below it: the next chord's card (on the page), or the footer
-                    .environment(\.instrumentBase, sequenceOpen ? [theme.page] : [theme.footer])
+                    // Below it: the next chord's card (with no background of its own, so on the window's), or the footer
+                    .environment(\.instrumentBase, sequenceOpen ? [Color(nsColor: .windowBackgroundColor)] : [theme.footer])
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(theme.fretboardBackground, ignoresSafeAreaEdges: [])
 
