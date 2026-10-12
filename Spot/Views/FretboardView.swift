@@ -368,6 +368,7 @@ struct PianoView: View {
     @Environment(\.theme) private var theme
     @Environment(PlaybackController.self) private var playback
     @Environment(\.fretboardMaxHeight) private var maxHeight
+    @Environment(\.instrumentBase) private var base
 
     let fretboard: Fretboard
     let markers: [FretboardMarker]
@@ -402,6 +403,13 @@ struct PianoView: View {
                     .frame(height: 10)
                     .allowsHitTesting(false)
             }
+        }
+        // Between the keys' rounded fronts: the view below, so they look to come down over it
+        .background(alignment: .bottom) {
+            ZStack {
+                ForEach(base.indices, id: \.self) { base[$0] }
+            }
+            .frame(height: 8)
         }
         .frame(maxWidth: .infinity, maxHeight: maxHeight)
     }
@@ -571,7 +579,18 @@ private struct FretboardMaxHeightKey: EnvironmentKey {
     static let defaultValue: CGFloat = 300
 }
 
+private struct InstrumentBaseKey: EnvironmentKey {
+    static let defaultValue: [Color] = []
+}
+
 extension EnvironmentValues {
+    /// The view the instrument sits on (its colour, in layers from the bottom): the piano's keys come down over it,
+    /// so it shows between their rounded fronts.
+    var instrumentBase: [Color] {
+        get { self[InstrumentBaseKey.self] }
+        set { self[InstrumentBaseKey.self] = newValue }
+    }
+
     /// How tall a fretboard may grow: taller when it has the window to itself.
     var fretboardMaxHeight: CGFloat {
         get { self[FretboardMaxHeightKey.self] }

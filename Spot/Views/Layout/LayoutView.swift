@@ -20,6 +20,16 @@ struct LayoutView: View {
     let headerHeight: CGFloat = 52
     let footerHeight: CGFloat = 50
 
+    /// What the tab's page starts with, under the instrument: the Library's menu bar, the sequence's Now/Next header
+    /// (darkened over the page), or the page.
+    private var pageBelowInstrument: [Color] {
+        switch ui.tab {
+        case .Library: return [theme.card]
+        case .Sequence where session.sequence != nil: return [theme.page, Color.black.opacity(0.18)]
+        default: return [theme.page]
+        }
+    }
+
     var body: some View {
         @Bindable var ui = ui
 
@@ -43,6 +53,8 @@ struct LayoutView: View {
 
                 InstrumentView()
                     .environment(\.fretboardMaxHeight, 620)
+                    // Below it: the next chord's card (on the page), or the footer
+                    .environment(\.instrumentBase, sequenceOpen ? [theme.page] : [theme.footer])
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(theme.fretboardBackground, ignoresSafeAreaEdges: [])
 
@@ -53,6 +65,7 @@ struct LayoutView: View {
             } else {
                 if !ui.hidesFretboard {
                     InstrumentView()
+                        .environment(\.instrumentBase, pageBelowInstrument)
                         .frame(maxWidth: .infinity)
                         .background(theme.fretboardBackground, ignoresSafeAreaEdges: [])
                 }
