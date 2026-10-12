@@ -35,6 +35,12 @@ struct FretboardMarker: Identifiable {
     var ringDashed = false
     /// A dark edge on the label, to read across two colours (a split marker).
     var textShadow = false
+    /// Not in what's shown (unrelated notes, ⌘U): on the piano, just the label.
+    var isPlain = false
+    /// How much it's sounding now (0–1: a shape being heard): on the piano, the whole key washed with its colour.
+    var sounding: Double = 0
+    /// Ringed with a black middle (in the scale, not the chord): on the piano, a tint ringed in its colour.
+    var isRinged = false
 
     var id: FretPosition {
         marker.position
@@ -79,25 +85,33 @@ extension FretboardMarker {
         case .scale:
             self.init(marker: marker, label: label, ring: colour, fill: .black, text: .white,
                       isVisible: isVisible, scale: size, canSetFinger: canSetFinger, opacity: opacity, isRoot: isRoot)
+            isRinged = true
         }
     }
 
     /// A note outside what's shown (with unrelated notes on, ⌘U): plain.
     static func unrelated(_ marker: FretMarker, label: String, theme: Theme, isVisible: Bool) -> FretboardMarker {
         let ring = marker.position.fret == 0 ? theme.openMarkerColor : theme.defaultMarkerColor
-        return FretboardMarker(marker: marker, label: label, ring: ring, fill: ring,
-                               text: marker.position.fret == 0 ? .white : theme.fretboardColor,
-                               isVisible: isVisible, scale: 0.8)
+        var plain = FretboardMarker(marker: marker, label: label, ring: ring, fill: ring,
+                                    text: marker.position.fret == 0 ? .white : theme.fretboardColor,
+                                    isVisible: isVisible, scale: 0.8)
+        plain.isPlain = true
+        return plain
     }
 }
 
 /// Draws the neck and a set of markers. What the markers mean is up to the caller.
+/// With the piano chosen (DisplaySettings), the same markers on a keyboard instead.
 struct FretboardView: View {
     @Environment(\.theme) private var theme
     @Environment(PlaybackController.self) private var playback
+    @Environment(DisplaySettings.self) private var display
     @Environment(\.fretboardMaxHeight) private var maxHeight
     
-    @State private var guitarOpacity: CGFloat = 0.3
+    /// How strongly the neck (strings, frets, inlays) is drawn under the notes; the piano's key edges match it.
+    static let neckOpacity: CGFloat = 0.3
+
+    @State private var guitarOpacity: CGFloat = FretboardView.neckOpacity
     
     let fretboard: Fretboard
     let markers: [FretboardMarker]
@@ -107,6 +121,14 @@ struct FretboardView: View {
     let markerSize: CGFloat = 0.7 // TODO: Calculate this
 
     var body: some View {
+        if display.instrument == .piano {
+            PianoView(fretboard: fretboard, markers: markers, onTap: onTap)
+        } else {
+            neck
+        }
+    }
+
+    private var neck: some View {
         GeometryReader { geometry in
             let width = geometry.size.width
             let height = geometry.size.height
@@ -326,6 +348,212 @@ private struct FretMarkerView: View {
                     }
                 }
             }
+    }
+}
+
+// MARK: - Piano
+
+/// The fretboard's notes on a keyboard, across the guitar's range (whole octaves, from the C below the lowest open
+/// string): a pad at the tip of each key that sounds one, in the fretboard markers' colours, with its label. Where one
+/// pitch is on several frets, the key shows the most prominent of them (in the shape, being played), so a shape reads
+/// as its exact notes.
+/// - chord tones solid; the rest of the scale a tint ringed in its colour (as the fretboard rings them)
+/// - the root: a fine line inside its pad
+/// - being played: the whole key washed with the note's colour
+/// - a ring round the pad: in the next chord too (half the pad in what it becomes there); dashed: new with it
+/// - notes faint on the fretboard (away from the shape) faint here; unrelated ones (⌘U) just labelled
+/// The keys go back under the panel above, the black ones in the theme's ink and set off-centre as on a piano.
+/// Clicking a lit key does what clicking that fret does; ⌥-click plays any key.
+struct PianoView: View {
+    @Environment(\.theme) private var theme
+    @Environment(PlaybackController.self) private var playback
+    @Environment(\.fretboardMaxHeight) private var maxHeight
+
+    let fretboard: Fretboard
+    let markers: [FretboardMarker]
+    var onTap: (FretMarker) -> Void = { _ in }
+
+    var body: some View {
+        let notes = noteRange
+        let whites = notes.filter { !PianoView.isBlack($0) }
+        let byNote = markersByNote
+        GeometryReader { geometry in
+            let whiteWidth = geometry.size.width / CGFloat(max(whites.count, 1))
+            let height = geometry.size.height
+            let blackWidth = whiteWidth * 0.58
+            let blackHeight = height * 0.62
+
+            ZStack(alignment: .topLeading) {
+                ForEach(Array(whites.enumerated()), id: \.element) { index, note in
+                    whiteKey(note, marker: byNote[note], width: whiteWidth, height: height)
+                        .frame(width: whiteWidth, height: height)
+                        .offset(x: CGFloat(index) * whiteWidth)
+                }
+                // Each black key over the line between its two white keys, nudged as on a piano
+                ForEach(notes.filter(PianoView.isBlack), id: \.self) { note in
+                    let whitesBelow = whites.filter { $0 < note }.count
+                    blackKey(note, marker: byNote[note], width: blackWidth, height: blackHeight)
+                        .frame(width: blackWidth, height: blackHeight)
+                        .offset(x: CGFloat(whitesBelow) * whiteWidth - blackWidth / 2 + PianoView.nudge(note) * whiteWidth)
+                }
+                // The back of the keys goes under the panel above
+                LinearGradient(colors: [theme.fretboardColor.opacity(0.16), theme.fretboardColor.opacity(0)],
+                               startPoint: .top, endPoint: .bottom)
+                    .frame(height: 10)
+                    .allowsHitTesting(false)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: maxHeight)
+    }
+
+    private func whiteKey(_ note: Int, marker: FretboardMarker?, width: CGFloat, height: CGFloat) -> some View {
+        let shape = UnevenRoundedRectangle(bottomLeadingRadius: 6, bottomTrailingRadius: 6, style: .continuous)
+        let lit = marker.flatMap { $0.isPlain ? nil : $0 }
+        return shape
+            .fill(LinearGradient(colors: [Color(white: 0.985), Color(white: 0.955)], startPoint: .top, endPoint: .bottom))
+            .overlay { if let lit, lit.sounding > 0 { shape.fill(lit.ring.opacity(0.32 * lit.sounding)) } }
+            // Edged as the strings are drawn; open at the back, where the key goes under the panel
+            .overlay { KeyEdge(radius: 6).stroke(theme.stringColor.opacity(FretboardView.neckOpacity), lineWidth: 1) }
+            .overlay(alignment: .bottom) {
+                if let marker {
+                    pad(marker, onBlack: false, width: width - 6, height: min(44, height * 0.22))
+                        .padding(.bottom, 4)
+                } else if note == 60 {
+                    // Middle C named, to find your way
+                    Text("C4")
+                        .font(.system(size: 10, weight: .semibold, design: .rounded))
+                        .foregroundStyle(theme.fretboardColor.opacity(0.4))
+                        .padding(.bottom, 8)
+                }
+            }
+            .contentShape(Rectangle())
+            .onTapGesture { tapped(note, marker: marker) }
+    }
+
+    private func blackKey(_ note: Int, marker: FretboardMarker?, width: CGFloat, height: CGFloat) -> some View {
+        let shape = UnevenRoundedRectangle(bottomLeadingRadius: 4, bottomTrailingRadius: 4, style: .continuous)
+        let lit = marker.flatMap { $0.isPlain ? nil : $0 }
+        return shape
+            .fill(LinearGradient(colors: [theme.fretboardColor.opacity(0.92), theme.fretboardColor], startPoint: .top, endPoint: .bottom))
+            .overlay { if let lit, lit.sounding > 0 { shape.fill(lit.ring.opacity(0.4 * lit.sounding)) } }
+            // A lighter front edge, as a black key's sloped end catches the light
+            .overlay(alignment: .bottom) { shape.fill(Color.white.opacity(0.08)).frame(height: 6) }
+            .shadow(color: .black.opacity(0.22), radius: 2, x: 0, y: 1.5)
+            .overlay(alignment: .bottom) {
+                if let marker {
+                    pad(marker, onBlack: true, width: width - 4, height: min(40, height * 0.26))
+                        .padding(.bottom, 7)
+                }
+            }
+            .contentShape(Rectangle())
+            .onTapGesture { tapped(note, marker: marker) }
+    }
+
+    /// The note at a key's tip, as its fretboard marker shows it.
+    private func pad(_ marker: FretboardMarker, onBlack: Bool, width: CGFloat, height: CGFloat) -> some View {
+        let shape = RoundedRectangle(cornerRadius: 5, style: .continuous)
+        let plainText = onBlack ? Color.white : theme.fretboardColor
+        // A scale tone's marker is ringed with a black middle: here, a tint ringed in its colour
+        let isTint = marker.isRinged
+        return ZStack {
+            if !marker.isPlain {
+                if isTint {
+                    shape.fill(marker.ring.opacity(onBlack ? 0.5 : 0.22))
+                    shape.strokeBorder(marker.ring, lineWidth: 2)
+                } else {
+                    shape.fill(marker.fill)
+                    if let split = marker.split {
+                        // The right half: what it becomes in the next chord
+                        shape.fill(split).mask { HStack(spacing: 0) { Color.clear; Color.black } }
+                    }
+                    if marker.ringDashed {
+                        shape.strokeBorder(marker.ring, style: StrokeStyle(lineWidth: 2, dash: [4, 3]))
+                    }
+                }
+                if marker.isRoot {
+                    shape.inset(by: 2.5).strokeBorder(Color.white.opacity(0.7), lineWidth: 1)
+                }
+                // In the next chord too (not being played: that washes the whole key)
+                if let halo = marker.halo, marker.sounding == 0 {
+                    shape.inset(by: -3).strokeBorder(halo, style: StrokeStyle(lineWidth: 2, dash: marker.haloDashed ? [3, 2.5] : []))
+                }
+            }
+            Text(marker.label)
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .foregroundStyle(marker.isPlain ? plainText.opacity(0.45) : (isTint ? plainText : marker.text))
+                .shadow(color: .black.opacity(marker.textShadow ? 0.9 : 0), radius: 1.2)
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+                .padding(.horizontal, 2)
+        }
+        .frame(width: max(1, width), height: height)
+        .opacity(marker.isPlain ? 1 : marker.opacity)
+    }
+
+    private func tapped(_ note: Int, marker: FretboardMarker?) {
+        // ⌥-click always plays the note
+        if NSEvent.modifierFlags.contains(.option) {
+            playback.previewNote(note)
+        } else if let marker {
+            onTap(marker.marker)
+        }
+    }
+
+    /// Black keys sit off-centre, as on a piano: C♯ and D♯ apart, F♯ and A♯ out from G♯ (in white keys).
+    private static func nudge(_ note: Int) -> CGFloat {
+        switch ((note % 12) + 12) % 12 {
+        case 1: return -0.08
+        case 3: return 0.08
+        case 6: return -0.1
+        case 10: return 0.1
+        default: return 0
+        }
+    }
+
+    /// Whole octaves covering every note on the neck.
+    private var noteRange: [Int] {
+        let open = (0..<fretboard.stringCount).map { fretboard.midiNote(at: FretPosition(string: $0, fret: 0)) }
+        let top = (0..<fretboard.stringCount).map { fretboard.midiNote(at: FretPosition(string: $0, fret: fretboard.fretCount)) }
+        let low = open.min() ?? 40, high = top.max() ?? 88
+        return Array((low - low % 12)...(high + 11 - high % 12))
+    }
+
+    /// For each pitch, the most prominent of its markers (the strongest look, then any extra ring).
+    private var markersByNote: [Int: FretboardMarker] {
+        var best: [Int: FretboardMarker] = [:]
+        for marker in markers where marker.isVisible && marker.opacity > 0.01 {
+            let note = fretboard.midiNote(at: marker.marker.position)
+            if let current = best[note], PianoView.weight(current) >= PianoView.weight(marker) { continue }
+            best[note] = marker
+        }
+        return best
+    }
+
+    private static func weight(_ marker: FretboardMarker) -> Double {
+        marker.isPlain ? 0 : marker.opacity * Double(marker.scale) + (marker.halo != nil ? 0.5 : 0) + 0.01
+    }
+
+    static func isBlack(_ note: Int) -> Bool {
+        [1, 3, 6, 8, 10].contains(((note % 12) + 12) % 12)
+    }
+}
+
+/// A piano key's edge: down its sides and round its front, open at the back. Drawn half a point in, so a 1-point
+/// line sits inside the key.
+private struct KeyEdge: SwiftUI.Shape {
+    var radius: CGFloat = 5
+
+    func path(in rect: CGRect) -> Path {
+        let rect = rect.insetBy(dx: 0.5, dy: 0)
+        let bottom = rect.maxY - 0.5
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.minX, y: bottom - radius))
+        path.addQuadCurve(to: CGPoint(x: rect.minX + radius, y: bottom), control: CGPoint(x: rect.minX, y: bottom))
+        path.addLine(to: CGPoint(x: rect.maxX - radius, y: bottom))
+        path.addQuadCurve(to: CGPoint(x: rect.maxX, y: bottom - radius), control: CGPoint(x: rect.maxX, y: bottom))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        return path
     }
 }
 

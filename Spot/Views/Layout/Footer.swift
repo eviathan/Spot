@@ -19,6 +19,7 @@ struct Footer: View {
     @Environment(UIState.self) private var ui
     @Environment(LibraryStore.self) private var library
     @Environment(PlaybackController.self) private var playback
+    @Environment(DisplaySettings.self) private var display
     @State private var previousBPMChangeValue: CGFloat = 0
     @State private var isPickingKey = false
     @State private var isPickingSpeed = false
@@ -158,6 +159,19 @@ struct Footer: View {
             .help(ui.tab == .Tab
                   ? (ui.hidesFretboard ? "Show the fretboard (⇧⌘F)" : "Just the tab: hide the fretboard (⇧⌘F)")
                   : (ui.showsFretboardOnly ? "Show the panel below the fretboard (⇧⌘F)" : "Just the fretboard: hide the panel below it (⇧⌘F)"))
+            // The notes on the guitar's neck or on a piano
+            Button {
+                display.instrument = display.instrument == .piano ? .guitar : .piano
+            } label: {
+                Image(systemName: display.instrument == .piano ? "guitars" : "pianokeys")
+                    .font(.system(size: 17))
+                    .foregroundColor(ui.tab == .Settings ? dimmed : .white)
+                    .frame(width: 30, height: 30)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(ui.tab == .Settings)
+            .help(display.instrument == .piano ? "Show the fretboard (⌥⌘K)" : "Show the notes on a piano (⌥⌘K)")
             Spacer()
             Transport()
             Spacer()

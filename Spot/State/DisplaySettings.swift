@@ -18,6 +18,12 @@ enum MarkerLabel: String, CaseIterable {
     }
 }
 
+/// What the notes are shown on.
+enum InstrumentKind: String {
+    case guitar
+    case piano
+}
+
 /// How the instrument is drawn. Saved between launches.
 @Observable
 final class DisplaySettings {
@@ -36,6 +42,11 @@ final class DisplaySettings {
         didSet { defaults.set(isolatePosition, forKey: "display.isolatePosition") }
     }
 
+    /// The fretboard, or the same notes on a piano.
+    var instrument: InstrumentKind {
+        didSet { defaults.set(instrument.rawValue, forKey: "display.instrument") }
+    }
+
     @ObservationIgnored private let defaults: UserDefaults
 
     init(defaults: UserDefaults = .standard) {
@@ -44,5 +55,6 @@ final class DisplaySettings {
         hideUnrelatedNotes = defaults.bool(forKey: "display.hideUnrelatedNotes")
         highlightAllPositions = defaults.bool(forKey: "display.highlightAllPositions")
         isolatePosition = defaults.bool(forKey: "display.isolatePosition")
+        instrument = defaults.string(forKey: "display.instrument").flatMap(InstrumentKind.init) ?? .guitar
     }
 }

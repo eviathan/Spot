@@ -405,6 +405,10 @@ struct SpotApp: App {
             }
 
             CommandGroup(before: .toolbar) {
+                Button(display.instrument == .piano ? "Show Fretboard" : "Show Piano") {
+                    display.instrument = display.instrument == .piano ? .guitar : .piano
+                }
+                .keyboardShortcut("k", modifiers: [.command, .option])
                 Button("Toggle Unrelated Notes") {
                     // (Notes fade and grow or shrink between the two, rather than jumping)
                     withAnimation(.easeInOut(duration: 0.3)) { display.hideUnrelatedNotes.toggle() }

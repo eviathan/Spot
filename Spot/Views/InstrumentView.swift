@@ -90,6 +90,7 @@ struct LibraryFretboard: View {
             lit.scale *= 1 + 0.3 * level
             lit.halo = Color.white.opacity(level)
             lit.haloWidth = 3
+            lit.sounding = level
             lit.haloDashed = false
             return lit
         }
