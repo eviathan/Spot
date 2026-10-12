@@ -11,6 +11,8 @@ import AudioToolbox
 /// Takes the same MIDI messages Spot sends out, at the same times.
 public final class SoftSynth {
     private let engine: AVAudioEngine
+    /// Where it's played (see EngineOutput); nil when rendering offline (tests).
+    private let output: EngineOutput?
     private let instrument: AVAudioUnitMIDIInstrument
     public private(set) var soundBank: URL?
     private let scheduleBlock: AUScheduleMIDIEventBlock?
@@ -23,6 +25,8 @@ public final class SoftSynth {
     /// `engine`: a new one by default (started here); tests pass one in manual rendering mode.
     public init(engine: AVAudioEngine = AVAudioEngine(), start: Bool = true) throws {
         self.engine = engine
+        let output = start && !engine.isInManualRenderingMode ? try EngineOutput(engine: engine) : nil
+        self.output = output
         let description = AudioComponentDescription(componentType: kAudioUnitType_MusicDevice,
                                                     componentSubType: kAudioUnitSubType_DLSSynth,
                                                     componentManufacturer: kAudioUnitManufacturer_Apple,
@@ -35,12 +39,15 @@ public final class SoftSynth {
         let sampleRate = engine.mainMixerNode.outputFormat(forBus: 0).sampleRate
         let pending = self.pending
         let schedule = scheduleBlock
+        let renderTime = output?.renderTime
         // Just before each buffer is rendered (on the audio thread): hand over the events due in it
         observer = instrument.auAudioUnit.token(byAddingRenderObserver: { flags, timestamp, frames, _ in
             guard flags.contains(.unitRenderAction_PreRender), !pending.isEmpty, let schedule else { return }
             // The buffer's time; offline (in tests) there's none, so now
+            // (Played through an output of our own, the time comes from there)
             let stamp = timestamp.pointee
-            let start = stamp.mFlags.contains(.hostTimeValid) && stamp.mHostTime > 0 ? stamp.mHostTime : HostTime.now
+            let start = renderTime?.hostTime
+                ?? (stamp.mFlags.contains(.hostTimeValid) && stamp.mHostTime > 0 ? stamp.mHostTime : HostTime.now)
             let end = HostTime.adding(Double(frames) / sampleRate, to: start)
             for (time, bytes) in pending.take(before: end) {
                 let offset = time > start ? HostTime.seconds(from: start, to: time) * sampleRate : 0
@@ -49,7 +56,9 @@ public final class SoftSynth {
                 }
             }
         })
-        if start {
+        if let output {
+            try output.start()
+        } else if start {
             try engine.start()
         }
         resetChannels()
@@ -57,6 +66,7 @@ public final class SoftSynth {
 
     deinit {
         if let observer { instrument.auAudioUnit.removeRenderObserver(observer) }
+        output?.stop()
         engine.stop()
     }
 

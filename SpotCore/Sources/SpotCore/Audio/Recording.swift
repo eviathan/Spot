@@ -181,12 +181,15 @@ public final class InputRecorder {
 /// Plays one recorded take at an exact time, optionally at a different speed (without changing pitch).
 public final class TakePlayer {
     private let engine = AVAudioEngine()
+    /// Where it's played (see EngineOutput).
+    private let output: EngineOutput
     private let player = AVAudioPlayerNode()
     private let timePitch = AVAudioUnitTimePitch()
     private let file: AVAudioFile
 
     public init(url: URL) throws {
         file = try AVAudioFile(forReading: url)
+        output = try EngineOutput(engine: engine)
         engine.attach(player)
         engine.attach(timePitch)
         engine.connect(player, to: timePitch, format: file.processingFormat)
@@ -202,13 +205,12 @@ public final class TakePlayer {
         player.stop()
         let start = AVAudioFramePosition(max(0, offset) * file.processingFormat.sampleRate)
         guard start < file.length else { return }
-        if !engine.isRunning {
-            try engine.start()
-        }
+        try output.start()
         timePitch.rate = min(max(rate, 0.25), 2)
         player.volume = volume
         player.scheduleSegment(file, startingFrame: start, frameCount: AVAudioFrameCount(file.length - start), at: nil)
-        player.play(at: AVAudioTime(hostTime: hostTime))
+        // (In the engine's time: in manual rendering there's no host time)
+        player.play(at: AVAudioTime(sampleTime: output.sampleTime(forHostTime: hostTime), atRate: output.sampleRate))
     }
 
     public func stop() {

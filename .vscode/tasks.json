@@ -20,6 +20,17 @@
             "problemMatcher": []
         },
         {
+            // Without the debugger: pausing Spot's audio thread at launch, or killing it at the end, pops other apps' sound
+            "label": "Run Spot",
+            "type": "shell",
+            "command": "open",
+            "args": [
+                "${workspaceFolder}/build/Build/Products/Debug/Spot.app"
+            ],
+            "dependsOn": "Build Spot",
+            "problemMatcher": []
+        },
+        {
             "label": "Test SpotCore",
             "type": "shell",
             "command": "swift",

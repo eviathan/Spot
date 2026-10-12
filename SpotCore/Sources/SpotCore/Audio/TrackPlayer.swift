@@ -17,6 +17,8 @@ public final class TrackPlayer {
     static let fadeLength = 0.005
 
     private let engine = AVAudioEngine()
+    /// Where it's played (see EngineOutput).
+    private let output: EngineOutput?
     private let timePitch = AVAudioUnitTimePitch()
     private var node: AVAudioSourceNode?
     private var format: AVAudioFormat?
@@ -43,6 +45,7 @@ public final class TrackPlayer {
 
     public init() {
         renderer = Renderer(commands: commands)
+        output = try? EngineOutput(engine: engine)
         engine.attach(timePitch)
     }
 
@@ -85,9 +88,8 @@ public final class TrackPlayer {
         if format != self.format {
             connect(format)
         }
-        if !engine.isRunning {
-            try engine.start()
-        }
+        guard let output else { throw CocoaError(.featureUnsupported) }
+        try output.start()
         if let current {
             retire(current)
         }
@@ -97,7 +99,7 @@ public final class TrackPlayer {
 
     /// A source node for recordings in `format`. The renderer carries on across it, so what's playing keeps going.
     private func connect(_ format: AVAudioFormat) {
-        engine.stop()
+        output?.stop()
         if let node {
             engine.disconnectNodeOutput(node)
             engine.detach(node)
@@ -105,8 +107,15 @@ public final class TrackPlayer {
         engine.disconnectNodeOutput(timePitch)
         let renderer = renderer
         let sampleRate = format.sampleRate
+        let renderTime = output?.renderTime
         let node = AVAudioSourceNode(format: format) { _, timestamp, frameCount, buffers in
-            renderer.render(timestamp.pointee, frames: Int(frameCount), sampleRate: sampleRate,
+            // When this buffer will be heard: from the output (the engine's own timestamps have no host time)
+            var time = timestamp.pointee
+            if let renderTime {
+                time.mHostTime = renderTime.hostTime
+                time.mFlags.insert(.hostTimeValid)
+            }
+            renderer.render(time, frames: Int(frameCount), sampleRate: sampleRate,
                             into: UnsafeMutableAudioBufferListPointer(buffers))
             return noErr
         }
