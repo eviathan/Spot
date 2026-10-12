@@ -55,6 +55,7 @@ struct LayoutView: View {
                     .environment(\.fretboardMaxHeight, 620)
                     // Below it: the next chord's card (with no background of its own, so on the window's), or the footer
                     .environment(\.instrumentBase, sequenceOpen ? [Color(nsColor: .windowBackgroundColor)] : [theme.footer])
+                    .environment(\.instrumentFillsHeight, true)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(theme.fretboardBackground, ignoresSafeAreaEdges: [])
 

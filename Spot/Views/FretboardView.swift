@@ -369,6 +369,7 @@ struct PianoView: View {
     @Environment(PlaybackController.self) private var playback
     @Environment(\.fretboardMaxHeight) private var maxHeight
     @Environment(\.instrumentBase) private var base
+    @Environment(\.instrumentFillsHeight) private var fillsHeight
 
     let fretboard: Fretboard
     let markers: [FretboardMarker]
@@ -411,7 +412,8 @@ struct PianoView: View {
             }
             .frame(height: 8)
         }
-        .frame(maxWidth: .infinity, maxHeight: maxHeight)
+        // Expanded: top to bottom, so its keys meet the views above and below
+        .frame(maxWidth: .infinity, maxHeight: fillsHeight ? .infinity : maxHeight)
     }
 
     private func whiteKey(_ note: Int, marker: FretboardMarker?, width: CGFloat, height: CGFloat) -> some View {
@@ -583,12 +585,23 @@ private struct InstrumentBaseKey: EnvironmentKey {
     static let defaultValue: [Color] = []
 }
 
+private struct InstrumentFillsHeightKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
 extension EnvironmentValues {
     /// The view the instrument sits on (its colour, in layers from the bottom): the piano's keys come down over it,
     /// so it shows between their rounded fronts.
     var instrumentBase: [Color] {
         get { self[InstrumentBaseKey.self] }
         set { self[InstrumentBaseKey.self] = newValue }
+    }
+
+    /// The instrument has the window to itself (expanded): the piano runs from the view above to the one below,
+    /// rather than stopping at `fretboardMaxHeight` with a gap round it.
+    var instrumentFillsHeight: Bool {
+        get { self[InstrumentFillsHeightKey.self] }
+        set { self[InstrumentFillsHeightKey.self] = newValue }
     }
 
     /// How tall a fretboard may grow: taller when it has the window to itself.
